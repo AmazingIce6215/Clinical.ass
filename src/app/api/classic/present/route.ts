@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
 import type { ClassicPresentation, PatientCase } from "@/lib/types";
 
+export const maxDuration = 60;
+
 const SYSTEM = `You are a medical educator helping students prepare ward-round case presentations.
 Return ONLY valid JSON:
 {
@@ -27,6 +29,7 @@ export async function POST(request: Request) {
       AI_MODELS.smart,
       SYSTEM,
       userPrompt,
+      { fallbackModel: AI_MODELS.fast },
     );
 
     if (!result.data) {
@@ -36,10 +39,17 @@ export async function POST(request: Request) {
         keyPoints: ["Complete history collected", "Add GROQ_API_KEY for AI-generated presentation"],
         suggestedQuestions: ["What is your leading diagnosis?", "What investigations would you order?"],
       };
-      return NextResponse.json({ presentation: fallback, aiPowered: false });
+      return NextResponse.json({
+        presentation: fallback,
+        aiPowered: false,
+        aiError: result.error?.message,
+      });
     }
 
-    return NextResponse.json({ presentation: result.data, aiPowered: true });
+    return NextResponse.json({
+      presentation: result.data,
+      aiPowered: true,
+    });
   } catch (error) {
     console.error("Presentation error:", error);
     return NextResponse.json({ error: "Failed to generate presentation" }, { status: 500 });

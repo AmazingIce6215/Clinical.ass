@@ -7,9 +7,23 @@ export const AI_MODELS = {
   smart: "llama-3.3-70b-versatile",
 } as const;
 
+const PLACEHOLDER_KEYS = new Set([
+  "",
+  "your_groq_api_key_here",
+  "gsk_your_groq_api_key_here",
+  "changeme",
+  "replace_me",
+]);
+
+export function isGroqConfigured(): boolean {
+  const apiKey = process.env.GROQ_API_KEY?.trim();
+  if (!apiKey) return false;
+  return !PLACEHOLDER_KEYS.has(apiKey.toLowerCase());
+}
+
 export function getGroqClient() {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return null;
+  if (!isGroqConfigured()) return null;
+  const apiKey = process.env.GROQ_API_KEY!.trim();
   if (!client) client = new Groq({ apiKey });
   return client;
 }
@@ -19,14 +33,20 @@ export interface AiResult<T> {
   error?: { message: string };
 }
 
-export async function aiJsonCompletion<T>(
+async function runCompletion<T>(
   model: string,
   system: string,
   user: string,
 ): Promise<AiResult<T>> {
   const groq = getGroqClient();
   if (!groq) {
-    return { data: null, error: { message: "GROQ_API_KEY not configured" } };
+    return {
+      data: null,
+      error: {
+        message:
+          "GROQ_API_KEY is not configured. Add it in Vercel Project Settings → Environment Variables.",
+      },
+    };
   }
 
   try {
@@ -49,6 +69,27 @@ export async function aiJsonCompletion<T>(
     const message = err instanceof Error ? err.message : "AI request failed";
     return { data: null, error: { message } };
   }
+}
+
+export async function aiJsonCompletion<T>(
+  model: string,
+  system: string,
+  user: string,
+  options?: { fallbackModel?: string },
+): Promise<AiResult<T>> {
+  const primary = await runCompletion<T>(model, system, user);
+  if (primary.data) return primary;
+
+  const fallbackModel = options?.fallbackModel;
+  if (!fallbackModel || fallbackModel === model) return primary;
+
+  const fallback = await runCompletion<T>(fallbackModel, system, user);
+  if (fallback.data) return fallback;
+
+  return {
+    data: null,
+    error: fallback.error ?? primary.error ?? { message: "AI request failed" },
+  };
 }
 
 function parseJsonString(raw: string): unknown {

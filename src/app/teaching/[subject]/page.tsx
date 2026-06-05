@@ -23,11 +23,13 @@ export default function SubjectCasePage({
   const [teachingCase, setTeachingCase] = useState<GeneratedTeachingCase | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
 
   const generateCase = useCallback(async () => {
     if (!subjectInfo) return;
     setLoading(true);
     setError(null);
+    setAiNotice(null);
     setTeachingCase(null);
 
     try {
@@ -50,6 +52,9 @@ export default function SubjectCasePage({
       }
 
       setTeachingCase(data.case);
+      if (!data.aiPowered && data.aiError) {
+        setAiNotice(data.aiError);
+      }
     } catch {
       setError("Network error — check your connection");
     } finally {
@@ -98,11 +103,20 @@ export default function SubjectCasePage({
   if (!teachingCase) return null;
 
   return (
-    <CasePlayer
-      teachingCase={teachingCase}
-      backHref="/teaching"
-      showNewCase
-      onNewCase={generateCase}
-    />
+    <>
+      {aiNotice && (
+        <div className="fixed inset-x-0 top-4 z-50 mx-auto max-w-2xl px-4">
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 backdrop-blur-md dark:text-amber-100">
+            {aiNotice}
+          </div>
+        </div>
+      )}
+      <CasePlayer
+        teachingCase={teachingCase}
+        backHref="/teaching"
+        showNewCase
+        onNewCase={generateCase}
+      />
+    </>
   );
 }

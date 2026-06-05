@@ -89,6 +89,10 @@ export function useCaseWizard(mode: Mode) {
           body: JSON.stringify({ patientCase: caseData, draft }),
           signal: controller.signal,
         });
+        if (!res.ok) {
+          setAiError("AI differentials request failed");
+          return;
+        }
         const data = await res.json();
         setAiError(data.aiError ?? null);
         if (data.insight) setAiInsight(data.insight);
@@ -108,7 +112,7 @@ export function useCaseWizard(mode: Mode) {
       if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current);
       aiDebounceRef.current = setTimeout(() => {
         fetchAiInsight(caseData, draft);
-      }, 650);
+      }, 1000);
     },
     [mode, fetchAiInsight],
   );
@@ -179,6 +183,12 @@ export function useCaseWizard(mode: Mode) {
         body: JSON.stringify({ patientCase: caseData }),
       });
       const data = await res.json();
+      if (!res.ok || !data.diagnosis) {
+        setAiError(data.aiError ?? data.error ?? "Failed to generate diagnosis");
+        setDiagnosis(data.diagnosis ?? null);
+        if (data.diagnosis) setPhase("results");
+        return;
+      }
       setAiError(data.aiError ?? null);
       setDiagnosis(data.diagnosis);
       setPhase("results");
@@ -196,11 +206,12 @@ export function useCaseWizard(mode: Mode) {
         body: JSON.stringify({ patientCase: caseData }),
       });
       const data = await res.json();
-      if (!data?.presentation) {
-        throw new Error("Presentation response missing");
+      if (!res.ok || !data?.presentation) {
+        throw new Error(data?.error ?? "Presentation response missing");
       }
       setPresentation(data.presentation);
       setPresentationAiPowered(Boolean(data.aiPowered));
+      if (data.aiError) setAiError(data.aiError);
       setPhase("presentation");
     } catch {
       setPresentation({

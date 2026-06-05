@@ -67,7 +67,7 @@ export function diagnosisToInsight(diagnosis: DiagnosisResult): ClinicalAiInsigh
     return Math.max(10, base - index * 8);
   };
 
-  const differentials = diagnosis.differentials.map((d, i) => ({
+  const differentials = (diagnosis.differentials ?? []).map((d, i) => ({
     diagnosis: d.diagnosis,
     likelihood:
       likelihoodMap[d.likelihood.toLowerCase()] ??
@@ -78,29 +78,28 @@ export function diagnosisToInsight(diagnosis: DiagnosisResult): ClinicalAiInsigh
       : confidenceFromLikelihood(d.likelihood, i),
   }));
 
+  const redFlags = diagnosis.redFlags ?? [];
   const urgency: ClinicalAiInsight["urgency"] =
-    diagnosis.redFlags.length > 0 &&
-    (Array.isArray(diagnosis.redFlags)
-      ? diagnosis.redFlags.some((r) =>
-          typeof r === "string"
-            ? /shock|airway|unconscious|hemodynamic/i.test(r)
-            : /shock|airway|unconscious|hemodynamic/i.test(r.flag),
-        )
-      : false)
+    redFlags.length > 0 &&
+    redFlags.some((r) =>
+      typeof r === "string"
+        ? /shock|airway|unconscious|hemodynamic/i.test(r)
+        : /shock|airway|unconscious|hemodynamic/i.test(r.flag),
+    )
       ? "emergency"
-      : differentials[0]?.likelihood === "high"
-        ? "stable"
-        : "stable";
+      : "stable";
 
   return {
-    leadingDiagnosis: diagnosis.primaryDiagnosis,
-    reasoning: diagnosis.clinicalReasoningSummary,
+    leadingDiagnosis: diagnosis.primaryDiagnosis || "Clinical correlation needed",
+    reasoning:
+      diagnosis.clinicalReasoningSummary ||
+      "Complete the workup to refine the leading diagnosis.",
     urgency,
     differentials,
-    suggestedInvestigations: diagnosis.investigations.slice(0, 4).map((test) => ({
+    suggestedInvestigations: (diagnosis.investigations ?? []).slice(0, 4).map((test) => ({
       test,
       rationale: "Supports or excludes leading differentials",
     })),
-    nextClinicalFocus: diagnosis.teachingPoints[0],
+    nextClinicalFocus: diagnosis.teachingPoints?.[0],
   };
 }

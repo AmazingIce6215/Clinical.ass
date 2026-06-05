@@ -25,8 +25,9 @@ Open [http://localhost:3000](http://localhost:3000)
 
 1. Push this repo to GitHub
 2. Import at [vercel.com](https://vercel.com)
-3. Add environment variable: `GROQ_API_KEY` = your key
-4. Deploy
+3. Add environment variable: `GROQ_API_KEY` = your key (Production + Preview)
+4. Redeploy after adding the variable
+5. Verify at `/api/health` — should return `{ "groqConfigured": true }`
 
 ## Disclaimer
 

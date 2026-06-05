@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
+import { getFallbackTeachingCase } from "@/lib/teaching-fallback";
 import { getSubject } from "@/lib/teaching-subjects";
 import type { GeneratedTeachingCase } from "@/lib/types";
+
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
@@ -64,13 +67,15 @@ Seed for uniqueness: ${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     const generated = await aiJsonCompletion<
       Omit<GeneratedTeachingCase, "id" | "subject" | "subjectName" | "generatedAt">
-    >(AI_MODELS.smart, systemPrompt, userPrompt);
+    >(AI_MODELS.smart, systemPrompt, userPrompt, { fallbackModel: AI_MODELS.fast });
 
-    if (!generated.data?.questions?.length) {
-      return NextResponse.json(
-        { error: "AI failed to generate case. Check GROQ_API_KEY." },
-        { status: 503 },
-      );
+    if (!generated.data?.questions || generated.data.questions.length < 3) {
+      const fallback = getFallbackTeachingCase(subject, subjectInfo.name);
+      return NextResponse.json({
+        case: fallback,
+        aiPowered: false,
+        aiError: generated.error?.message ?? "AI failed to generate a full teaching case",
+      });
     }
 
     const caseData: GeneratedTeachingCase = {
@@ -80,7 +85,7 @@ Seed for uniqueness: ${Date.now()}-${Math.random().toString(36).slice(2)}`;
       title: generated.data.title,
       difficulty: generated.data.difficulty ?? "medium",
       vignette: generated.data.vignette,
-      questions: generated.data.questions.map((q, i) => ({
+      questions: generated.data.questions.slice(0, 3).map((q, i) => ({
         ...q,
         id: q.id ?? `q${i + 1}`,
         vignette: q.vignette || generated.data!.vignette,

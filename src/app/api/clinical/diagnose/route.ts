@@ -4,6 +4,8 @@ import { buildClinicalAiContext, CLINICAL_DIAGNOSIS_SYSTEM } from "@/lib/clinica
 import { getFallbackDiagnosis } from "@/lib/clinical-fallback";
 import type { DiagnosisResult, PatientCase } from "@/lib/types";
 
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { patientCase: PatientCase };
@@ -16,11 +18,16 @@ export async function POST(request: Request) {
       AI_MODELS.smart,
       CLINICAL_DIAGNOSIS_SYSTEM,
       userPrompt,
+      { fallbackModel: AI_MODELS.fast },
     );
 
     const diagnosis = result.data ?? getFallbackDiagnosis(patientCase);
 
-    return NextResponse.json({ diagnosis, aiPowered: !!result.data, aiError: result.error?.message });
+    return NextResponse.json({
+      diagnosis,
+      aiPowered: !!result.data,
+      aiError: result.error?.message,
+    });
   } catch (error) {
     console.error("Diagnosis error:", error);
     return NextResponse.json({ error: "Failed to generate diagnosis" }, { status: 500 });

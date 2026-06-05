@@ -4,7 +4,7 @@ export function getFallbackDiagnosis(patientCase: PatientCase): DiagnosisResult 
   const complaints = patientCase.chiefComplaints.join(", ") || "unspecified symptoms";
 
   return {
-    primaryDiagnosis: "Requires clinical correlation — add GROQ_API_KEY for AI diagnosis",
+    primaryDiagnosis: "Requires clinical correlation — configure GROQ_API_KEY on Vercel",
     clinicalReasoningSummary: `Based on ${complaints} in a ${patientCase.age ?? "?"}-year-old patient, further correlation is needed.`,
     differentials: [
       {
@@ -37,7 +37,7 @@ export function getFallbackDiagnosis(patientCase: PatientCase): DiagnosisResult 
     ],
     teachingPoints: [
       "Construct a prioritized differential before ordering tests.",
-      "Add GROQ_API_KEY to enable AI-powered reasoning.",
+      "Add GROQ_API_KEY in Vercel environment variables to enable AI-powered reasoning.",
     ],
   };
 }

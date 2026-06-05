@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
@@ -37,11 +37,10 @@ const modes = [
 
 export default function HomePage() {
   const { session } = useAuth();
-  const [greeting, setGreeting] = useState(() => getPersonalGreeting(session?.firstName ?? ""));
-
-  useEffect(() => {
-    setGreeting(getPersonalGreeting(session?.firstName ?? ""));
-  }, [session]);
+  const greeting = useMemo(
+    () => getPersonalGreeting(session?.firstName ?? ""),
+    [session?.firstName],
+  );
 
   return (
     <AppShell>
@@ -60,7 +59,7 @@ export default function HomePage() {
               {greeting}
             </p>
             <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
-              Welcome to Clinicalass.
+              Welcome to Clincalass.
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-lg font-medium text-muted sm:text-xl">
               A personalized AI companion for clinical reasoning, case review, and medical learning.
