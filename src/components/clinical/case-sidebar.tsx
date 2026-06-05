@@ -10,11 +10,6 @@ export function CaseSidebar({
   aiInsight,
   aiInsightIsLocal,
   aiError,
-  coPilotInsight,
-  coPilotLoading,
-  coPilotError,
-  coPilotStale,
-  onAnalyzeCoPilot,
   minimizeAi = false,
   className,
 }: {
@@ -22,18 +17,12 @@ export function CaseSidebar({
   aiInsight?: ClinicalAiInsight | null;
   aiInsightIsLocal?: boolean;
   aiError?: string | null;
-  coPilotInsight?: CoPilotInsight | null;
-  coPilotLoading?: boolean;
-  coPilotError?: string | null;
-  coPilotStale?: boolean;
-  onAnalyzeCoPilot?: () => void;
   minimizeAi?: boolean;
   className?: string;
 }) {
   const [userExpanded, setUserExpanded] = useState(false);
 
   const showAiSection = aiError || aiInsight;
-  const showCoPilotSection = typeof onAnalyzeCoPilot === "function";
   const aiCollapsed = minimizeAi && !userExpanded && Boolean(aiInsight);
 
   const aiPanel = aiError ? (
@@ -69,31 +58,9 @@ export function CaseSidebar({
         </div>
       )}
 
-      {showCoPilotSection && (
-        <div className="mb-4 lg:hidden">
-          <CoPilotPanel
-            insight={coPilotInsight}
-            loading={coPilotLoading}
-            error={coPilotError}
-            stale={coPilotStale}
-            onAnalyze={onAnalyzeCoPilot}
-          />
-        </div>
-      )}
-
       <aside className={cn("hidden w-80 shrink-0 flex-col gap-4 lg:flex", className)}>
         <div className="sticky top-6 space-y-4">
           {showAiSection ? aiPanel : null}
-
-          {showCoPilotSection ? (
-            <CoPilotPanel
-              insight={coPilotInsight}
-              loading={coPilotLoading}
-              error={coPilotError}
-              stale={coPilotStale}
-              onAnalyze={onAnalyzeCoPilot}
-            />
-          ) : null}
 
           <SidebarCard title="Case summary">
             <SummaryRow label="Patient" value={patientCase.name || "—"} />
@@ -134,6 +101,48 @@ export function CaseSidebar({
               ))}
             </SidebarCard>
           )}
+        </div>
+      </aside>
+    </>
+  );
+}
+
+export function CoPilotSidebar({
+  insight,
+  loading,
+  error,
+  stale,
+  onAnalyze,
+  className,
+}: {
+  insight?: CoPilotInsight | null;
+  loading?: boolean;
+  error?: string | null;
+  stale?: boolean;
+  onAnalyze?: () => void;
+  className?: string;
+}) {
+  return (
+    <>
+      <div className="mb-4 lg:hidden">
+        <CoPilotPanel
+          insight={insight}
+          loading={loading}
+          error={error}
+          stale={stale}
+          onAnalyze={onAnalyze}
+        />
+      </div>
+
+      <aside className={cn("hidden w-80 shrink-0 flex-col gap-4 lg:flex", className)}>
+        <div className="sticky top-6 space-y-4">
+          <CoPilotPanel
+            insight={insight}
+            loading={loading}
+            error={error}
+            stale={stale}
+            onAnalyze={onAnalyze}
+          />
         </div>
       </aside>
     </>

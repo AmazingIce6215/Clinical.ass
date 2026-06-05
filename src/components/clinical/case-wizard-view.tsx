@@ -8,7 +8,7 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from "@/components/app-shell";
-import { CaseSidebar } from "@/components/clinical/case-sidebar";
+import { CaseSidebar, CoPilotSidebar } from "@/components/clinical/case-sidebar";
 import { DiagnosisLoadingOverlay } from "@/components/clinical/diagnosis-loading-overlay";
 import { ReasonBanner, StepInput } from "@/components/clinical/step-input";
 import { FadeSlide, ProgressBar } from "@/components/motion";
@@ -227,12 +227,15 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
               ? undefined
               : w.aiError
           }
-          coPilotInsight={isClassic ? undefined : w.coPilotInsight}
-          coPilotLoading={isClassic ? undefined : w.coPilotLoading}
-          coPilotError={isClassic ? undefined : w.coPilotError}
-          coPilotStale={isClassic ? undefined : w.coPilotStale}
-          onAnalyzeCoPilot={isClassic ? undefined : w.analyzeCoPilot}
           minimizeAi={!isClassic && w.phase === "results"}
+        />
+
+        <CoPilotSidebar
+          insight={isClassic ? undefined : w.coPilotInsight}
+          loading={isClassic ? undefined : w.coPilotLoading}
+          error={isClassic ? undefined : w.coPilotError}
+          stale={isClassic ? undefined : w.coPilotStale}
+          onAnalyze={isClassic ? undefined : w.analyzeCoPilot}
         />
       </div>
     </AppShell>
