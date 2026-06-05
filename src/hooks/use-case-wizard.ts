@@ -62,6 +62,7 @@ export function useCaseWizard(mode: Mode) {
   const [saved, setSaved] = useState(false);
   const [aiInsight, setAiInsight] = useState<ClinicalAiInsight | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const aiDiagnosisPreview = useRef<DiagnosisResult | null>(null);
   const aiAbortRef = useRef<AbortController | null>(null);
   const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -89,6 +90,7 @@ export function useCaseWizard(mode: Mode) {
           signal: controller.signal,
         });
         const data = await res.json();
+        setAiError(data.aiError ?? null);
         if (data.insight) setAiInsight(data.insight);
         if (data.diagnosis) aiDiagnosisPreview.current = data.diagnosis;
       } catch (err) {
@@ -177,6 +179,7 @@ export function useCaseWizard(mode: Mode) {
         body: JSON.stringify({ patientCase: caseData }),
       });
       const data = await res.json();
+      setAiError(data.aiError ?? null);
       setDiagnosis(data.diagnosis);
       setPhase("results");
     } finally {
@@ -332,6 +335,7 @@ export function useCaseWizard(mode: Mode) {
     setPresentation(null);
     setPresentationAiPowered(null);
     setAiInsight(null);
+    setAiError(null);
     aiDiagnosisPreview.current = null;
     setSaved(false);
   };
@@ -383,6 +387,7 @@ export function useCaseWizard(mode: Mode) {
     saved,
     aiInsight,
     aiLoading,
+    aiError,
     goToComplaints,
     goToDynamic,
     submitStep,

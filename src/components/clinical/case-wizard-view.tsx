@@ -51,6 +51,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
           patientCase={w.patientCase}
           aiInsight={isClassic ? undefined : w.aiInsight}
           aiLoading={isClassic ? undefined : w.aiLoading}
+          aiError={isClassic ? undefined : w.aiError}
         />
 
         <main className="flex-1">

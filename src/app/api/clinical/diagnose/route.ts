@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const diagnosis = result.data ?? getFallbackDiagnosis(patientCase);
 
-    return NextResponse.json({ diagnosis, aiPowered: !!result.data });
+    return NextResponse.json({ diagnosis, aiPowered: !!result.data, aiError: result.error?.message });
   } catch (error) {
     console.error("Diagnosis error:", error);
     return NextResponse.json({ error: "Failed to generate diagnosis" }, { status: 500 });

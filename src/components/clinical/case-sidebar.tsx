@@ -8,11 +8,13 @@ export function CaseSidebar({
   patientCase,
   aiInsight,
   aiLoading,
+  aiError,
   className,
 }: {
   patientCase: PatientCase;
   aiInsight?: ClinicalAiInsight | null;
   aiLoading?: boolean;
+  aiError?: string | null;
   className?: string;
 }) {
   return (
@@ -25,7 +27,9 @@ export function CaseSidebar({
 
       <aside className={cn("hidden w-80 shrink-0 flex-col gap-4 lg:flex", className)}>
         <div className="sticky top-6 space-y-4">
-          {aiInsight ? (
+          {aiError ? (
+            <AiErrorCard message={aiError} />
+          ) : aiInsight ? (
             <AiInsightPanel insight={aiInsight} loading={aiLoading} />
           ) : aiLoading ? (
             <AiLoadingCard />
@@ -195,6 +199,16 @@ function AiLoadingCard() {
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent/20 border-t-accent" />
         <p className="text-xs text-muted">AI analysing case…</p>
       </div>
+    </div>
+  );
+}
+
+function AiErrorCard({ message }: { message: string }) {
+  return (
+    <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+      <p className="text-xs font-semibold text-red-700">AI unavailable</p>
+      <p className="mt-2 text-sm text-red-600">{message}</p>
+      <p className="mt-2 text-xs text-muted">If this persists, ensure GROQ_API_KEY is configured on your environment.</p>
     </div>
   );
 }
