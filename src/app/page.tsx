@@ -114,7 +114,7 @@ export default function HomePage() {
                   }}
                   className="dot-reveal inline-block overflow-hidden"
                 >
-                  <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-black text-[0]">•</span>
+                  <span className="inline-flex h-2 w-2 items-center justify-center rounded-full bg-black text-[0]">•</span>
                 </motion.span><span className="part2">ass</span>
               </span>
             </motion.h1>
