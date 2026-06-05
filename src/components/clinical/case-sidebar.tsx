@@ -61,33 +61,63 @@ export function CaseSidebar({
       <aside className={cn("hidden w-80 shrink-0 flex-col gap-4 lg:flex", className)}>
         <div className="sticky top-6 space-y-4">
           {showAiSection ? aiPanel : null}
-
-          {Object.keys(patientCase.history).length > 0 && (
-            <SidebarCard title="Collected">
-              {Object.entries(patientCase.history).map(([k, v]) => (
-                <SummaryRow
-                  key={k}
-                  label={formatKey(k)}
-                  value={Array.isArray(v) ? v.join(", ") : String(v)}
-                />
-              ))}
-            </SidebarCard>
-          )}
-
-          {Object.keys(patientCase.exam).length > 0 && (
-            <SidebarCard title="Exam">
-              {Object.entries(patientCase.exam).map(([k, v]) => (
-                <SummaryRow
-                  key={k}
-                  label={formatKey(k)}
-                  value={Array.isArray(v) ? v.join(", ") : String(v)}
-                />
-              ))}
-            </SidebarCard>
-          )}
         </div>
       </aside>
     </>
+  );
+}
+
+export function CaseSummarySidebar({
+  patientCase,
+  className,
+}: {
+  patientCase: PatientCase;
+  className?: string;
+}) {
+  return (
+    <aside className={cn("hidden w-72 shrink-0 flex-col gap-4 lg:flex", className)}>
+      <div className="sticky top-6 space-y-4">
+        <SidebarCard title="Case summary">
+          <SummaryRow label="Patient" value={patientCase.name || "—"} />
+          <SummaryRow
+            label="Demographics"
+            value={
+              patientCase.sex && patientCase.age
+                ? `${patientCase.sex}, ${patientCase.age}y`
+                : "—"
+            }
+          />
+          <SummaryRow
+            label="Complaints"
+            value={patientCase.chiefComplaints.join(", ") || "—"}
+          />
+        </SidebarCard>
+
+        {Object.keys(patientCase.history).length > 0 && (
+          <SidebarCard title="Collected">
+            {Object.entries(patientCase.history).map(([k, v]) => (
+              <SummaryRow
+                key={k}
+                label={formatKey(k)}
+                value={Array.isArray(v) ? v.join(", ") : String(v)}
+              />
+            ))}
+          </SidebarCard>
+        )}
+
+        {Object.keys(patientCase.exam).length > 0 && (
+          <SidebarCard title="Exam">
+            {Object.entries(patientCase.exam).map(([k, v]) => (
+              <SummaryRow
+                key={k}
+                label={formatKey(k)}
+                value={Array.isArray(v) ? v.join(", ") : String(v)}
+              />
+            ))}
+          </SidebarCard>
+        )}
+      </div>
+    </aside>
   );
 }
 

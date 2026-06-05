@@ -8,7 +8,7 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from "@/components/app-shell";
-import { CaseSidebar, CoPilotSidebar } from "@/components/clinical/case-sidebar";
+import { CaseSidebar, CaseSummarySidebar, CoPilotSidebar } from "@/components/clinical/case-sidebar";
 import { DiagnosisLoadingOverlay } from "@/components/clinical/diagnosis-loading-overlay";
 import { ReasonBanner, StepInput } from "@/components/clinical/step-input";
 import { FadeSlide, ProgressBar } from "@/components/motion";
@@ -53,8 +53,10 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
         <ProgressBar value={w.progress} />
       </div>
 
-      <div className="flex flex-1 gap-8">
-        <main className="flex-1">
+      <div className="flex flex-1 gap-6">
+        <CaseSummarySidebar patientCase={w.patientCase} />
+
+        <main className="flex min-w-0 flex-1">
           <AnimatePresence mode="wait">
             {w.phase === "demographics" && (
               <FadeSlide key="demo">
@@ -217,27 +219,30 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
           </AnimatePresence>
         </main>
 
-        <CaseSidebar
-          key={w.phase === "results" ? "results" : "workup"}
-          patientCase={w.patientCase}
-          aiInsight={isClassic ? undefined : w.aiInsight}
-          aiInsightIsLocal={isClassic ? undefined : w.aiInsightIsLocal}
-          aiError={
-            isClassic || w.phase === "results"
-              ? undefined
-              : w.aiError
-          }
-          minimizeAi={!isClassic && w.phase === "results"}
-        />
-
-        <CoPilotSidebar
-          patientCase={w.patientCase}
-          insight={isClassic ? undefined : w.coPilotInsight}
-          loading={isClassic ? undefined : w.coPilotLoading}
-          error={isClassic ? undefined : w.coPilotError}
-          stale={isClassic ? undefined : w.coPilotStale}
-          onAnalyze={isClassic ? undefined : w.analyzeCoPilot}
-        />
+        <aside className="hidden w-80 shrink-0 flex-col gap-4 lg:flex">
+          <div className="sticky top-6 space-y-4">
+            <CaseSidebar
+              key={w.phase === "results" ? "results" : "workup"}
+              patientCase={w.patientCase}
+              aiInsight={isClassic ? undefined : w.aiInsight}
+              aiInsightIsLocal={isClassic ? undefined : w.aiInsightIsLocal}
+              aiError={
+                isClassic || w.phase === "results"
+                  ? undefined
+                  : w.aiError
+              }
+              minimizeAi={!isClassic && w.phase === "results"}
+            />
+            <CoPilotSidebar
+              patientCase={w.patientCase}
+              insight={isClassic ? undefined : w.coPilotInsight}
+              loading={isClassic ? undefined : w.coPilotLoading}
+              error={isClassic ? undefined : w.coPilotError}
+              stale={isClassic ? undefined : w.coPilotStale}
+              onAnalyze={isClassic ? undefined : w.analyzeCoPilot}
+            />
+          </div>
+        </aside>
       </div>
     </AppShell>
     </>
