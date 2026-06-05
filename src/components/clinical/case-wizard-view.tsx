@@ -54,24 +54,6 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
       </div>
 
       <div className="flex flex-1 gap-8">
-        <CaseSidebar
-          key={w.phase === "results" ? "results" : "workup"}
-          patientCase={w.patientCase}
-          aiInsight={isClassic ? undefined : w.aiInsight}
-          aiInsightIsLocal={isClassic ? undefined : w.aiInsightIsLocal}
-          aiError={
-            isClassic || w.phase === "results"
-              ? undefined
-              : w.aiError
-          }
-          coPilotInsight={isClassic ? undefined : w.coPilotInsight}
-          coPilotLoading={isClassic ? undefined : w.coPilotLoading}
-          coPilotError={isClassic ? undefined : w.coPilotError}
-          coPilotStale={isClassic ? undefined : w.coPilotStale}
-          onAnalyzeCoPilot={isClassic ? undefined : w.analyzeCoPilot}
-          minimizeAi={!isClassic && w.phase === "results"}
-        />
-
         <main className="flex-1">
           <AnimatePresence mode="wait">
             {w.phase === "demographics" && (
@@ -234,6 +216,24 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
             )}
           </AnimatePresence>
         </main>
+
+        <CaseSidebar
+          key={w.phase === "results" ? "results" : "workup"}
+          patientCase={w.patientCase}
+          aiInsight={isClassic ? undefined : w.aiInsight}
+          aiInsightIsLocal={isClassic ? undefined : w.aiInsightIsLocal}
+          aiError={
+            isClassic || w.phase === "results"
+              ? undefined
+              : w.aiError
+          }
+          coPilotInsight={isClassic ? undefined : w.coPilotInsight}
+          coPilotLoading={isClassic ? undefined : w.coPilotLoading}
+          coPilotError={isClassic ? undefined : w.coPilotError}
+          coPilotStale={isClassic ? undefined : w.coPilotStale}
+          onAnalyzeCoPilot={isClassic ? undefined : w.analyzeCoPilot}
+          minimizeAi={!isClassic && w.phase === "results"}
+        />
       </div>
     </AppShell>
     </>
