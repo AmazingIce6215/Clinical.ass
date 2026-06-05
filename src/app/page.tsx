@@ -103,7 +103,7 @@ export default function HomePage() {
             >
               Welcome to{" "}
               <span className="inline-flex items-center">
-                Clinica
+                <span className="part1">Clinica</span>
                 {/* 3. Logo moment - dot appears (1.8s-2.6s) */}
                 <motion.span
                   initial={shouldAnimate ? { opacity: 0, scale: 0 } : false}
@@ -114,13 +114,12 @@ export default function HomePage() {
                     damping: 10,
                     delay: shouldAnimate ? 1.8 : 0,
                   }}
-                  className="mx-1 inline-block text-accent"
+                  className="dot-reveal inline-block text-accent"
                 >
-                  •
+                  .
                 </motion.span>
-                ass
+                <span className="part2">ass</span>
               </span>
-              .
             </motion.h1>
 
             {/* 4. Subtitle slide-up (2.4s-3s) */}
