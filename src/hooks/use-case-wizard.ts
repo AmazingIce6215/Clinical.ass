@@ -197,8 +197,9 @@ export function useCaseWizard(mode: Mode) {
     if (patientCase.chiefComplaints.length === 0) return;
     setPhase("dynamic");
     setStepStack([]);
-    await fetchNextStep(patientCase, []);
     refreshLocalInsight(patientCase);
+    // Fire the fetch in background, don't block on it
+    fetchNextStep(patientCase, []);
   };
 
   const applyAnswer = (caseData: PatientCase, step: ClinicalStepResponse, value: string | string[] | boolean) => {
@@ -217,7 +218,9 @@ export function useCaseWizard(mode: Mode) {
     setStepStack(newStack);
     setPatientCase(updated);
     refreshLocalInsight(updated);
-    await fetchNextStep(updated, newStack);
+    // Fire the fetch in background, don't block on it
+    // This allows local insight to render immediately
+    fetchNextStep(updated, newStack);
   };
 
   const submitStep = async () => {
@@ -232,7 +235,9 @@ export function useCaseWizard(mode: Mode) {
     const value = buildStepValue(currentStep, stepAnswer, textAnswer, customDetail);
     const updated = applyAnswer(patientCase, currentStep, value);
     const newStack = [...stepStack, { fieldKey: currentStep.fieldKey, category: currentStep.category }];
-    await advanceStep(updated, newStack);
+    // Don't await advanceStep - let it run in background
+    // This allows the sidebar local insight to update immediately
+    advanceStep(updated, newStack);
   };
 
   const skipStep = async () => {
