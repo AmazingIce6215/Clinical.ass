@@ -46,7 +46,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
       )}
       {isClassic && (
         <p className="mb-4 text-xs text-muted">
-          Systematic history for ward rounds. Skip any question you don&apos;t need.
+          Systematic history for ward rounds. Skip any question you don't need.
         </p>
       )}
       <div className="mb-6">
@@ -54,9 +54,21 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
       </div>
 
       <div className="flex flex-1 gap-6">
-        <aside className="hidden w-72 shrink-0 flex-col gap-4 lg:flex">
+        <aside className="hidden w-80 shrink-0 flex-col gap-4 lg:flex">
           <div className="sticky top-6 space-y-4">
             <CaseSummarySidebar patientCase={w.patientCase} />
+            <CaseSidebar
+              key={w.phase === "results" ? "results" : "workup"}
+              patientCase={w.patientCase}
+              aiInsight={isClassic ? undefined : w.aiInsight}
+              aiInsightIsLocal={isClassic ? undefined : w.aiInsightIsLocal}
+              aiError={
+                isClassic || w.phase === "results"
+                  ? undefined
+                  : w.aiError
+              }
+              minimizeAi={!isClassic && w.phase === "results"}
+            />
             <CoPilotSidebar
               insight={isClassic ? undefined : w.coPilotInsight}
               loading={isClassic ? undefined : w.coPilotLoading}
@@ -229,23 +241,6 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
             )}
           </AnimatePresence>
         </main>
-
-        <aside className="hidden w-80 shrink-0 flex-col gap-4 lg:flex">
-          <div className="sticky top-6 space-y-4">
-            <CaseSidebar
-              key={w.phase === "results" ? "results" : "workup"}
-              patientCase={w.patientCase}
-              aiInsight={isClassic ? undefined : w.aiInsight}
-              aiInsightIsLocal={isClassic ? undefined : w.aiInsightIsLocal}
-              aiError={
-                isClassic || w.phase === "results"
-                  ? undefined
-                  : w.aiError
-              }
-              minimizeAi={!isClassic && w.phase === "results"}
-            />
-          </div>
-        </aside>
       </div>
     </AppShell>
     </>
