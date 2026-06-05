@@ -40,6 +40,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasAnimated, setHasAnimated] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [dotVisible, setDotVisible] = useState(false);
 
   const fetchGreeting = async () => {
     try {
@@ -88,6 +89,20 @@ export default function HomePage() {
 
   const shouldAnimate = !hasAnimated && !prefersReducedMotion;
 
+  // Trigger dot visibility after title animation completes
+  useEffect(() => {
+    if (!shouldAnimate) {
+      setDotVisible(true);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setDotVisible(true);
+    }, 2100); // 2.1s after page load (title lands at 1.8s + 300ms)
+
+    return () => clearTimeout(timer);
+  }, [shouldAnimate]);
+
   return (
     <AppShell>
       <section className="mx-auto flex max-w-4xl flex-1 flex-col justify-center py-8">
@@ -130,19 +145,7 @@ export default function HomePage() {
             >
               Welcome to{" "}
               <span className="inline-flex items-center">
-                <span className="part1">Clinical</span>{/* 3. Logo moment - dot appears (2.1s-2.5s) */}<motion.span
-                  initial={shouldAnimate ? { opacity: 0, fontSize: 0 } : false}
-                  animate={shouldAnimate ? { opacity: 1, fontSize: "inherit" } : false}
-                  transition={{
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 10,
-                    delay: shouldAnimate ? 2.1 : 0,
-                  }}
-                  className="dot-reveal inline-block"
-                >
-                  <span className="inline-flex h-2 w-2 items-center justify-center rounded-full bg-black text-[0]">•</span>
-                </motion.span><span className="part2">ass</span>
+                <span className="part1">Clinical</span><span className={`dot-reveal inline-block overflow-hidden ${dotVisible ? 'visible' : ''}`}><span className="inline-flex h-2 w-2 items-center justify-center rounded-full bg-black text-[0]">•</span></span><span className="part2">ass</span>
               </span>
             </motion.h1>
 
