@@ -103,22 +103,19 @@ export default function HomePage() {
             >
               Welcome to{" "}
               <span className="inline-flex items-center">
-                <span className="part1">clinical</span>
-                {/* 3. Logo moment - dot appears (1.8s-2.6s) */}
-                <motion.span
-                  initial={shouldAnimate ? { opacity: 0, scale: 0 } : false}
-                  animate={shouldAnimate ? { opacity: 1, scale: 1 } : false}
+                <span className="part1">Clinical</span>{/* 3. Logo moment - dot appears (1.8s-2.6s) */}<motion.span
+                  initial={shouldAnimate ? { opacity: 0, width: 0 } : false}
+                  animate={shouldAnimate ? { opacity: 1, width: "auto" } : false}
                   transition={{
                     type: "spring",
                     stiffness: 400,
                     damping: 10,
                     delay: shouldAnimate ? 1.8 : 0,
                   }}
-                  className="dot-reveal inline-block text-accent"
+                  className="dot-reveal inline-block text-accent overflow-hidden"
                 >
                   .
-                </motion.span>
-                <span className="part2">ass</span>
+                </motion.span><span className="part2">ass</span>
               </span>
             </motion.h1>
 
