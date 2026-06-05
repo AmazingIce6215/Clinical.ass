@@ -103,7 +103,7 @@ export default function HomePage() {
             >
               Welcome to{" "}
               <span className="inline-flex items-center">
-                <span className="part1">Clinica</span>
+                <span className="part1">clinical</span>
                 {/* 3. Logo moment - dot appears (1.8s-2.6s) */}
                 <motion.span
                   initial={shouldAnimate ? { opacity: 0, scale: 0 } : false}
