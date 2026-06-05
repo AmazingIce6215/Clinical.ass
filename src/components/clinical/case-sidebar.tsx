@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import type { ClinicalAiInsight, PatientCase } from "@/lib/types";
+import type { ClinicalAiInsight, CoPilotInsight, PatientCase } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function CaseSidebar({
@@ -10,6 +10,11 @@ export function CaseSidebar({
   aiInsight,
   aiInsightIsLocal,
   aiError,
+  coPilotInsight,
+  coPilotLoading,
+  coPilotError,
+  coPilotStale,
+  onAnalyzeCoPilot,
   minimizeAi = false,
   className,
 }: {
@@ -17,12 +22,18 @@ export function CaseSidebar({
   aiInsight?: ClinicalAiInsight | null;
   aiInsightIsLocal?: boolean;
   aiError?: string | null;
+  coPilotInsight?: CoPilotInsight | null;
+  coPilotLoading?: boolean;
+  coPilotError?: string | null;
+  coPilotStale?: boolean;
+  onAnalyzeCoPilot?: () => void;
   minimizeAi?: boolean;
   className?: string;
 }) {
   const [userExpanded, setUserExpanded] = useState(false);
 
   const showAiSection = aiError || aiInsight;
+  const showCoPilotSection = typeof onAnalyzeCoPilot === "function";
   const aiCollapsed = minimizeAi && !userExpanded && Boolean(aiInsight);
 
   const aiPanel = aiError ? (
@@ -58,9 +69,31 @@ export function CaseSidebar({
         </div>
       )}
 
+      {showCoPilotSection && (
+        <div className="mb-4 lg:hidden">
+          <CoPilotPanel
+            insight={coPilotInsight}
+            loading={coPilotLoading}
+            error={coPilotError}
+            stale={coPilotStale}
+            onAnalyze={onAnalyzeCoPilot}
+          />
+        </div>
+      )}
+
       <aside className={cn("hidden w-80 shrink-0 flex-col gap-4 lg:flex", className)}>
         <div className="sticky top-6 space-y-4">
           {showAiSection ? aiPanel : null}
+
+          {showCoPilotSection ? (
+            <CoPilotPanel
+              insight={coPilotInsight}
+              loading={coPilotLoading}
+              error={coPilotError}
+              stale={coPilotStale}
+              onAnalyze={onAnalyzeCoPilot}
+            />
+          ) : null}
 
           <SidebarCard title="Case summary">
             <SummaryRow label="Patient" value={patientCase.name || "—"} />
@@ -142,6 +175,108 @@ function MinimizedAiPanel({
         Show
       </span>
     </button>
+  );
+}
+
+function CoPilotPanel({
+  insight,
+  loading,
+  error,
+  stale,
+  onAnalyze,
+}: {
+  insight?: CoPilotInsight | null;
+  loading?: boolean;
+  error?: string | null;
+  stale?: boolean;
+  onAnalyze?: () => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const actionLabel = loading ? "Analyzing…" : insight ? "Refresh" : "Analyze";
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-surface/60 p-4 backdrop-blur-md">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          className="text-left"
+          aria-expanded={expanded}
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
+            Co-Pilot
+          </p>
+          <p className="mt-1 text-sm font-semibold text-foreground">
+            Clinical thinking coach
+          </p>
+        </button>
+        <button
+          type="button"
+          onClick={onAnalyze}
+          disabled={loading || !onAnalyze}
+          className="rounded-xl border border-border/60 bg-surface px-3 py-2 text-sm font-semibold text-foreground transition hover:border-accent/60 hover:bg-accent/5 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {actionLabel}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="space-y-4">
+          {error ? (
+            <AiErrorCard message={error} />
+          ) : insight ? (
+            <>
+              {stale && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                  Case changed since the last analysis. Refresh to update recommendations.
+                </div>
+              )}
+
+              <SidebarCard title="Key Clinical Questions to Ask Next">
+                {insight.keyQuestions.map((question) => (
+                  <p key={question} className="text-sm leading-relaxed text-muted">
+                    • {question}
+                  </p>
+                ))}
+              </SidebarCard>
+
+              <SidebarCard title="Focused Examination Steps">
+                {insight.examSteps.map((step) => (
+                  <p key={step} className="text-sm leading-relaxed text-muted">
+                    • {step}
+                  </p>
+                ))}
+              </SidebarCard>
+
+              <SidebarCard title="Expected Findings (Based on Possible Pathways)">
+                {insight.expectedFindings.map((item) => (
+                  <div key={item.pathway} className="space-y-2 rounded-xl border border-border/50 bg-surface/50 p-3">
+                    <p className="text-sm font-semibold text-foreground">{item.pathway}</p>
+                    <ul className="ml-4 list-disc space-y-1 text-sm text-muted">
+                      {item.findings.map((finding) => (
+                        <li key={finding}>{finding}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </SidebarCard>
+
+              <SidebarCard title="Red Flags Not to Miss">
+                {insight.redFlags.map((flag) => (
+                  <p key={flag} className="text-sm leading-relaxed text-muted">
+                    • {flag}
+                  </p>
+                ))}
+              </SidebarCard>
+            </>
+          ) : (
+            <p className="text-sm text-muted">
+              Tap Analyze to get focused coaching on next questions, exam maneuvers, expected findings, and key red flags.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

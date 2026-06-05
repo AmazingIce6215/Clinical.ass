@@ -64,6 +64,11 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
               ? undefined
               : w.aiError
           }
+          coPilotInsight={isClassic ? undefined : w.coPilotInsight}
+          coPilotLoading={isClassic ? undefined : w.coPilotLoading}
+          coPilotError={isClassic ? undefined : w.coPilotError}
+          coPilotStale={isClassic ? undefined : w.coPilotStale}
+          onAnalyzeCoPilot={isClassic ? undefined : w.analyzeCoPilot}
           minimizeAi={!isClassic && w.phase === "results"}
         />
 

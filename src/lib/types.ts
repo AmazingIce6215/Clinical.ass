@@ -65,6 +65,13 @@ export interface ClinicalAiInsight {
   nextClinicalFocus?: string;
 }
 
+export interface CoPilotInsight {
+  keyQuestions: string[];
+  examSteps: string[];
+  expectedFindings: Array<{ pathway: string; findings: string[] }>;
+  redFlags: string[];
+}
+
 export interface ClassicPresentation {
   oneLiner: string;
   fullPresentation: string;

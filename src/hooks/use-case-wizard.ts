@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   ClassicPresentation,
   ClinicalAiInsight,
   ClinicalStepResponse,
+  CoPilotInsight,
   DiagnosisResult,
   PatientCase,
   SavedCase,
@@ -74,6 +75,10 @@ export function useCaseWizard(mode: Mode) {
   const [aiInsight, setAiInsight] = useState<ClinicalAiInsight | null>(null);
   const [aiInsightIsLocal, setAiInsightIsLocal] = useState(true);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [coPilotInsight, setCoPilotInsight] = useState<CoPilotInsight | null>(null);
+  const [coPilotLoading, setCoPilotLoading] = useState(false);
+  const [coPilotError, setCoPilotError] = useState<string | null>(null);
+  const [coPilotStale, setCoPilotStale] = useState(false);
   const aiAbortRef = useRef<AbortController | null>(null);
 
   const apiBase = mode === "classic" ? "/api/classic" : "/api/clinical";
@@ -89,27 +94,40 @@ export function useCaseWizard(mode: Mode) {
     [mode],
   );
 
-  const fetchDifferentials = useCallback(
-    async (caseData: PatientCase) => {
-      if (mode !== "clinical" || caseData.chiefComplaints.length === 0) return;
-      try {
-        const res = await fetch("/api/clinical/differentials", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ patientCase: caseData }),
-        });
-        const data = await res.json();
-        if (data.insight) {
-          setAiInsight(data.insight);
-          setAiInsightIsLocal(false);
-          setAiError(data.aiError ? formatAiError(data.aiError) : null);
-        }
-      } catch {
-        // Silently fail - local insight already showing
+  useEffect(() => {
+    if (coPilotInsight) {
+      setCoPilotStale(true);
+    }
+  }, [patientCase, coPilotInsight]);
+
+  const analyzeCoPilot = useCallback(async () => {
+    if (mode !== "clinical" || patientCase.chiefComplaints.length === 0) return;
+
+    setCoPilotLoading(true);
+    setCoPilotError(null);
+
+    try {
+      const res = await fetch("/api/clinical/copilot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientCase, aiInsight }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data?.keyQuestions) {
+        const message = formatAiError(data?.aiError ?? data?.error ?? "Co-Pilot analysis failed");
+        setCoPilotError(message);
+        return;
       }
-    },
-    [mode],
-  );
+
+      setCoPilotInsight(data as CoPilotInsight);
+      setCoPilotStale(false);
+    } catch (error) {
+      setCoPilotError(formatAiError((error as Error)?.message ?? String(error)));
+    } finally {
+      setCoPilotLoading(false);
+    }
+  }, [aiInsight, mode, patientCase]);
 
   const fetchNextStep = useCallback(
     async (caseData: PatientCase, stack: StepRecord[] = []) => {
@@ -219,11 +237,8 @@ export function useCaseWizard(mode: Mode) {
     if (patientCase.chiefComplaints.length === 0) return;
     setPhase("dynamic");
     setStepStack([]);
+    await fetchNextStep(patientCase, []);
     refreshLocalInsight(patientCase);
-    // Fetch fresh AI differentials for the initial complaint
-    fetchDifferentials(patientCase);
-    // Fire the fetch in background, don't block on it
-    fetchNextStep(patientCase, []);
   };
 
   const applyAnswer = (caseData: PatientCase, step: ClinicalStepResponse, value: string | string[] | boolean) => {
@@ -242,11 +257,7 @@ export function useCaseWizard(mode: Mode) {
     setStepStack(newStack);
     setPatientCase(updated);
     refreshLocalInsight(updated);
-    // Fire the fetch in background, don't block on it
-    // This allows local insight to render immediately
-    fetchNextStep(updated, newStack);
-    // Fetch fresh AI differentials after answering the question
-    fetchDifferentials(updated);
+    await fetchNextStep(updated, newStack);
   };
 
   const submitStep = async () => {
@@ -261,9 +272,7 @@ export function useCaseWizard(mode: Mode) {
     const value = buildStepValue(currentStep, stepAnswer, textAnswer, customDetail);
     const updated = applyAnswer(patientCase, currentStep, value);
     const newStack = [...stepStack, { fieldKey: currentStep.fieldKey, category: currentStep.category }];
-    // Don't await advanceStep - let it run in background
-    // This allows the sidebar local insight to update immediately
-    advanceStep(updated, newStack);
+    await advanceStep(updated, newStack);
   };
 
   const skipStep = async () => {
@@ -271,10 +280,10 @@ export function useCaseWizard(mode: Mode) {
     const value = buildSkippedValue(currentStep);
     const updated = applyAnswer(patientCase, currentStep, value);
     const newStack = [...stepStack, { fieldKey: currentStep.fieldKey, category: currentStep.category }];
-    advanceStep(updated, newStack);
+    await advanceStep(updated, newStack);
   };
 
-  const goBack = () => {
+  const goBack = async () => {
     if (phase === "complaints") {
       setPhase("demographics");
       return;
@@ -302,9 +311,8 @@ export function useCaseWizard(mode: Mode) {
       const newStack = stepStack.slice(0, -1);
       setStepStack(newStack);
       setPatientCase(updated);
-      fetchNextStep(updated, newStack);
+      await fetchNextStep(updated, newStack);
       refreshLocalInsight(updated);
-      fetchDifferentials(updated);
     }
   };
 
@@ -335,6 +343,10 @@ export function useCaseWizard(mode: Mode) {
     setAiInsight(null);
     setAiInsightIsLocal(true);
     setAiError(null);
+    setCoPilotInsight(null);
+    setCoPilotLoading(false);
+    setCoPilotError(null);
+    setCoPilotStale(false);
     setDiagnosing(false);
     setSaved(false);
   };
@@ -389,6 +401,11 @@ export function useCaseWizard(mode: Mode) {
     aiInsight,
     aiInsightIsLocal,
     aiError,
+    coPilotInsight,
+    coPilotLoading,
+    coPilotError,
+    coPilotStale,
+    analyzeCoPilot,
     goToComplaints,
     goToDynamic,
     submitStep,
