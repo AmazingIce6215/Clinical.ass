@@ -1,3 +1,5 @@
+"use client";
+
 export type Sex = "male" | "female" | "other";
 export type CaseMode = "clinical" | "classic" | "teaching";
 export type InputType = "chips" | "text" | "yesno" | "multiselect";
@@ -38,7 +40,7 @@ export interface DiagnosisResult {
   differentials: Array<{
     diagnosis: string;
     likelihood: string;
-    probability?: number; // percentage 0-100
+    probability?: number;
     reasoning: string;
     whyNotPrimary?: string;
     keyFeatures?: string[];
@@ -114,4 +116,18 @@ export interface SavedCase {
   diagnosis?: DiagnosisResult;
   presentation?: ClassicPresentation;
   teachingCase?: GeneratedTeachingCase;
+}
+
+export interface ReasoningNode {
+  label: string;
+  type: "symptom" | "pathway" | "diagnosis" | "elimination" | "final";
+  supporting?: string[];
+  against?: string[];
+  reasoning?: string;
+  children?: ReasoningNode[];
+}
+
+export interface ReasoningTreeData {
+  tree: ReasoningNode;
+  viewModes?: ("simple" | "deep")[];
 }

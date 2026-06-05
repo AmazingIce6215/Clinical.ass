@@ -9,13 +9,15 @@ import {
   SecondaryButton,
 } from "@/components/app-shell";
 import { CaseSidebar, CaseSummarySidebar, CoPilotSidebar } from "@/components/clinical/case-sidebar";
+import { ReasoningTreeView } from "@/components/clinical/reasoning-tree";
 import { DiagnosisLoadingOverlay } from "@/components/clinical/diagnosis-loading-overlay";
 import { ReasonBanner, StepInput } from "@/components/clinical/step-input";
 import { FadeSlide, ProgressBar } from "@/components/motion";
 import { ChipGrid, SegmentedControl, TextField } from "@/components/ui/inputs";
 import { useCaseWizard } from "@/hooks/use-case-wizard";
-import type { Sex, ClassicPresentation, DiagnosisResult } from "@/lib/types";
+import type { PatientCase, Sex, ClassicPresentation, DiagnosisResult } from "@/lib/types";
 import { isStepValid } from "@/lib/step-utils";
+import { buildReasoningTree } from "@/lib/reasoning-tree";
 import { cn } from "@/lib/utils";
 
 export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
@@ -226,6 +228,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
                   onReset={w.reset}
                   onSave={w.saveCase}
                   saved={w.saved}
+                  patientCase={w.patientCase}
                 />
               </FadeSlide>
             )}
@@ -315,6 +318,7 @@ function ClinicalResults({
   onReset,
   onSave,
   saved,
+  patientCase,
 }: {
   diagnosis: DiagnosisResult;
   aiPowered: boolean;
@@ -324,6 +328,7 @@ function ClinicalResults({
   onReset: () => void;
   onSave: () => void;
   saved: boolean;
+  patientCase: PatientCase;
 }) {
   const redFlags = diagnosis.redFlags.map((r) =>
     typeof r === "string" ? r : `${r.flag} — ${r.whyItMatters}`,
@@ -369,6 +374,8 @@ function ClinicalResults({
         <ListCard title="Management" items={diagnosis.management} className="sm:col-span-2" />
         <ListCard title="Teaching points" items={diagnosis.teachingPoints} className="sm:col-span-2" variant="accent" />
       </div>
+      <ReasoningTreeView tree={buildReasoningTree(patientCase, diagnosis)} />
+
       <div className="space-y-4">
         <GlassCard>
           <h3 className="mb-3 font-semibold">Differentials</h3>
