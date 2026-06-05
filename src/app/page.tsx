@@ -112,9 +112,9 @@ export default function HomePage() {
                     damping: 10,
                     delay: shouldAnimate ? 1.8 : 0,
                   }}
-                  className="dot-reveal inline-block text-accent overflow-hidden"
+                  className="dot-reveal inline-block overflow-hidden"
                 >
-                  .
+                  <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-black text-[0]">•</span>
                 </motion.span><span className="part2">ass</span>
               </span>
             </motion.h1>
