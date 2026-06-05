@@ -257,12 +257,14 @@ export function useCaseWizard(mode: Mode) {
       const updated = { ...patientCase };
 
       if (last.category === "exam") {
-        const { [last.fieldKey]: _, ...rest } = updated.exam;
+        const { [last.fieldKey]: _unused, ...rest } = updated.exam;
+        void _unused;
         updated.exam = rest;
       } else if (last.category === "investigations") {
         updated.investigations = [];
       } else {
-        const { [last.fieldKey]: _, ...rest } = updated.history;
+        const { [last.fieldKey]: _unused, ...rest } = updated.history;
+        void _unused;
         updated.history = rest;
       }
 

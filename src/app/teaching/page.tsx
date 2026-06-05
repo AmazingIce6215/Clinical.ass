@@ -1,19 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { AppShell, GlassCard } from "@/components/app-shell";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { searchLibrary } from "@/lib/case-library";
 import { teachingSubjects } from "@/lib/teaching-subjects";
-import type { SavedCase } from "@/lib/types";
+
 
 export default function TeachingPage() {
-  const [saved, setSaved] = useState<SavedCase[]>([]);
-
-  useEffect(() => {
-    setSaved(searchLibrary("", "teaching"));
-  }, []);
+  const saved = useMemo(() => searchLibrary("", "teaching"), []);
 
   return (
     <AppShell

@@ -16,7 +16,6 @@ import {
   type AuthSession,
 } from "@/lib/auth";
 import { setLibraryUserId } from "@/lib/case-library";
-import { SignInModal } from "@/components/auth/sign-in-modal";
 
 interface AuthContextValue {
   session: AuthSession | null;
@@ -29,15 +28,12 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<AuthSession | null>(null);
-  const [ready, setReady] = useState(false);
+  const [session, setSession] = useState<AuthSession | null>(() => getSession());
+  const [ready] = useState(true);
 
   useEffect(() => {
-    const s = getSession();
-    setSession(s);
-    setLibraryUserId(s?.userId ?? null);
-    setReady(true);
-  }, []);
+    setLibraryUserId(session?.userId ?? null);
+  }, [session]);
 
   const register = useCallback(async (firstName: string, password: string) => {
     const result = await registerUser(firstName, password);
@@ -69,7 +65,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={value}>
       {children}
-      {ready && !session && <SignInModal />}
     </AuthContext.Provider>
   );
 }

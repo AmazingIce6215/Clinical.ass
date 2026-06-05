@@ -1,18 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell, ButtonLink, GlassCard, SecondaryButton } from "@/components/app-shell";
 import { CasePlayer } from "@/components/teaching/case-player";
-import { useAuth } from "@/context/auth-context";
 import {
   clearLibrary,
   getLibraryItem,
   removeFromLibrary,
   searchLibrary,
 } from "@/lib/case-library";
-import type { CaseMode, SavedCase } from "@/lib/types";
+import type { CaseMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const MODE_LABELS: Record<CaseMode, string> = {
@@ -23,30 +22,28 @@ const MODE_LABELS: Record<CaseMode, string> = {
 
 function LibraryContent() {
   const router = useRouter();
-  const { session } = useAuth();
   const searchParams = useSearchParams();
   const viewId = searchParams.get("id");
   const modeFilter = (searchParams.get("mode") as CaseMode) || undefined;
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<CaseMode | "all">(modeFilter ?? "all");
-  const [items, setItems] = useState<SavedCase[]>([]);
-  const [active, setActive] = useState<SavedCase | null>(null);
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  const items = useMemo(() => {
+    void refreshCounter;
+    return searchLibrary(query, filter === "all" ? undefined : filter);
+  }, [query, filter, refreshCounter]);
+
+  const active = useMemo(() => {
+    void refreshCounter;
+    return viewId ? getLibraryItem(viewId) ?? null : null;
+  }, [viewId, refreshCounter]);
 
   const refreshItems = useCallback(() => {
-    setItems(searchLibrary(query, filter === "all" ? undefined : filter));
-  }, [query, filter]);
-
-  useEffect(() => {
-    refreshItems();
-    if (viewId) {
-      setActive(getLibraryItem(viewId) ?? null);
-    } else {
-      setActive(null);
-    }
-  }, [query, filter, viewId, refreshItems, session?.userId]);
+    setRefreshCounter((count) => count + 1);
+  }, []);
 
   const exitDetail = useCallback(() => {
-    setActive(null);
     router.replace("/library");
   }, [router]);
 
@@ -60,8 +57,7 @@ function LibraryContent() {
     if (!items.length) return;
     if (!window.confirm(`Remove all ${items.length} saved cases? This cannot be undone.`)) return;
     clearLibrary();
-    setItems([]);
-    setActive(null);
+    setRefreshCounter((count) => count + 1);
     router.replace("/library");
   };
 

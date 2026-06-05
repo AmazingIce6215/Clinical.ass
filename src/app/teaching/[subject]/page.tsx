@@ -58,7 +58,10 @@ export default function SubjectCasePage({
   }, [subjectId, subjectInfo]);
 
   useEffect(() => {
-    if (subjectInfo) generateCase();
+    if (!subjectInfo) return;
+    void (async () => {
+      await generateCase();
+    })();
   }, [subjectInfo, generateCase]);
 
   if (!subjectInfo) notFound();
