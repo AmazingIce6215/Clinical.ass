@@ -7,7 +7,7 @@ cd "$ROOT"
 
 if [[ ! -f package.json ]]; then
   echo "ERROR: No package.json in $ROOT"
-  echo "Restore the full DxFlow source before running this script."
+  echo "Restore the full Clincalass source before running this script."
   exit 1
 fi
 
@@ -22,7 +22,7 @@ git add .
 if git diff --cached --quiet; then
   echo "Nothing to commit (working tree clean or empty)."
 else
-  git commit -m "Initial commit: DxFlow clinical reasoning app"
+  git commit -m "Initial commit: Clincalass clinical reasoning app"
   echo "Created initial commit."
 fi
 
@@ -32,8 +32,8 @@ echo ""
 echo "Next steps:"
 echo "  1. Create an empty repo on GitHub (no README/.gitignore)"
 echo "  2. Run:"
-echo "     git remote add origin https://github.com/YOUR_USERNAME/dxflow.git"
+echo "     git remote add origin https://github.com/YOUR_USERNAME/clincalass.git"
 echo "     git push -u origin main"
 echo ""
 echo "Or with GitHub CLI (after: brew install gh && gh auth login):"
-echo "     gh repo create dxflow --private --source=. --remote=origin --push"
+echo "     gh repo create clincalass --private --source=. --remote=origin --push"

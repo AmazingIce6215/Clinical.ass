@@ -4,7 +4,7 @@ Clinical reasoning companion for medical students — guided workup + case-based
 
 ## Features
 
-- **Clinical Companion** — Fluid step wizard (not chat): demographics → complaints → AI-guided history/exam → differentials & management
+- **Clincalass Companion** — Fluid step wizard (not chat): demographics → complaints → AI-guided history/exam → differentials & management
 - **Teaching Mode** — Amboss-style case vignettes with MCQs and explanations
 - **System appearance** — Automatically matches your OS light/dark mode
 - **Animations** — Framer Motion transitions with reduced-motion support

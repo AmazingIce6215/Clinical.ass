@@ -25,7 +25,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
   return (
     <AppShell
       backHref="/"
-      title={isClassic ? "Classic Mode" : "Clinical Companion"}
+      title={isClassic ? "Classic Mode" : "Clincalass Companion"}
       subtitle={
         isClassic
           ? "Full history → ward-round presentation"

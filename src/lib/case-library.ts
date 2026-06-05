@@ -1,9 +1,9 @@
 import type { CaseMode, GeneratedTeachingCase, SavedCase } from "./types";
 
-const LIBRARY_KEY = "dxflow-library";
-const SEEN_DISEASES_KEY = "dxflow-seen-diseases";
-const SEEN_TITLES_KEY = "dxflow-seen-titles";
-const SEEN_VIGNETTES_KEY = "dxflow-seen-vignettes";
+const LIBRARY_KEY = "clincalass-library";
+const SEEN_DISEASES_KEY = "clincalass-seen-diseases";
+const SEEN_TITLES_KEY = "clincalass-seen-titles";
+const SEEN_VIGNETTES_KEY = "clincalass-seen-vignettes";
 
 let currentUserId: string | null = null;
 
@@ -15,8 +15,24 @@ function scopedKey(base: string): string {
   return currentUserId ? `${base}-${currentUserId}` : base;
 }
 
-function readJson<T>(key: string, fallback: T): T {
+function migrateKeyIfNeeded(base: string) {
+  if (typeof window === "undefined") return;
+
+  const key = scopedKey(base);
+  if (localStorage.getItem(key)) return;
+
+  const legacyBase = base.replace("clincalass-", "dxflow-");
+  const legacyKey = scopedKey(legacyBase);
+  const legacy = localStorage.getItem(legacyKey);
+  if (legacy) {
+    localStorage.setItem(key, legacy);
+    localStorage.removeItem(legacyKey);
+  }
+}
+
+function readJson<T>(key: string, fallback: T, baseKey?: string): T {
   if (typeof window === "undefined") return fallback;
+  if (baseKey) migrateKeyIfNeeded(baseKey);
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T) : fallback;
@@ -31,7 +47,7 @@ function writeJson(key: string, value: unknown) {
 }
 
 export function getLibrary(): SavedCase[] {
-  return readJson<SavedCase[]>(scopedKey(LIBRARY_KEY), []);
+  return readJson<SavedCase[]>(scopedKey(LIBRARY_KEY), [], LIBRARY_KEY);
 }
 
 export function saveToLibrary(entry: SavedCase) {
@@ -70,13 +86,17 @@ export function searchLibrary(query: string, mode?: CaseMode) {
 }
 
 export function getSeenDiseases(subject: string): string[] {
-  const all = readJson<Record<string, string[]>>(scopedKey(SEEN_DISEASES_KEY), {});
+  const all = readJson<Record<string, string[]>>(
+    scopedKey(SEEN_DISEASES_KEY),
+    {},
+    SEEN_DISEASES_KEY,
+  );
   return all[subject] ?? [];
 }
 
 export function markDiseaseSeen(subject: string, disease: string) {
   const key = scopedKey(SEEN_DISEASES_KEY);
-  const all = readJson<Record<string, string[]>>(key, {});
+  const all = readJson<Record<string, string[]>>(key, {}, SEEN_DISEASES_KEY);
   const seen = all[subject] ?? [];
   const normalized = disease.toLowerCase().trim();
   if (!seen.some((d) => d.toLowerCase() === normalized)) {
@@ -86,13 +106,17 @@ export function markDiseaseSeen(subject: string, disease: string) {
 }
 
 export function getSeenTitles(subject: string): string[] {
-  const all = readJson<Record<string, string[]>>(scopedKey(SEEN_TITLES_KEY), {});
+  const all = readJson<Record<string, string[]>>(
+    scopedKey(SEEN_TITLES_KEY),
+    {},
+    SEEN_TITLES_KEY,
+  );
   return all[subject] ?? [];
 }
 
 export function markTitleSeen(subject: string, title: string) {
   const key = scopedKey(SEEN_TITLES_KEY);
-  const all = readJson<Record<string, string[]>>(key, {});
+  const all = readJson<Record<string, string[]>>(key, {}, SEEN_TITLES_KEY);
   const seen = all[subject] ?? [];
   if (!seen.includes(title)) {
     all[subject] = [...seen, title].slice(-50);
@@ -101,13 +125,17 @@ export function markTitleSeen(subject: string, title: string) {
 }
 
 export function getSeenVignettes(subject: string): string[] {
-  const all = readJson<Record<string, string[]>>(scopedKey(SEEN_VIGNETTES_KEY), {});
+  const all = readJson<Record<string, string[]>>(
+    scopedKey(SEEN_VIGNETTES_KEY),
+    {},
+    SEEN_VIGNETTES_KEY,
+  );
   return all[subject] ?? [];
 }
 
 export function markVignettesSeen(subject: string, vignettes: string[]) {
   const key = scopedKey(SEEN_VIGNETTES_KEY);
-  const all = readJson<Record<string, string[]>>(key, {});
+  const all = readJson<Record<string, string[]>>(key, {}, SEEN_VIGNETTES_KEY);
   const seen = all[subject] ?? [];
   const next = [...seen];
   for (const v of vignettes) {

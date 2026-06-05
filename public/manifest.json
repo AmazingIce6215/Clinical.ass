@@ -1,7 +1,7 @@
 {
   "name": "Clincalass",
   "short_name": "Clincalass",
-  "description": "Clinical reasoning companion for medical students",
+  "description": "Clincalass — clinical reasoning companion for medical students",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f4f6fb",

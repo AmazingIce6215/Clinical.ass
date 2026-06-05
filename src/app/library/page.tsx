@@ -15,7 +15,7 @@ import type { CaseMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const MODE_LABELS: Record<CaseMode, string> = {
-  clinical: "Clinical",
+  clinical: "Clincalass",
   classic: "Classic",
   teaching: "Teaching",
 };
