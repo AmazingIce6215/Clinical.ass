@@ -62,22 +62,6 @@ export function CaseSidebar({
         <div className="sticky top-6 space-y-4">
           {showAiSection ? aiPanel : null}
 
-          <SidebarCard title="Case summary">
-            <SummaryRow label="Patient" value={patientCase.name || "—"} />
-            <SummaryRow
-              label="Demographics"
-              value={
-                patientCase.sex && patientCase.age
-                  ? `${patientCase.sex}, ${patientCase.age}y`
-                  : "—"
-              }
-            />
-            <SummaryRow
-              label="Complaints"
-              value={patientCase.chiefComplaints.join(", ") || "—"}
-            />
-          </SidebarCard>
-
           {Object.keys(patientCase.history).length > 0 && (
             <SidebarCard title="Collected">
               {Object.entries(patientCase.history).map(([k, v]) => (
@@ -108,6 +92,7 @@ export function CaseSidebar({
 }
 
 export function CoPilotSidebar({
+  patientCase,
   insight,
   loading,
   error,
@@ -115,6 +100,7 @@ export function CoPilotSidebar({
   onAnalyze,
   className,
 }: {
+  patientCase: PatientCase;
   insight?: CoPilotInsight | null;
   loading?: boolean;
   error?: string | null;
@@ -132,6 +118,7 @@ export function CoPilotSidebar({
           stale={stale}
           onAnalyze={onAnalyze}
         />
+        <CaseSummaryPanel patientCase={patientCase} />
       </div>
 
       <aside className={cn("hidden w-80 shrink-0 flex-col gap-4 lg:flex", className)}>
@@ -143,6 +130,7 @@ export function CoPilotSidebar({
             stale={stale}
             onAnalyze={onAnalyze}
           />
+          <CaseSummaryPanel patientCase={patientCase} />
         </div>
       </aside>
     </>
@@ -468,6 +456,26 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       <span className="text-muted">{label}: </span>
       <span className="font-medium">{value}</span>
     </div>
+  );
+}
+
+function CaseSummaryPanel({ patientCase }: { patientCase: PatientCase }) {
+  return (
+    <SidebarCard title="Case summary">
+      <SummaryRow label="Patient" value={patientCase.name || "—"} />
+      <SummaryRow
+        label="Demographics"
+        value={
+          patientCase.sex && patientCase.age
+            ? `${patientCase.sex}, ${patientCase.age}y`
+            : "—"
+        }
+      />
+      <SummaryRow
+        label="Complaints"
+        value={patientCase.chiefComplaints.join(", ") || "—"}
+      />
+    </SidebarCard>
   );
 }
 
