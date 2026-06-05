@@ -180,8 +180,45 @@ export function logoutUser() {
   if (typeof window !== "undefined") localStorage.removeItem(SESSION_KEY);
 }
 
-export function formatGreeting(firstName = ""): string {
+function randomItem<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+const nightGreetings = [
+  "hello night owl",
+  "hey night owl",
+  "late night?",
+  "moonlit study",
+];
+const morningGreetings = [
+  "good morning",
+  "morning early bird",
+  "rise and shine",
+  "morning",
+];
+const afternoonGreetings = [
+  "good afternoon",
+  "afternoon",
+  "hello there",
+  "nice afternoon",
+];
+const eveningGreetings = [
+  "good evening",
+  "evening",
+  "hey there",
+  "evening vibes",
+];
+
+function selectGreeting(hour: number): string {
+  if (hour >= 22 || hour < 5) return randomItem(nightGreetings);
+  if (hour < 9) return randomItem(morningGreetings);
+  if (hour < 17) return randomItem(afternoonGreetings);
+  return randomItem(eveningGreetings);
+}
+
+export function getPersonalGreeting(firstName = ""): string {
   const name = firstName.trim();
-  if (!name) return "Hey there,";
-  return `Hey ${name},`;
+  const greeting = selectGreeting(new Date().getHours());
+  if (!name) return greeting;
+  return `${greeting}, ${name}`;
 }

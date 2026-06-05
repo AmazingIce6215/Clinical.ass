@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useAuth } from "@/context/auth-context";
+import { getPersonalGreeting } from "@/lib/auth";
 
 const modes = [
   {
@@ -35,34 +36,11 @@ const modes = [
 ];
 
 export default function HomePage() {
-  const { session, ready } = useAuth();
-  const [greeting, setGreeting] = useState("Hey there,");
+  const { session } = useAuth();
+  const [greeting, setGreeting] = useState(() => getPersonalGreeting(session?.firstName ?? ""));
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    async function fetchGreeting() {
-      try {
-        const params = new URLSearchParams();
-        if (session?.firstName) params.set("name", session.firstName);
-
-        const res = await fetch(`/api/greeting?${params.toString()}`, {
-          cache: "no-store",
-          signal: controller.signal,
-        });
-        if (!res.ok) return;
-
-        const data = await res.json();
-        if (data?.greeting) {
-          setGreeting(data.greeting);
-        }
-      } catch {
-        // keep fallback greeting
-      }
-    }
-
-    void fetchGreeting();
-    return () => controller.abort();
+    setGreeting(getPersonalGreeting(session?.firstName ?? ""));
   }, [session]);
 
   return (
