@@ -55,6 +55,7 @@ export function useCaseWizard(mode: Mode) {
   const [textAnswer, setTextAnswer] = useState("");
   const [customDetail, setCustomDetail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
   const [presentation, setPresentation] = useState<ClassicPresentation | null>(null);
   const [presentationAiPowered, setPresentationAiPowered] = useState<boolean | null>(null);
@@ -175,6 +176,7 @@ export function useCaseWizard(mode: Mode) {
       return;
     }
 
+    setDiagnosing(true);
     setLoading(true);
     try {
       const res = await fetch("/api/clinical/diagnose", {
@@ -193,6 +195,7 @@ export function useCaseWizard(mode: Mode) {
       setDiagnosis(data.diagnosis);
       setPhase("results");
     } finally {
+      setDiagnosing(false);
       setLoading(false);
     }
   }, []);
@@ -347,6 +350,7 @@ export function useCaseWizard(mode: Mode) {
     setPresentationAiPowered(null);
     setAiInsight(null);
     setAiError(null);
+    setDiagnosing(false);
     aiDiagnosisPreview.current = null;
     setSaved(false);
   };
@@ -388,6 +392,7 @@ export function useCaseWizard(mode: Mode) {
     customDetail,
     setCustomDetail,
     loading,
+    diagnosing,
     diagnosis,
     presentation,
     presentationAiPowered,

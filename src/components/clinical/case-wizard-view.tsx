@@ -9,6 +9,7 @@ import {
   SecondaryButton,
 } from "@/components/app-shell";
 import { CaseSidebar } from "@/components/clinical/case-sidebar";
+import { DiagnosisLoadingOverlay } from "@/components/clinical/diagnosis-loading-overlay";
 import { ReasonBanner, StepInput } from "@/components/clinical/step-input";
 import { FadeSlide, ProgressBar } from "@/components/motion";
 import { ChipGrid, SegmentedControl, TextField } from "@/components/ui/inputs";
@@ -23,6 +24,12 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
   const isComplete = w.currentStep?.fieldKey === "complete";
 
   return (
+    <>
+    <DiagnosisLoadingOverlay
+      visible={!isClassic && w.diagnosing}
+      patientName={w.patientCase.name}
+      complaints={w.patientCase.chiefComplaints}
+    />
     <AppShell
       backHref="/"
       title={isClassic ? "Classic Mode" : "Clincalass Companion"}
@@ -172,7 +179,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
                           ? (isClassic ? "Generating presentation…" : "Analyzing case…")
                           : isClassic
                             ? "Generate presentation"
-                            : "Generate diagnosis & plan"
+                            : "Diagnose"
                         : w.loading
                           ? "Loading..."
                           : "Continue"
@@ -214,6 +221,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
         </main>
       </div>
     </AppShell>
+    </>
   );
 }
 
