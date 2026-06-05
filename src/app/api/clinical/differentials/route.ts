@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
-import { CLINICAL_DIAGNOSIS_SYSTEM, diagnosisToInsight } from "@/lib/clinical-ai";
+import { buildClinicalAiContext, CLINICAL_DIAGNOSIS_SYSTEM, diagnosisToInsight } from "@/lib/clinical-ai";
 import { getFallbackDiagnosis } from "@/lib/clinical-fallback";
 import type { ClinicalAiInsight, DiagnosisResult, PatientCase } from "@/lib/types";
 
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       draft?: { fieldKey?: string; category?: string; value?: string | string[] };
     };
 
-    const { patientCase } = body;
+    const { patientCase, draft } = body;
 
     if (patientCase.chiefComplaints.length === 0) {
       const fallback = getFallbackDiagnosis(patientCase);
@@ -30,7 +30,8 @@ export async function POST(request: Request) {
       });
     }
 
-    const userPrompt = `Complete case:\n${JSON.stringify(patientCase, null, 2)}\n\nProvide diagnosis, differentials, red flags, investigations, management plan, and teaching points.`;
+    const context = buildClinicalAiContext(patientCase, draft);
+    const userPrompt = `Patient case summary:\n${context}\n\nUse only the information above. Do not invent any additional symptoms, exam findings, infections, or test results. Produce diagnosis, differentials, red flags, investigations, management, and teaching points based strictly on the provided data.`;
 
     const result = await aiJsonCompletion<DiagnosisResult>(
       AI_MODELS.smart,

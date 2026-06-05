@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
-import { CLINICAL_DIAGNOSIS_SYSTEM } from "@/lib/clinical-ai";
+import { buildClinicalAiContext, CLINICAL_DIAGNOSIS_SYSTEM } from "@/lib/clinical-ai";
 import { getFallbackDiagnosis } from "@/lib/clinical-fallback";
 import type { DiagnosisResult, PatientCase } from "@/lib/types";
 
@@ -9,7 +9,8 @@ export async function POST(request: Request) {
     const body = (await request.json()) as { patientCase: PatientCase };
     const { patientCase } = body;
 
-    const userPrompt = `Complete patient case:\n${JSON.stringify(patientCase, null, 2)}\n\nProvide diagnosis, differentials, red flags, investigations, management plan, and teaching points.`;
+    const context = buildClinicalAiContext(patientCase);
+    const userPrompt = `Patient case summary:\n${context}\n\nUse only the information above. Do not invent any additional symptoms, exam findings, cardiac findings, or test results. Provide diagnosis, differentials, red flags, investigations, management plan, and teaching points based strictly on the provided data.`;
 
     const result = await aiJsonCompletion<DiagnosisResult>(
       AI_MODELS.smart,

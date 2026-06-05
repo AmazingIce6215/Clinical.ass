@@ -37,7 +37,8 @@ export const CLINICAL_DIAGNOSIS_SYSTEM = `Senior clinician teaching medical stud
   "management": ["string"],
   "teachingPoints": ["string"]
 }
-Be educational. Include 3-5 differentials ranked by likelihood. Do NOT invent findings not in the case.`;
+Be educational. Include 3-5 differentials ranked by likelihood.
+Use only findings explicitly present in the provided patient case data. Do NOT invent symptoms, exam findings, lab results, ECG changes, or other details that are not in the case. If a finding is not mentioned, do not assume it. If the data is incomplete, choose common causes that match the given demographics and presenting complaints, and explain your uncertainty based on the provided facts.`;
 
 export function diagnosisToInsight(diagnosis: DiagnosisResult): ClinicalAiInsight {
   const likelihoodMap: Record<string, "high" | "moderate" | "low"> = {
