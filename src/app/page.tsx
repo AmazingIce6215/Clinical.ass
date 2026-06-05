@@ -37,23 +37,9 @@ const modes = [
 export default function HomePage() {
   const { session } = useAuth();
   const [greeting, setGreeting] = useState<string>("");
-  const [displayedGreeting, setDisplayedGreeting] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [hasAnimated, setHasAnimated] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  const animateTypewriter = (text: string) => {
-    let index = 0;
-    const interval = setInterval(() => {
-      if (index < text.length) {
-        setDisplayedGreeting(text.slice(0, index + 1));
-        index++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 40);
-    return () => clearInterval(interval);
-  };
 
   const fetchGreeting = async () => {
     try {
@@ -63,12 +49,10 @@ export default function HomePage() {
       setGreeting(newGreeting);
       sessionStorage.setItem("aiGreeting", newGreeting);
       setIsLoading(false);
-      animateTypewriter(newGreeting);
     } catch (error) {
       console.error("Failed to fetch greeting:", error);
       setGreeting("HELLO DOCTOR");
       setIsLoading(false);
-      animateTypewriter("HELLO DOCTOR");
     }
   };
 
@@ -78,8 +62,6 @@ export default function HomePage() {
     if (cachedGreeting) {
       setGreeting(cachedGreeting);
       setIsLoading(false);
-      // Start typewriter animation immediately if cached
-      animateTypewriter(cachedGreeting);
     } else {
       // Fetch new greeting from API
       fetchGreeting();
@@ -131,7 +113,7 @@ export default function HomePage() {
                 transition={{ duration: 0.8, ease: "easeOut", delay: shouldAnimate ? 0 : 0 }}
                 className="text-base font-semibold uppercase tracking-[0.32em] text-accent/90 sm:text-sm"
               >
-                {displayedGreeting}
+                {greeting}
               </motion.p>
             )}
 
