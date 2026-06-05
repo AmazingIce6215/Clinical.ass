@@ -68,7 +68,7 @@ function TreeNode({
   viewMode: "simple" | "deep";
   isRoot?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(depth < 2);
+  const [expanded, setExpanded] = useState(false);
   const hasChildren = node.children && node.children.length > 0;
   const isFinal = node.type === "final";
 
