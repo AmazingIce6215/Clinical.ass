@@ -145,7 +145,7 @@ export default function HomePage() {
             >
               Welcome to{" "}
               <span className="inline-flex items-center">
-                <span className="part1">Clinical</span><span className={`dot-reveal inline-block overflow-hidden ${dotVisible ? 'visible' : ''}`}><span className="inline-flex h-2 w-2 items-center justify-center rounded-full bg-black text-[0]">•</span></span><span className="part2">ass</span>
+                <span className="part1">Clinical</span><span className={`dot-reveal ${dotVisible ? 'visible' : ''}`}><span className="dot-inner">•</span></span><span className="part2">ass</span>
               </span>
             </motion.h1>
 
