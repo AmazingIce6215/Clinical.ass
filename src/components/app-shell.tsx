@@ -54,11 +54,12 @@ export function AppShell({
                 </Link>
               )
             ) : (
-              <Link href="/" className="flex shrink-0 items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground shadow-glow">
-                  <span className="text-sm font-bold tracking-tight">Cl</span>
-                </div>
-                <span className="text-lg font-semibold tracking-tight">Clincalass</span>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-surface/70 px-3 py-2 text-xs font-medium text-muted backdrop-blur-md transition hover:border-accent/40 hover:text-accent"
+              >
+                <span>✅</span>
+                <span>Powered by GROQ</span>
               </Link>
             )}
             {(title || subtitle) && (
@@ -87,19 +88,10 @@ export function AppShell({
                 {session.firstName} · Sign out
               </button>
             )}
-            <DisclaimerBadge />
           </div>
         </header>
         {children}
       </div>
-    </div>
-  );
-}
-
-function DisclaimerBadge() {
-  return (
-    <div className="hidden rounded-full border border-border/60 bg-surface/70 px-3 py-1.5 text-[11px] text-muted backdrop-blur-md md:block">
-      Educational use only
     </div>
   );
 }

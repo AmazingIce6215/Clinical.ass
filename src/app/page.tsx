@@ -1,11 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useAuth } from "@/context/auth-context";
-import { formatGreeting } from "@/lib/auth";
 
 const modes = [
   {
@@ -36,6 +36,34 @@ const modes = [
 
 export default function HomePage() {
   const { session, ready } = useAuth();
+  const [greeting, setGreeting] = useState("Hey there,");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function fetchGreeting() {
+      try {
+        const params = new URLSearchParams();
+        if (session?.firstName) params.set("name", session.firstName);
+
+        const res = await fetch(`/api/greeting?${params.toString()}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (data?.greeting) {
+          setGreeting(data.greeting);
+        }
+      } catch {
+        // keep fallback greeting
+      }
+    }
+
+    void fetchGreeting();
+    return () => controller.abort();
+  }, [session]);
 
   return (
     <AppShell>
@@ -46,27 +74,20 @@ export default function HomePage() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="mb-12 text-center"
         >
-          <motion.div
-            className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent text-2xl font-bold text-accent-foreground shadow-glow"
-            animate={{ y: [0, -4, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          >
-            Cl
-          </motion.div>
-          {ready && session ? (
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              {formatGreeting(session.firstName)}
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted/10 text-5xl shadow-inner text-muted">
+            <span>🩺</span>
+          </div>
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-base font-semibold uppercase tracking-[0.32em] text-accent/90 sm:text-sm">
+              {greeting}
+            </p>
+            <h1 className="mt-4 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
+              Welcome to Clinicalass.
             </h1>
-          ) : (
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Clincalass</h1>
-          )}
-          <p className="mx-auto mt-4 max-w-lg text-muted">
-            Clinical reasoning, reimagined. A fluid step-by-step workup for real cases, and
-            case-based teaching for exam prep.
-          </p>
-          <p className="mt-3 text-xs text-muted/80">
-            Follows your system light/dark appearance · Educational use only
-          </p>
+            <p className="mx-auto mt-4 max-w-xl text-lg font-medium text-muted sm:text-xl">
+              A personalized AI companion for clinical reasoning, case review, and medical learning.
+            </p>
+          </div>
         </motion.div>
 
         <StaggerContainer className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

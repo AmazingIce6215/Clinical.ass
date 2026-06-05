@@ -10,8 +10,10 @@ interface StoredUser {
   salt: string;
 }
 
-const USERS_KEY = "dxflow-users";
-const SESSION_KEY = "dxflow-session";
+const USERS_KEY = "clincalass-users";
+const SESSION_KEY = "clincalass-session";
+const LEGACY_USERS_KEY = "dxflow-users";
+const LEGACY_SESSION_KEY = "dxflow-session";
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -68,7 +70,15 @@ function randomSalt(): string {
 }
 
 function getUsers(): StoredUser[] {
-  return readJson<StoredUser[]>(USERS_KEY, []);
+  const users = readJson<StoredUser[]>(USERS_KEY, []);
+  if (users.length > 0) return users;
+
+  const legacy = readJson<StoredUser[]>(LEGACY_USERS_KEY, []);
+  if (legacy.length > 0) {
+    saveUsers(legacy);
+    if (typeof window !== "undefined") localStorage.removeItem(LEGACY_USERS_KEY);
+  }
+  return legacy;
 }
 
 function saveUsers(users: StoredUser[]) {
@@ -76,26 +86,48 @@ function saveUsers(users: StoredUser[]) {
 }
 
 function migrateLegacyData(userId: string) {
-  const legacyKeys = [
-    "dxflow-library",
-    "dxflow-seen-diseases",
-    "dxflow-seen-titles",
-    "dxflow-seen-vignettes",
-    "dxflow-favorites",
-    "dxflow-seen-cases",
+  const suffixes = [
+    "library",
+    "seen-diseases",
+    "seen-titles",
+    "seen-vignettes",
+    "favorites",
+    "seen-cases",
   ];
-  for (const key of legacyKeys) {
-    const legacy = localStorage.getItem(key);
-    const scoped = localStorage.getItem(`${key}-${userId}`);
-    if (legacy && !scoped) {
-      localStorage.setItem(`${key}-${userId}`, legacy);
-      localStorage.removeItem(key);
+
+  for (const suffix of suffixes) {
+    const newKey = `clincalass-${suffix}`;
+    const scoped = `${newKey}-${userId}`;
+    if (localStorage.getItem(scoped)) continue;
+
+    for (const prefix of ["clincalass", "dxflow"]) {
+      const legacyScoped = localStorage.getItem(`${prefix}-${suffix}-${userId}`);
+      if (legacyScoped) {
+        localStorage.setItem(scoped, legacyScoped);
+        localStorage.removeItem(`${prefix}-${suffix}-${userId}`);
+        break;
+      }
+
+      const legacy = localStorage.getItem(`${prefix}-${suffix}`);
+      if (legacy) {
+        localStorage.setItem(scoped, legacy);
+        localStorage.removeItem(`${prefix}-${suffix}`);
+        break;
+      }
     }
   }
 }
 
 export function getSession(): AuthSession | null {
-  return readJson<AuthSession | null>(SESSION_KEY, null);
+  const session = readJson<AuthSession | null>(SESSION_KEY, null);
+  if (session) return session;
+
+  const legacy = readJson<AuthSession | null>(LEGACY_SESSION_KEY, null);
+  if (legacy) {
+    writeJson(SESSION_KEY, legacy);
+    if (typeof window !== "undefined") localStorage.removeItem(LEGACY_SESSION_KEY);
+  }
+  return legacy;
 }
 
 export async function registerUser(
@@ -148,13 +180,8 @@ export function logoutUser() {
   if (typeof window !== "undefined") localStorage.removeItem(SESSION_KEY);
 }
 
-export function getTimeGreeting(date = new Date()): string {
-  const hour = date.getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
-}
-
-export function formatGreeting(firstName: string, date = new Date()): string {
-  return `${getTimeGreeting(date)}, ${firstName}!`;
+export function formatGreeting(firstName = ""): string {
+  const name = firstName.trim();
+  if (!name) return "Hey there,";
+  return `Hey ${name},`;
 }
