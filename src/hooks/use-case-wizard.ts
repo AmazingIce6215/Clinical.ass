@@ -252,7 +252,12 @@ export function useCaseWizard(mode: Mode) {
 
     if (currentStep.category === "complete" || currentStep.fieldKey === "complete") {
       if (mode === "classic") await fetchPresentation(patientCase);
-      else await fetchDiagnosis(patientCase);
+      else {
+        // Force a full AI synthesis for final diagnosis (don't use the lightweight preview)
+        aiAbortRef.current?.abort();
+        aiDiagnosisPreview.current = null;
+        await fetchDiagnosis(patientCase);
+      }
       return;
     }
 

@@ -38,9 +38,12 @@ export interface DiagnosisResult {
   differentials: Array<{
     diagnosis: string;
     likelihood: string;
+    probability?: number; // percentage 0-100
     reasoning: string;
     whyNotPrimary?: string;
     keyFeatures?: string[];
+    supportingFindings?: string[];
+    findingsAgainst?: string[];
   }>;
   redFlags: Array<{ flag: string; whyItMatters: string }> | string[];
   investigations: string[];

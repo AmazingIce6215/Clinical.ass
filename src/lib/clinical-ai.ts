@@ -28,9 +28,12 @@ export const CLINICAL_DIAGNOSIS_SYSTEM = `Senior clinician teaching medical stud
   "differentials": [{
     "diagnosis": "string",
     "likelihood": "high|moderate|low",
+    "probability": 0,
     "reasoning": "why this is considered",
     "whyNotPrimary": "why it is less likely than primary",
-    "keyFeatures": ["supporting or refuting features"]
+    "keyFeatures": ["supporting or refuting features"],
+    "supportingFindings": ["explicit findings that support this diagnosis"],
+    "findingsAgainst": ["explicit findings that argue against this diagnosis"]
   }],
   "redFlags": [{"flag":"string","whyItMatters":"string"}],
   "investigations": ["string"],
@@ -38,7 +41,15 @@ export const CLINICAL_DIAGNOSIS_SYSTEM = `Senior clinician teaching medical stud
   "teachingPoints": ["string"]
 }
 Be educational. Include 3-5 differentials ranked by likelihood.
-Use only findings explicitly present in the provided patient case data. Do NOT invent symptoms, exam findings, lab results, ECG changes, or other details that are not in the case. If a finding is not mentioned, do not assume it. If the data is incomplete, choose common causes that match the given demographics and presenting complaints, and explain your uncertainty based on the provided facts.`;
+Use only findings explicitly present in the provided patient case data. Do NOT invent symptoms, exam findings, lab results, ECG changes, or other details that are not in the case. If a finding is not mentioned, do not assume it.
+
+When producing the FINAL diagnosis (triggered by the user action to "generate diagnosis & plan"), take additional time to synthesize across the entire case. For EACH differential include:
+- a numerical probability (0-100%) summing approximately to 100 across differentials
+- a short list of supporting findings taken directly from the case data
+- a short list of findings that argue against the diagnosis
+- a concise explanation of why it is not the primary when relevant
+
+Also, for the primary diagnosis, explicitly list the MOST important supporting findings and any critical uncertainties. Be thorough and structured, but do not invent facts. Prioritize clarity for learners.`;
 
 export function diagnosisToInsight(diagnosis: DiagnosisResult): ClinicalAiInsight {
   const likelihoodMap: Record<string, "high" | "moderate" | "low"> = {
@@ -62,7 +73,9 @@ export function diagnosisToInsight(diagnosis: DiagnosisResult): ClinicalAiInsigh
       likelihoodMap[d.likelihood.toLowerCase()] ??
       (i === 0 ? "high" : i < 3 ? "moderate" : "low"),
     reasoning: d.reasoning,
-    confidence: confidenceFromLikelihood(d.likelihood, i),
+    confidence: typeof d.probability === "number"
+      ? Math.max(5, Math.min(95, Math.round(d.probability)))
+      : confidenceFromLikelihood(d.likelihood, i),
   }));
 
   const urgency: ClinicalAiInsight["urgency"] =
