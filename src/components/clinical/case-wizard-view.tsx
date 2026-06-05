@@ -55,6 +55,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
 
       <div className="flex flex-1 gap-8">
         <CaseSidebar
+          key={w.phase === "results" ? "results" : "workup"}
           patientCase={w.patientCase}
           aiInsight={isClassic ? undefined : w.aiInsight}
           aiLoading={isClassic ? undefined : w.aiLoading}
@@ -63,6 +64,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
               ? undefined
               : w.aiError
           }
+          minimizeAi={!isClassic && w.phase === "results"}
         />
 
         <main className="flex-1">

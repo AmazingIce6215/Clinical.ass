@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 import type { ClinicalAiInsight, PatientCase } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -9,31 +10,59 @@ export function CaseSidebar({
   aiInsight,
   aiLoading,
   aiError,
+  minimizeAi = false,
   className,
 }: {
   patientCase: PatientCase;
   aiInsight?: ClinicalAiInsight | null;
   aiLoading?: boolean;
   aiError?: string | null;
+  minimizeAi?: boolean;
   className?: string;
 }) {
+  const [userExpanded, setUserExpanded] = useState(false);
+
+  const showAiSection = aiError || aiInsight || aiLoading;
+  const aiCollapsed = minimizeAi && !userExpanded && Boolean(aiInsight);
+
+  const aiPanel = aiError ? (
+    <AiErrorCard message={aiError} />
+  ) : aiInsight ? (
+    aiCollapsed ? (
+      <MinimizedAiPanel
+        insight={aiInsight}
+        onExpand={() => setUserExpanded(true)}
+      />
+    ) : (
+      <AiInsightPanel
+        insight={aiInsight}
+        loading={aiLoading}
+        onMinimize={minimizeAi ? () => setUserExpanded(false) : undefined}
+      />
+    )
+  ) : aiLoading ? (
+    <AiLoadingCard />
+  ) : null;
+
   return (
     <>
-      {aiInsight && (
+      {showAiSection && (
         <div className="mb-4 lg:hidden">
-          <AiInsightPanel insight={aiInsight} loading={aiLoading} compact />
+          {aiCollapsed && aiInsight ? (
+            <MinimizedAiPanel
+              insight={aiInsight}
+              onExpand={() => setUserExpanded(true)}
+              compact
+            />
+          ) : (
+            aiPanel
+          )}
         </div>
       )}
 
       <aside className={cn("hidden w-80 shrink-0 flex-col gap-4 lg:flex", className)}>
         <div className="sticky top-6 space-y-4">
-          {aiError ? (
-            <AiErrorCard message={aiError} />
-          ) : aiInsight ? (
-            <AiInsightPanel insight={aiInsight} loading={aiLoading} />
-          ) : aiLoading ? (
-            <AiLoadingCard />
-          ) : null}
+          {showAiSection ? aiPanel : null}
 
           <SidebarCard title="Case summary">
             <SummaryRow label="Patient" value={patientCase.name || "—"} />
@@ -80,14 +109,54 @@ export function CaseSidebar({
   );
 }
 
+function MinimizedAiPanel({
+  insight,
+  onExpand,
+  compact,
+}: {
+  insight: ClinicalAiInsight;
+  onExpand: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onExpand}
+      className={cn(
+        "flex w-full items-center gap-3 rounded-2xl border border-accent/25 bg-accent/5 px-4 py-3 text-left transition hover:border-accent/40 hover:bg-accent/10",
+        compact ? "py-2.5" : "py-3",
+      )}
+      aria-expanded="false"
+      aria-label="Expand live AI sidebar"
+    >
+      <span className="relative flex h-2 w-2 shrink-0">
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-accent">
+          Live AI
+        </p>
+        <p className="truncate text-sm font-medium text-foreground">
+          {insight.leadingDiagnosis}
+        </p>
+      </div>
+      <span className="shrink-0 text-xs text-muted" aria-hidden>
+        Show
+      </span>
+    </button>
+  );
+}
+
 function AiInsightPanel({
   insight,
   loading,
   compact,
+  onMinimize,
 }: {
   insight: ClinicalAiInsight;
   loading?: boolean;
   compact?: boolean;
+  onMinimize?: () => void;
 }) {
   return (
     <motion.div
@@ -107,7 +176,19 @@ function AiInsightPanel({
             AI clinical reasoning
           </h3>
         </div>
-        <UrgencyBadge urgency={insight.urgency} />
+        <div className="flex items-center gap-2">
+          <UrgencyBadge urgency={insight.urgency} />
+          {onMinimize && (
+            <button
+              type="button"
+              onClick={onMinimize}
+              className="rounded-lg px-2 py-1 text-[10px] font-medium text-muted transition hover:bg-surface/80 hover:text-foreground"
+              aria-label="Minimize live AI sidebar"
+            >
+              Minimize
+            </button>
+          )}
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
