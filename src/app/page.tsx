@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useAuth } from "@/context/auth-context";
-import { getPersonalGreeting } from "@/lib/auth";
 
 const modes = [
   {
@@ -37,14 +36,56 @@ const modes = [
 
 export default function HomePage() {
   const { session } = useAuth();
-  const greeting = useMemo(
-    () => getPersonalGreeting(session?.firstName ?? ""),
-    [session?.firstName],
-  );
+  const [greeting, setGreeting] = useState<string>("");
+  const [displayedGreeting, setDisplayedGreeting] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
   const [hasAnimated, setHasAnimated] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
+  const animateTypewriter = (text: string) => {
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        setDisplayedGreeting(text.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 40);
+    return () => clearInterval(interval);
+  };
+
+  const fetchGreeting = async () => {
+    try {
+      const response = await fetch("/api/greeting");
+      const data = await response.json();
+      const newGreeting = data.greeting;
+      setGreeting(newGreeting);
+      sessionStorage.setItem("aiGreeting", newGreeting);
+      setIsLoading(false);
+      animateTypewriter(newGreeting);
+    } catch (error) {
+      console.error("Failed to fetch greeting:", error);
+      setGreeting("HELLO DOCTOR");
+      setIsLoading(false);
+      animateTypewriter("HELLO DOCTOR");
+    }
+  };
+
   useEffect(() => {
+    // Check sessionStorage for cached greeting
+    const cachedGreeting = sessionStorage.getItem("aiGreeting");
+    if (cachedGreeting) {
+      setGreeting(cachedGreeting);
+      setIsLoading(false);
+      // Start typewriter animation immediately if cached
+      animateTypewriter(cachedGreeting);
+    } else {
+      // Fetch new greeting from API
+      fetchGreeting();
+    }
+
+    // Check for animation preference
     const hasSeenAnimation = sessionStorage.getItem("homepageAnimated");
     if (hasSeenAnimation) {
       setHasAnimated(true);
@@ -81,14 +122,18 @@ export default function HomePage() {
 
           <div className="mx-auto max-w-3xl text-center">
             {/* 1. Greeting fade-in (0s-1s) */}
-            <motion.p
-              initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
-              animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
-              transition={{ duration: 0.8, ease: "easeOut", delay: shouldAnimate ? 0 : 0 }}
-              className="text-base font-semibold uppercase tracking-[0.32em] text-accent/90 sm:text-sm"
-            >
-              {greeting}
-            </motion.p>
+            {isLoading ? (
+              <div className="h-6 w-48 animate-pulse rounded bg-muted/30" />
+            ) : (
+              <motion.p
+                initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
+                animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
+                transition={{ duration: 0.8, ease: "easeOut", delay: shouldAnimate ? 0 : 0 }}
+                className="text-base font-semibold uppercase tracking-[0.32em] text-accent/90 sm:text-sm"
+              >
+                {displayedGreeting}
+              </motion.p>
+            )}
 
             {/* 2. Title drop with bounce (1s-1.8s) */}
             <motion.h1
