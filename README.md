@@ -1,4 +1,4 @@
-# DxFlow
+# Clincalass
 
 Clinical reasoning companion for medical students — guided workup + case-based teaching.
 

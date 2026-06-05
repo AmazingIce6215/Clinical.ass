@@ -10,7 +10,7 @@ import { formatGreeting } from "@/lib/auth";
 const modes = [
   {
     href: "/clinical",
-    title: "Clinical Companion",
+    title: "Clincalass Companion",
     description:
       "Real-life workup: triage, targeted HPI, exam, investigations → diagnosis, differentials & management.",
     icon: "🩺",
@@ -51,14 +51,14 @@ export default function HomePage() {
             animate={{ y: [0, -4, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           >
-            Dx
+            Cl
           </motion.div>
           {ready && session ? (
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
               {formatGreeting(session.firstName)}
             </h1>
           ) : (
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">DxFlow</h1>
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Clincalass</h1>
           )}
           <p className="mx-auto mt-4 max-w-lg text-muted">
             Clinical reasoning, reimagined. A fluid step-by-step workup for real cases, and

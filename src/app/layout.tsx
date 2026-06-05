@@ -15,14 +15,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DxFlow — Clinical Reasoning Companion",
+  title: "Clincalass — Clinical Reasoning Companion",
   description:
     "AI-powered clinical workup and case-based teaching for medical students. Educational use only.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "DxFlow",
+    title: "Clincalass",
   },
 };
 

@@ -56,9 +56,9 @@ export function AppShell({
             ) : (
               <Link href="/" className="flex shrink-0 items-center gap-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground shadow-glow">
-                  <span className="text-sm font-bold tracking-tight">Dx</span>
+                  <span className="text-sm font-bold tracking-tight">Cl</span>
                 </div>
-                <span className="text-lg font-semibold tracking-tight">DxFlow</span>
+                <span className="text-lg font-semibold tracking-tight">Clincalass</span>
               </Link>
             )}
             {(title || subtitle) && (

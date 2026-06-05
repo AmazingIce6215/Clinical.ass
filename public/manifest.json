@@ -1,6 +1,6 @@
 {
-  "name": "DxFlow",
-  "short_name": "DxFlow",
+  "name": "Clincalass",
+  "short_name": "Clincalass",
   "description": "Clinical reasoning companion for medical students",
   "start_url": "/",
   "display": "standalone",
