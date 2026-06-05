@@ -114,13 +114,15 @@ export function useCaseWizard(mode: Mode) {
       });
       const data = await res.json();
 
-      if (!res.ok || !data?.keyQuestions) {
+      const insight = data?.insight ?? data;
+
+      if (!res.ok || !insight?.keyQuestions) {
         const message = formatAiError(data?.aiError ?? data?.error ?? "Co-Pilot analysis failed");
         setCoPilotError(message);
         return;
       }
 
-      setCoPilotInsight(data as CoPilotInsight);
+      setCoPilotInsight(insight as CoPilotInsight);
       setCoPilotStale(false);
     } catch (error) {
       setCoPilotError(formatAiError((error as Error)?.message ?? String(error)));
