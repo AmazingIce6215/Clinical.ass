@@ -89,6 +89,28 @@ export function useCaseWizard(mode: Mode) {
     [mode],
   );
 
+  const fetchDifferentials = useCallback(
+    async (caseData: PatientCase) => {
+      if (mode !== "clinical" || caseData.chiefComplaints.length === 0) return;
+      try {
+        const res = await fetch("/api/clinical/differentials", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ patientCase: caseData }),
+        });
+        const data = await res.json();
+        if (data.insight) {
+          setAiInsight(data.insight);
+          setAiInsightIsLocal(false);
+          setAiError(data.aiError ? formatAiError(data.aiError) : null);
+        }
+      } catch {
+        // Silently fail - local insight already showing
+      }
+    },
+    [mode],
+  );
+
   const fetchNextStep = useCallback(
     async (caseData: PatientCase, stack: StepRecord[] = []) => {
       setLoading(true);
@@ -198,6 +220,8 @@ export function useCaseWizard(mode: Mode) {
     setPhase("dynamic");
     setStepStack([]);
     refreshLocalInsight(patientCase);
+    // Fetch fresh AI differentials for the initial complaint
+    fetchDifferentials(patientCase);
     // Fire the fetch in background, don't block on it
     fetchNextStep(patientCase, []);
   };
@@ -221,6 +245,8 @@ export function useCaseWizard(mode: Mode) {
     // Fire the fetch in background, don't block on it
     // This allows local insight to render immediately
     fetchNextStep(updated, newStack);
+    // Fetch fresh AI differentials after answering the question
+    fetchDifferentials(updated);
   };
 
   const submitStep = async () => {
@@ -245,7 +271,7 @@ export function useCaseWizard(mode: Mode) {
     const value = buildSkippedValue(currentStep);
     const updated = applyAnswer(patientCase, currentStep, value);
     const newStack = [...stepStack, { fieldKey: currentStep.fieldKey, category: currentStep.category }];
-    await advanceStep(updated, newStack);
+    advanceStep(updated, newStack);
   };
 
   const goBack = () => {
@@ -278,6 +304,7 @@ export function useCaseWizard(mode: Mode) {
       setPatientCase(updated);
       fetchNextStep(updated, newStack);
       refreshLocalInsight(updated);
+      fetchDifferentials(updated);
     }
   };
 
