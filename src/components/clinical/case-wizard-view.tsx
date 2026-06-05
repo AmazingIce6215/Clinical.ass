@@ -56,7 +56,6 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
       <div className="flex flex-1 gap-6">
         <aside className="hidden w-80 shrink-0 flex-col gap-4 lg:flex">
           <div className="sticky top-6 space-y-4">
-            <CaseSummarySidebar patientCase={w.patientCase} />
             <CaseSidebar
               key={w.phase === "results" ? "results" : "workup"}
               patientCase={w.patientCase}
@@ -76,6 +75,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
               stale={isClassic ? undefined : w.coPilotStale}
               onAnalyze={isClassic ? undefined : w.analyzeCoPilot}
             />
+            <CaseSummarySidebar patientCase={w.patientCase} />
           </div>
         </aside>
 
