@@ -204,7 +204,7 @@ function CoPilotPanel({
           aria-expanded={expanded}
         >
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
-            Co-Pilot
+            CO-PILOT
           </p>
           <p className="mt-1 text-sm font-semibold text-foreground">
             Clinical thinking coach
