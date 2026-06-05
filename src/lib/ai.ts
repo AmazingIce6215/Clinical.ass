@@ -43,9 +43,25 @@ export async function aiJsonCompletion<T>(
     const raw = completion.choices[0]?.message?.content;
     if (!raw) return { data: null, error: { message: "Empty AI response" } };
 
-    return { data: JSON.parse(raw) as T };
+    const parsed = typeof raw === "string" ? parseJsonString(raw) : raw;
+    return { data: parsed as T };
   } catch (err) {
     const message = err instanceof Error ? err.message : "AI request failed";
     return { data: null, error: { message } };
+  }
+}
+
+function parseJsonString(raw: string): unknown {
+  const text = raw.trim();
+  if (!text) throw new Error("Empty AI JSON string");
+  try {
+    return JSON.parse(text);
+  } catch {
+    const firstBrace = text.indexOf("{");
+    const lastBrace = text.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      return JSON.parse(text.slice(firstBrace, lastBrace + 1));
+    }
+    throw new Error("Unable to parse AI JSON response");
   }
 }

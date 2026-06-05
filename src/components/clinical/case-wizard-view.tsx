@@ -200,6 +200,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
               <FadeSlide key="pres">
                 <ClassicResults
                   presentation={w.presentation}
+                  aiPowered={Boolean(w.presentationAiPowered)}
                   onReset={w.reset}
                   onSave={w.saveCase}
                   saved={w.saved}
@@ -329,11 +330,13 @@ function ClinicalResults({
 
 function ClassicResults({
   presentation,
+  aiPowered,
   onReset,
   onSave,
   saved,
 }: {
   presentation: ClassicPresentation;
+  aiPowered: boolean;
   onReset: () => void;
   onSave: () => void;
   saved: boolean;
@@ -341,7 +344,17 @@ function ClassicResults({
   return (
     <div className="max-w-3xl space-y-4">
       <GlassCard>
-        <p className="text-xs font-semibold uppercase text-accent">One-liner</p>
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-xs font-semibold uppercase text-accent">One-liner</p>
+          <span
+            className={cn(
+              "rounded-full px-2 py-1 text-[11px] font-semibold",
+              aiPowered ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700",
+            )}
+          >
+            {aiPowered ? "AI generated" : "Manual summary"}
+          </span>
+        </div>
         <p className="mt-2 text-lg font-medium">{presentation.oneLiner}</p>
       </GlassCard>
 
