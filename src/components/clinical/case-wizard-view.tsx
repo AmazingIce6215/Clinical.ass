@@ -54,7 +54,18 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
       </div>
 
       <div className="flex flex-1 gap-6">
-        <CaseSummarySidebar patientCase={w.patientCase} />
+        <aside className="hidden w-72 shrink-0 flex-col gap-4 lg:flex">
+          <div className="sticky top-6 space-y-4">
+            <CaseSummarySidebar patientCase={w.patientCase} />
+            <CoPilotSidebar
+              insight={isClassic ? undefined : w.coPilotInsight}
+              loading={isClassic ? undefined : w.coPilotLoading}
+              error={isClassic ? undefined : w.coPilotError}
+              stale={isClassic ? undefined : w.coPilotStale}
+              onAnalyze={isClassic ? undefined : w.analyzeCoPilot}
+            />
+          </div>
+        </aside>
 
         <main className="flex min-w-0 flex-1">
           <AnimatePresence mode="wait">
@@ -232,13 +243,6 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
                   : w.aiError
               }
               minimizeAi={!isClassic && w.phase === "results"}
-            />
-            <CoPilotSidebar
-              insight={isClassic ? undefined : w.coPilotInsight}
-              loading={isClassic ? undefined : w.coPilotLoading}
-              error={isClassic ? undefined : w.coPilotError}
-              stale={isClassic ? undefined : w.coPilotStale}
-              onAnalyze={isClassic ? undefined : w.analyzeCoPilot}
             />
           </div>
         </aside>
