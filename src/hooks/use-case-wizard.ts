@@ -94,6 +94,26 @@ export function useCaseWizard(mode: Mode) {
     [mode],
   );
 
+  const fetchAiDifferentials = useCallback(async (caseData: PatientCase) => {
+    if (mode !== "clinical" || caseData.chiefComplaints.length === 0) return;
+
+    try {
+      const res = await fetch("/api/clinical/differentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientCase: caseData }),
+      });
+      const data = await res.json();
+      if (res.ok && data?.insight?.leadingDiagnosis) {
+        setAiInsight(data.insight);
+        setAiInsightIsLocal(false);
+        setAiError(null);
+      }
+    } catch {
+      // Fallback already set by refreshLocalInsight — silently ignore
+    }
+  }, [mode]);
+
   useEffect(() => {
     if (coPilotInsight) {
       setCoPilotStale(true);
@@ -259,6 +279,9 @@ export function useCaseWizard(mode: Mode) {
     setStepStack(newStack);
     setPatientCase(updated);
     refreshLocalInsight(updated);
+    // Fire-and-forget AI differentials update: show local preview instantly,
+    // then replace with AI-powered version when it arrives
+    fetchAiDifferentials(updated);
     await fetchNextStep(updated, newStack);
   };
 
