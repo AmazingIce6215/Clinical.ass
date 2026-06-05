@@ -1,13 +1,17 @@
 "use client";
 
 import { use, useCallback, useEffect, useState } from "react";
+import { notFound } from "next/navigation";
 import { AppShell, GlassCard, PrimaryButton } from "@/components/app-shell";
 import { CasePlayer } from "@/components/teaching/case-player";
 import { FadeSlide } from "@/components/motion";
+import {
+  getSeenDiseases,
+  getSeenTitles,
+  getSeenVignettes,
+} from "@/lib/case-library";
 import { getSubject } from "@/lib/teaching-subjects";
-import { getSeenTitles } from "@/lib/teaching-storage";
 import type { GeneratedTeachingCase } from "@/lib/types";
-import { notFound } from "next/navigation";
 
 export default function SubjectCasePage({
   params,
@@ -33,6 +37,8 @@ export default function SubjectCasePage({
         body: JSON.stringify({
           subject: subjectId,
           avoidTitles: getSeenTitles(subjectId),
+          avoidDiseases: getSeenDiseases(subjectId),
+          avoidVignettes: getSeenVignettes(subjectId),
         }),
       });
 
@@ -59,7 +65,7 @@ export default function SubjectCasePage({
 
   if (loading) {
     return (
-      <AppShell backHref="/teaching" title="Generating case..." subtitle="AI is building your vignette">
+      <AppShell backHref="/teaching" title="Generating session..." subtitle="AI is building 3 unique patients">
         <div className="mx-auto flex max-w-md flex-col items-center justify-center py-24">
           <FadeSlide>
             <div className="relative h-16 w-16">
@@ -67,7 +73,7 @@ export default function SubjectCasePage({
               <div className="absolute inset-2 animate-pulse rounded-full bg-accent/10" />
             </div>
           </FadeSlide>
-          <p className="mt-6 text-sm text-muted">Creating a unique case for you...</p>
+          <p className="mt-6 text-sm text-muted">Creating a unique session for you...</p>
         </div>
       </AppShell>
     );

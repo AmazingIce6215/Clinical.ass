@@ -1,46 +1,54 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import {
   AppShell,
+  ButtonLink,
   GlassCard,
   PrimaryButton,
   SecondaryButton,
 } from "@/components/app-shell";
 import { FadeSlide, ProgressBar } from "@/components/motion";
 import {
-  isFavorite,
-  markCaseSeen,
-  removeFavorite,
-  saveFavorite,
-} from "@/lib/teaching-storage";
+  isInLibrary,
+  markDiseaseSeen,
+  markTitleSeen,
+  markVignettesSeen,
+  removeFromLibrary,
+  saveTeachingToLibrary,
+} from "@/lib/case-library";
 import type { GeneratedTeachingCase } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function CasePlayer({
   teachingCase,
   backHref,
+  onBack,
   onNewCase,
   showNewCase = false,
 }: {
   teachingCase: GeneratedTeachingCase;
-  backHref: string;
+  backHref?: string;
+  onBack?: () => void;
   onNewCase?: () => void;
   showNewCase?: boolean;
 }) {
+  const router = useRouter();
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
-  const [favorited, setFavorited] = useState(() => isFavorite(teachingCase.id));
+  const [favorited, setFavorited] = useState(() => isInLibrary(teachingCase.id));
 
   const question = teachingCase.questions[questionIndex];
   const progress = finished
     ? 100
     : ((questionIndex + (revealed ? 1 : 0)) / teachingCase.questions.length) * 100;
+
+  const handleBack = onBack ?? (() => router.push(backHref ?? "/teaching"));
 
   const submit = () => {
     if (selected === null) return;
@@ -52,7 +60,12 @@ export function CasePlayer({
 
   const next = () => {
     if (questionIndex + 1 >= teachingCase.questions.length) {
-      markCaseSeen(teachingCase.subject, teachingCase.title);
+      markTitleSeen(teachingCase.subject, teachingCase.title);
+      markDiseaseSeen(teachingCase.subject, teachingCase.title);
+      markVignettesSeen(
+        teachingCase.subject,
+        teachingCase.questions.map((q) => q.vignette),
+      );
       setFinished(true);
     } else {
       setQuestionIndex((i) => i + 1);
@@ -63,10 +76,10 @@ export function CasePlayer({
 
   const toggleFavorite = useCallback(() => {
     if (favorited) {
-      removeFavorite(teachingCase.id);
+      removeFromLibrary(teachingCase.id);
       setFavorited(false);
     } else {
-      saveFavorite(teachingCase);
+      saveTeachingToLibrary({ ...teachingCase, favorited: true });
       setFavorited(true);
     }
   }, [favorited, teachingCase]);
@@ -81,7 +94,7 @@ export function CasePlayer({
 
   return (
     <AppShell
-      backHref={backHref}
+      onBack={handleBack}
       title={teachingCase.title}
       subtitle={`${teachingCase.subjectName} · ${teachingCase.difficulty}`}
     >
@@ -104,7 +117,7 @@ export function CasePlayer({
                 : "border-border/70 bg-surface/60 hover:border-amber-500/30",
             )}
             whileTap={{ scale: 0.92 }}
-            aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
+            aria-label={favorited ? "Remove from library" : "Save to library"}
           >
             {favorited ? "★" : "☆"}
           </motion.button>
@@ -114,11 +127,16 @@ export function CasePlayer({
           {!finished ? (
             <FadeSlide key={`q-${questionIndex}`}>
               <GlassCard className="mb-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+                {question.patientLabel && (
+                  <p className="text-xs font-semibold uppercase tracking-wider text-accent">
+                    {question.patientLabel}
+                  </p>
+                )}
+                <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-muted">
                   Case vignette
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-foreground/90">
-                  {teachingCase.vignette}
+                  {question.vignette}
                 </p>
               </GlassCard>
 
@@ -176,7 +194,7 @@ export function CasePlayer({
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="mt-5 overflow-hidden space-y-3"
+                      className="mt-5 space-y-3 overflow-hidden"
                     >
                       <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm">
                         <p className="font-medium text-emerald-600 dark:text-emerald-400">
@@ -246,7 +264,7 @@ export function CasePlayer({
                   <p className="text-5xl font-bold text-accent">
                     {score}/{teachingCase.questions.length}
                   </p>
-                  <p className="mt-2 text-lg font-medium">Case complete</p>
+                  <p className="mt-2 text-lg font-medium">Session complete</p>
                   <p className="mt-1 text-sm text-muted">
                     {score === teachingCase.questions.length
                       ? "Perfect — excellent clinical reasoning!"
@@ -255,12 +273,10 @@ export function CasePlayer({
                 </motion.div>
                 <div className="mt-8 flex flex-wrap justify-center gap-3">
                   {showNewCase && onNewCase && (
-                    <PrimaryButton onClick={onNewCase}>New case</PrimaryButton>
+                    <PrimaryButton onClick={onNewCase}>New session</PrimaryButton>
                   )}
-                  <SecondaryButton onClick={reset}>Retry this case</SecondaryButton>
-                  <Link href={backHref}>
-                    <SecondaryButton>Back</SecondaryButton>
-                  </Link>
+                  <SecondaryButton onClick={reset}>Retry this session</SecondaryButton>
+                  <ButtonLink href={backHref ?? "/teaching"}>Back</ButtonLink>
                 </div>
               </GlassCard>
             </FadeSlide>

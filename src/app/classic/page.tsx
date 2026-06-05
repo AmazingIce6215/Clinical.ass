@@ -2,6 +2,6 @@
 
 import { CaseWizardView } from "@/components/clinical/case-wizard-view";
 
-export default function ClinicalPage() {
-  return <CaseWizardView mode="clinical" />;
+export default function ClassicPage() {
+  return <CaseWizardView mode="classic" />;
 }

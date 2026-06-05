@@ -1,5 +1,5 @@
 export type Sex = "male" | "female" | "other";
-
+export type CaseMode = "clinical" | "classic" | "teaching";
 export type InputType = "chips" | "text" | "yesno" | "multiselect";
 
 export interface PatientCase {
@@ -19,31 +19,61 @@ export interface ClinicalStepResponse {
   options?: string[];
   allowCustom?: boolean;
   fieldKey: string;
-  category: "hpi" | "exam" | "investigations" | "complete";
+  category: "hpi" | "exam" | "investigations" | "complete" | "pmh" | "drugs" | "family" | "social" | "ros";
+  sectionLabel?: string;
+  reasonForAsking?: string;
+  teachingPearl?: string;
   missingCritical?: string[];
   workingDifferentials?: Array<{
     diagnosis: string;
     likelihood: "high" | "moderate" | "low";
   }>;
-  teachingPearl?: string;
 }
+
+export type ClassicStepResponse = ClinicalStepResponse;
 
 export interface DiagnosisResult {
   primaryDiagnosis: string;
+  clinicalReasoningSummary: string;
   differentials: Array<{
     diagnosis: string;
     likelihood: string;
     reasoning: string;
+    whyNotPrimary?: string;
+    keyFeatures?: string[];
   }>;
-  redFlags: string[];
+  redFlags: Array<{ flag: string; whyItMatters: string }> | string[];
   investigations: string[];
   management: string[];
   teachingPoints: string[];
 }
 
+export interface ClinicalAiInsight {
+  leadingDiagnosis: string;
+  reasoning: string;
+  urgency: "stable" | "urgent" | "emergency";
+  differentials: Array<{
+    diagnosis: string;
+    likelihood: "high" | "moderate" | "low";
+    reasoning: string;
+    confidence: number;
+  }>;
+  suggestedInvestigations: Array<{ test: string; rationale: string }>;
+  nextClinicalFocus?: string;
+}
+
+export interface ClassicPresentation {
+  oneLiner: string;
+  fullPresentation: string;
+  keyPoints: string[];
+  suggestedQuestions: string[];
+}
+
 export interface TeachingQuestion {
   id: string;
   prompt: string;
+  vignette: string;
+  patientLabel?: string;
   options: string[];
   correctIndex: number;
   explanation: string;
@@ -63,11 +93,15 @@ export interface GeneratedTeachingCase {
   favorited?: boolean;
 }
 
-export interface TeachingCase {
+export interface SavedCase {
   id: string;
+  mode: CaseMode;
   title: string;
-  specialty: string;
-  difficulty: "easy" | "medium" | "hard";
-  vignette: string;
-  questions: TeachingQuestion[];
+  subject?: string;
+  tags: string[];
+  savedAt: number;
+  patientCase?: PatientCase;
+  diagnosis?: DiagnosisResult;
+  presentation?: ClassicPresentation;
+  teachingCase?: GeneratedTeachingCase;
 }

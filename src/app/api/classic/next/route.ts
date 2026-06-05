@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getNextClinicalStep } from "@/lib/clinical-flow";
+import { getNextClassicStep } from "@/lib/classic-flow";
 import type { PatientCase } from "@/lib/types";
 
 export async function POST(request: Request) {
@@ -10,11 +10,11 @@ export async function POST(request: Request) {
     };
 
     const { completedKeys = [] } = body;
-    const step = getNextClinicalStep(completedKeys);
+    const step = getNextClassicStep(completedKeys);
 
     return NextResponse.json({ step, aiPowered: false });
   } catch (error) {
-    console.error("Clinical step error:", error);
+    console.error("Classic step error:", error);
     return NextResponse.json({ error: "Failed to get next step" }, { status: 500 });
   }
 }
