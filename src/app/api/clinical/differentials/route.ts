@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
 import { buildClinicalAiContext, CLINICAL_DIAGNOSIS_SYSTEM, diagnosisToInsight } from "@/lib/clinical-ai";
-import { getFallbackDiagnosis } from "@/lib/clinical-fallback";
+import { getFallbackDiagnosis, getFallbackReasonFromError } from "@/lib/clinical-fallback";
 import type { DiagnosisResult, PatientCase } from "@/lib/types";
 
 export const maxDuration = 30;
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const { draft } = body;
 
     if (patientCase.chiefComplaints.length === 0) {
-      const fallback = getFallbackDiagnosis(patientCase);
+      const fallback = getFallbackDiagnosis(patientCase, "generic");
       return NextResponse.json({
         insight: diagnosisToInsight(fallback),
         diagnosis: fallback,
@@ -36,7 +36,9 @@ export async function POST(request: Request) {
       userPrompt,
     );
 
-    const diagnosis = result.data ?? getFallbackDiagnosis(patientCase);
+    const diagnosis =
+      result.data ??
+      getFallbackDiagnosis(patientCase, getFallbackReasonFromError(result.error?.message));
     const insight = diagnosisToInsight(diagnosis);
 
     return NextResponse.json({
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Differentials error:", error);
-    const fallback = getFallbackDiagnosis(patientCase);
+    const fallback = getFallbackDiagnosis(patientCase, "generic");
     return NextResponse.json({
       insight: diagnosisToInsight(fallback),
       diagnosis: fallback,

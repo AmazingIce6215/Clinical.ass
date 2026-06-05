@@ -11,6 +11,8 @@ import type {
   Sex,
 } from "@/lib/types";
 import { formatAiError } from "@/lib/ai";
+import { diagnosisToInsight } from "@/lib/clinical-ai";
+import { getLocalClinicalInsight } from "@/lib/clinical-fallback";
 import { buildStepValue, buildSkippedValue } from "@/lib/step-utils";
 import { saveToLibrary } from "@/lib/case-library";
 
@@ -26,6 +28,8 @@ const BASE_COMPLAINTS = [
   "Fever", "Cough", "Chest pain", "Abdominal pain", "Headache",
   "Shortness of breath", "Nausea / vomiting", "Rash", "Sore throat", "Dizziness",
 ];
+
+const DIAGNOSE_COOLDOWN_MS = 1500;
 
 const emptyCase: PatientCase = {
   name: "", sex: "male", age: null, chiefComplaints: [],
@@ -43,6 +47,10 @@ function buildFallbackPresentation(patientCase: PatientCase): string {
     lines.push(`Examination: ${JSON.stringify(patientCase.exam)}`);
   }
   return lines.join("\n\n");
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export type { Sex };
@@ -64,56 +72,19 @@ export function useCaseWizard(mode: Mode) {
   const [customComplaint, setCustomComplaint] = useState("");
   const [saved, setSaved] = useState(false);
   const [aiInsight, setAiInsight] = useState<ClinicalAiInsight | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
+  const [aiInsightIsLocal, setAiInsightIsLocal] = useState(true);
   const [aiError, setAiError] = useState<string | null>(null);
-  const aiDiagnosisPreview = useRef<DiagnosisResult | null>(null);
   const aiAbortRef = useRef<AbortController | null>(null);
-  const lastInsightAt = useRef(0);
 
   const apiBase = mode === "classic" ? "/api/classic" : "/api/clinical";
   const complaintPool = BASE_COMPLAINTS;
 
-  const fetchAiInsight = useCallback(
-    async (
-      caseData: PatientCase,
-      draft?: { fieldKey: string; category: string; value: string | string[] },
-    ) => {
+  const refreshLocalInsight = useCallback(
+    (caseData: PatientCase) => {
       if (mode !== "clinical" || caseData.chiefComplaints.length === 0) return;
-
-      aiAbortRef.current?.abort();
-      const controller = new AbortController();
-      aiAbortRef.current = controller;
-      setAiLoading(true);
-
-      const now = Date.now();
-      if (now - lastInsightAt.current < 2500) return;
-
-      try {
-        const res = await fetch("/api/clinical/differentials", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ patientCase: caseData, draft }),
-          signal: controller.signal,
-        });
-        if (!res.ok) return;
-
-        const data = await res.json();
-        if (data.insight) {
-          setAiInsight(data.insight);
-          lastInsightAt.current = Date.now();
-        }
-        if (data.diagnosis) aiDiagnosisPreview.current = data.diagnosis;
-
-        if (data.aiPowered) {
-          setAiError(null);
-        } else if (!data.insight && data.aiError) {
-          setAiError(formatAiError(data.aiError));
-        }
-      } catch (err) {
-        if (err instanceof Error && err.name === "AbortError") return;
-      } finally {
-        if (!controller.signal.aborted) setAiLoading(false);
-      }
+      setAiInsight(getLocalClinicalInsight(caseData));
+      setAiInsightIsLocal(true);
+      setAiError(null);
     },
     [mode],
   );
@@ -143,23 +114,21 @@ export function useCaseWizard(mode: Mode) {
   );
 
   const fetchDiagnosis = useCallback(async (caseData: PatientCase) => {
-    if (aiDiagnosisPreview.current) {
-      setDiagnosis(aiDiagnosisPreview.current);
-      setPhase("results");
-      return;
-    }
-
     aiAbortRef.current?.abort();
     setAiError(null);
     setDiagnosing(true);
     setLoading(true);
+
     try {
+      await sleep(DIAGNOSE_COOLDOWN_MS);
+
       const res = await fetch("/api/clinical/diagnose", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ patientCase: caseData }),
       });
       const data = await res.json();
+
       if (!res.ok || !data.diagnosis) {
         const message = formatAiError(data.aiError ?? data.error ?? "Failed to generate diagnosis");
         setAiError(message);
@@ -168,15 +137,25 @@ export function useCaseWizard(mode: Mode) {
         if (data.diagnosis) setPhase("results");
         return;
       }
+
       setDiagnosisAiPowered(Boolean(data.aiPowered));
       setAiError(data.aiPowered ? null : data.aiError ? formatAiError(data.aiError) : null);
       setDiagnosis(data.diagnosis);
+      if (data.aiPowered && data.diagnosis) {
+        setAiInsight(diagnosisToInsight(data.diagnosis));
+        setAiInsightIsLocal(false);
+      }
       setPhase("results");
     } finally {
       setDiagnosing(false);
       setLoading(false);
     }
   }, []);
+
+  const retryDiagnosis = useCallback(async () => {
+    if (!patientCase.chiefComplaints.length) return;
+    await fetchDiagnosis(patientCase);
+  }, [patientCase, fetchDiagnosis]);
 
   const fetchPresentation = useCallback(async (caseData: PatientCase) => {
     setLoading(true);
@@ -218,9 +197,8 @@ export function useCaseWizard(mode: Mode) {
     if (patientCase.chiefComplaints.length === 0) return;
     setPhase("dynamic");
     setStepStack([]);
-    aiDiagnosisPreview.current = null;
     await fetchNextStep(patientCase, []);
-    if (mode === "clinical") fetchAiInsight(patientCase);
+    refreshLocalInsight(patientCase);
   };
 
   const applyAnswer = (caseData: PatientCase, step: ClinicalStepResponse, value: string | string[] | boolean) => {
@@ -238,7 +216,7 @@ export function useCaseWizard(mode: Mode) {
   const advanceStep = async (updated: PatientCase, newStack: StepRecord[]) => {
     setStepStack(newStack);
     setPatientCase(updated);
-    if (mode === "clinical") fetchAiInsight(updated);
+    refreshLocalInsight(updated);
     await fetchNextStep(updated, newStack);
   };
 
@@ -247,10 +225,7 @@ export function useCaseWizard(mode: Mode) {
 
     if (currentStep.category === "complete" || currentStep.fieldKey === "complete") {
       if (mode === "classic") await fetchPresentation(patientCase);
-      else {
-        aiDiagnosisPreview.current = null;
-        await fetchDiagnosis(patientCase);
-      }
+      else await fetchDiagnosis(patientCase);
       return;
     }
 
@@ -297,7 +272,7 @@ export function useCaseWizard(mode: Mode) {
       setStepStack(newStack);
       setPatientCase(updated);
       fetchNextStep(updated, newStack);
-      if (mode === "clinical") fetchAiInsight(updated);
+      refreshLocalInsight(updated);
     }
   };
 
@@ -326,9 +301,9 @@ export function useCaseWizard(mode: Mode) {
     setPresentation(null);
     setPresentationAiPowered(null);
     setAiInsight(null);
+    setAiInsightIsLocal(true);
     setAiError(null);
     setDiagnosing(false);
-    aiDiagnosisPreview.current = null;
     setSaved(false);
   };
 
@@ -380,7 +355,7 @@ export function useCaseWizard(mode: Mode) {
     progress,
     saved,
     aiInsight,
-    aiLoading,
+    aiInsightIsLocal,
     aiError,
     goToComplaints,
     goToDynamic,
@@ -389,6 +364,7 @@ export function useCaseWizard(mode: Mode) {
     goBack,
     saveCase,
     reset,
+    retryDiagnosis,
     toggleComplaint,
     addCustomComplaint,
   };

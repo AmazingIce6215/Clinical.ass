@@ -8,21 +8,21 @@ import { cn } from "@/lib/utils";
 export function CaseSidebar({
   patientCase,
   aiInsight,
-  aiLoading,
+  aiInsightIsLocal,
   aiError,
   minimizeAi = false,
   className,
 }: {
   patientCase: PatientCase;
   aiInsight?: ClinicalAiInsight | null;
-  aiLoading?: boolean;
+  aiInsightIsLocal?: boolean;
   aiError?: string | null;
   minimizeAi?: boolean;
   className?: string;
 }) {
   const [userExpanded, setUserExpanded] = useState(false);
 
-  const showAiSection = aiError || aiInsight || aiLoading;
+  const showAiSection = aiError || aiInsight;
   const aiCollapsed = minimizeAi && !userExpanded && Boolean(aiInsight);
 
   const aiPanel = aiError ? (
@@ -36,12 +36,10 @@ export function CaseSidebar({
     ) : (
       <AiInsightPanel
         insight={aiInsight}
-        loading={aiLoading}
+        isLocal={aiInsightIsLocal}
         onMinimize={minimizeAi ? () => setUserExpanded(false) : undefined}
       />
     )
-  ) : aiLoading ? (
-    <AiLoadingCard />
   ) : null;
 
   return (
@@ -149,12 +147,12 @@ function MinimizedAiPanel({
 
 function AiInsightPanel({
   insight,
-  loading,
+  isLocal,
   compact,
   onMinimize,
 }: {
   insight: ClinicalAiInsight;
-  loading?: boolean;
+  isLocal?: boolean;
   compact?: boolean;
   onMinimize?: () => void;
 }) {
@@ -173,10 +171,15 @@ function AiInsightPanel({
             <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
           </span>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-accent">
-            AI clinical reasoning
+            {isLocal ? "Clinical preview" : "AI clinical reasoning"}
           </h3>
         </div>
         <div className="flex items-center gap-2">
+          {isLocal ? (
+            <span className="rounded-full border border-border/60 bg-surface/70 px-2 py-0.5 text-[9px] font-semibold uppercase text-muted">
+              Local
+            </span>
+          ) : null}
           <UrgencyBadge urgency={insight.urgency} />
           {onMinimize && (
             <button
@@ -266,21 +269,12 @@ function AiInsightPanel({
         </div>
       )}
 
-      {loading && (
-        <p className="mt-2 animate-pulse text-[10px] text-muted">Updating reasoning…</p>
+      {isLocal && !compact && (
+        <p className="mt-3 text-[10px] leading-relaxed text-muted">
+          Offline preview while you work up the case. Full AI runs when you tap Diagnose.
+        </p>
       )}
     </motion.div>
-  );
-}
-
-function AiLoadingCard() {
-  return (
-    <div className="rounded-2xl border border-accent/20 bg-surface/60 p-5">
-      <div className="flex items-center gap-2">
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent/20 border-t-accent" />
-        <p className="text-xs text-muted">AI analysing case…</p>
-      </div>
-    </div>
   );
 }
 

@@ -58,7 +58,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
           key={w.phase === "results" ? "results" : "workup"}
           patientCase={w.patientCase}
           aiInsight={isClassic ? undefined : w.aiInsight}
-          aiLoading={isClassic ? undefined : w.aiLoading}
+          aiInsightIsLocal={isClassic ? undefined : w.aiInsightIsLocal}
           aiError={
             isClassic || w.phase === "results"
               ? undefined
@@ -207,6 +207,8 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
                   diagnosis={w.diagnosis}
                   aiPowered={Boolean(w.diagnosisAiPowered)}
                   aiNotice={w.aiError}
+                  onRetry={w.retryDiagnosis}
+                  retrying={w.diagnosing}
                   onReset={w.reset}
                   onSave={w.saveCase}
                   saved={w.saved}
@@ -294,6 +296,8 @@ function ClinicalResults({
   diagnosis,
   aiPowered,
   aiNotice,
+  onRetry,
+  retrying,
   onReset,
   onSave,
   saved,
@@ -301,6 +305,8 @@ function ClinicalResults({
   diagnosis: DiagnosisResult;
   aiPowered: boolean;
   aiNotice?: string | null;
+  onRetry: () => void;
+  retrying: boolean;
   onReset: () => void;
   onSave: () => void;
   saved: boolean;
@@ -315,8 +321,11 @@ function ClinicalResults({
         <GlassCard className="border-amber-500/30 bg-amber-500/10">
           <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
             {aiNotice ??
-              "AI diagnosis was unavailable — showing an offline clinical template. Wait a minute and try a new case, or upgrade your Groq tier."}
+              "AI diagnosis was unavailable — showing an offline clinical template. Wait a minute and try again, or upgrade your Groq tier."}
           </p>
+          <SecondaryButton className="mt-4" onClick={onRetry} disabled={retrying}>
+            {retrying ? "Retrying diagnosis…" : "Retry diagnosis"}
+          </SecondaryButton>
         </GlassCard>
       )}
       <GlassCard>

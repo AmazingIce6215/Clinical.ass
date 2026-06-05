@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
 import { buildClinicalAiContext, CLINICAL_DIAGNOSIS_SYSTEM } from "@/lib/clinical-ai";
-import { getFallbackDiagnosis } from "@/lib/clinical-fallback";
+import { getFallbackDiagnosis, getFallbackReasonFromError } from "@/lib/clinical-fallback";
 import type { DiagnosisResult, PatientCase } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -18,9 +18,12 @@ export async function POST(request: Request) {
       AI_MODELS.smart,
       CLINICAL_DIAGNOSIS_SYSTEM,
       userPrompt,
+      { maxRetries: 6, baseRetryDelayMs: 2 },
     );
 
-    const diagnosis = result.data ?? getFallbackDiagnosis(patientCase);
+    const diagnosis =
+      result.data ??
+      getFallbackDiagnosis(patientCase, getFallbackReasonFromError(result.error?.message));
 
     return NextResponse.json({
       diagnosis,

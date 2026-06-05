@@ -15,7 +15,7 @@ const PLACEHOLDER_KEYS = new Set([
   "replace_me",
 ]);
 
-const MAX_RETRIES = 4;
+const DEFAULT_MAX_RETRIES = 4;
 
 export function isGroqConfigured(): boolean {
   const apiKey = process.env.GROQ_API_KEY?.trim();
@@ -89,7 +89,10 @@ async function runCompletion<T>(
   model: string,
   system: string,
   user: string,
+  options?: { maxRetries?: number; baseRetryDelayMs?: number },
 ): Promise<AiResult<T>> {
+  const maxRetries = options?.maxRetries ?? DEFAULT_MAX_RETRIES;
+  const baseRetryDelayMs = options?.baseRetryDelayMs ?? 1;
   const groq = getGroqClient();
   if (!groq) {
     return {
@@ -104,7 +107,7 @@ async function runCompletion<T>(
 
   let lastError = "AI request failed";
 
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const completion = await groq.chat.completions.create({
         model,
@@ -125,8 +128,8 @@ async function runCompletion<T>(
       lastError = extractErrorMessage(err);
       const retryDelay = parseRateLimitDelayMs(lastError);
 
-      if (retryDelay && attempt < MAX_RETRIES - 1) {
-        await sleep(retryDelay * (attempt + 1));
+      if (retryDelay && attempt < maxRetries - 1) {
+        await sleep(Math.max(retryDelay * (attempt + 1), baseRetryDelayMs * 1000));
         continue;
       }
 
@@ -150,9 +153,17 @@ export async function aiJsonCompletion<T>(
   model: string,
   system: string,
   user: string,
-  options?: { fallbackModel?: string },
+  options?: {
+    fallbackModel?: string;
+    maxRetries?: number;
+    baseRetryDelayMs?: number;
+  },
 ): Promise<AiResult<T>> {
-  const primary = await runCompletion<T>(model, system, user);
+  const runOptions = {
+    maxRetries: options?.maxRetries,
+    baseRetryDelayMs: options?.baseRetryDelayMs,
+  };
+  const primary = await runCompletion<T>(model, system, user, runOptions);
   if (primary.data) return primary;
 
   const isRateLimited = primary.error?.code === "rate_limit_exceeded";
@@ -162,7 +173,7 @@ export async function aiJsonCompletion<T>(
     return primary;
   }
 
-  const fallback = await runCompletion<T>(fallbackModel, system, user);
+  const fallback = await runCompletion<T>(fallbackModel, system, user, runOptions);
   if (fallback.data) return fallback;
 
   return {
