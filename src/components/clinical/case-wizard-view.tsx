@@ -353,78 +353,62 @@ function ClinicalResults({
         <p className="mt-3 text-sm leading-relaxed text-muted">{diagnosis.clinicalReasoningSummary}</p>
       </GlassCard>
 
-      <GlassCard>
-        <h3 className="mb-3 font-semibold">Differentials</h3>
-        <div className="space-y-3">
-          {diagnosis.differentials.map((d) => (
-            <div key={d.diagnosis} className="rounded-xl border border-border/60 bg-surface/40 p-4">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-medium">{d.diagnosis}</span>
-                <span className="text-xs uppercase text-muted">{d.likelihood}</span>
-              </div>
-              <p className="mt-2 text-sm text-muted">{d.reasoning}</p>
-            </div>
-          ))}
-        </div>
-      </GlassCard>
-
       <div className="grid gap-4 sm:grid-cols-2">
         <ListCard title="Red flags" items={redFlags} variant="danger" />
         <ListCard title="Investigations" items={diagnosis.investigations} />
         <ListCard title="Management" items={diagnosis.management} className="sm:col-span-2" />
         <ListCard title="Teaching points" items={diagnosis.teachingPoints} className="sm:col-span-2" variant="accent" />
       </div>
+
       <ReasoningTreeView tree={buildReasoningTree(patientCase, diagnosis)} />
 
-      <div className="space-y-4">
-        <GlassCard>
-          <h3 className="mb-3 font-semibold">Differentials</h3>
-          <div className="space-y-3">
-            {diagnosis.differentials.map((d) => (
-              <div key={d.diagnosis} className="rounded-xl border border-border/60 bg-surface/40 p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <span className="font-medium">{d.diagnosis}</span>
-                    {typeof d.probability === "number" && (
-                      <span className="ml-2 text-xs text-muted">{d.probability}%</span>
-                    )}
-                  </div>
-                  <span className="text-xs uppercase text-muted">{d.likelihood}</span>
+      <GlassCard>
+        <h3 className="mb-3 font-semibold">Differentials</h3>
+        <div className="space-y-3">
+          {diagnosis.differentials.map((d) => (
+            <div key={d.diagnosis} className="rounded-xl border border-border/60 bg-surface/40 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <span className="font-medium">{d.diagnosis}</span>
+                  {typeof d.probability === "number" && (
+                    <span className="ml-2 text-xs text-muted">{d.probability}%</span>
+                  )}
                 </div>
-                <p className="mt-2 text-sm text-muted">{d.reasoning}</p>
-                {d.supportingFindings && d.supportingFindings.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-sm font-semibold">Supporting findings</p>
-                    <ul className="list-disc ml-5 text-sm text-muted">
-                      {d.supportingFindings.map((s) => (
-                        <li key={s}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {d.findingsAgainst && d.findingsAgainst.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-sm font-semibold">Findings against</p>
-                    <ul className="list-disc ml-5 text-sm text-muted">
-                      {d.findingsAgainst.map((s) => (
-                        <li key={s}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <span className="text-xs uppercase text-muted">{d.likelihood}</span>
               </div>
-            ))}
-          </div>
-        </GlassCard>
-
-        <div className="flex flex-wrap gap-3 pt-2">
-          <PrimaryButton onClick={onReset}>New case</PrimaryButton>
-          <SecondaryButton onClick={onSave} disabled={saved}>
-            {saved ? "Saved to library" : "Save to library"}
-          </SecondaryButton>
-          <ButtonLink href="/library">Library</ButtonLink>
-          <ButtonLink href="/">Home</ButtonLink>
+              <p className="mt-2 text-sm text-muted">{d.reasoning}</p>
+              {d.supportingFindings && d.supportingFindings.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-sm font-semibold">Supporting findings</p>
+                  <ul className="list-disc ml-5 text-sm text-muted">
+                    {d.supportingFindings.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {d.findingsAgainst && d.findingsAgainst.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-sm font-semibold">Findings against</p>
+                  <ul className="list-disc ml-5 text-sm text-muted">
+                    {d.findingsAgainst.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
+      </GlassCard>
+
+      <div className="flex flex-wrap gap-3 pt-2">
+        <PrimaryButton onClick={onReset}>New case</PrimaryButton>
+        <SecondaryButton onClick={onSave} disabled={saved}>
+          {saved ? "Saved to library" : "Save to library"}
+        </SecondaryButton>
+        <ButtonLink href="/library">Library</ButtonLink>
+        <ButtonLink href="/">Home</ButtonLink>
       </div>
     </div>
   );
