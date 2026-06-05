@@ -18,7 +18,6 @@ export async function POST(request: Request) {
       AI_MODELS.smart,
       CLINICAL_DIAGNOSIS_SYSTEM,
       userPrompt,
-      { fallbackModel: AI_MODELS.fast },
     );
 
     const diagnosis = result.data ?? getFallbackDiagnosis(patientCase);
@@ -26,7 +25,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       diagnosis,
       aiPowered: !!result.data,
-      aiError: result.error?.message,
+      aiError: result.data ? undefined : result.error?.message,
     });
   } catch (error) {
     console.error("Diagnosis error:", error);

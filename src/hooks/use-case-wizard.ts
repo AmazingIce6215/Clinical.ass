@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type {
   ClassicPresentation,
   ClinicalAiInsight,
@@ -10,6 +10,7 @@ import type {
   SavedCase,
   Sex,
 } from "@/lib/types";
+import { formatAiError } from "@/lib/ai";
 import { buildStepValue, buildSkippedValue } from "@/lib/step-utils";
 import { saveToLibrary } from "@/lib/case-library";
 
@@ -57,6 +58,7 @@ export function useCaseWizard(mode: Mode) {
   const [loading, setLoading] = useState(false);
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
+  const [diagnosisAiPowered, setDiagnosisAiPowered] = useState<boolean | null>(null);
   const [presentation, setPresentation] = useState<ClassicPresentation | null>(null);
   const [presentationAiPowered, setPresentationAiPowered] = useState<boolean | null>(null);
   const [customComplaint, setCustomComplaint] = useState("");
@@ -66,7 +68,7 @@ export function useCaseWizard(mode: Mode) {
   const [aiError, setAiError] = useState<string | null>(null);
   const aiDiagnosisPreview = useRef<DiagnosisResult | null>(null);
   const aiAbortRef = useRef<AbortController | null>(null);
-  const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastInsightAt = useRef(0);
 
   const apiBase = mode === "classic" ? "/api/classic" : "/api/clinical";
   const complaintPool = BASE_COMPLAINTS;
@@ -83,6 +85,9 @@ export function useCaseWizard(mode: Mode) {
       aiAbortRef.current = controller;
       setAiLoading(true);
 
+      const now = Date.now();
+      if (now - lastInsightAt.current < 2500) return;
+
       try {
         const res = await fetch("/api/clinical/differentials", {
           method: "POST",
@@ -90,14 +95,20 @@ export function useCaseWizard(mode: Mode) {
           body: JSON.stringify({ patientCase: caseData, draft }),
           signal: controller.signal,
         });
-        if (!res.ok) {
-          setAiError("AI differentials request failed");
-          return;
-        }
+        if (!res.ok) return;
+
         const data = await res.json();
-        setAiError(data.aiError ?? null);
-        if (data.insight) setAiInsight(data.insight);
+        if (data.insight) {
+          setAiInsight(data.insight);
+          lastInsightAt.current = Date.now();
+        }
         if (data.diagnosis) aiDiagnosisPreview.current = data.diagnosis;
+
+        if (data.aiPowered) {
+          setAiError(null);
+        } else if (!data.insight && data.aiError) {
+          setAiError(formatAiError(data.aiError));
+        }
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") return;
       } finally {
@@ -106,44 +117,6 @@ export function useCaseWizard(mode: Mode) {
     },
     [mode],
   );
-
-  const scheduleAiRefresh = useCallback(
-    (caseData: PatientCase, draft?: { fieldKey: string; category: string; value: string | string[] }) => {
-      if (mode !== "clinical") return;
-      if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current);
-      aiDebounceRef.current = setTimeout(() => {
-        fetchAiInsight(caseData, draft);
-      }, 1000);
-    },
-    [mode, fetchAiInsight],
-  );
-
-  useEffect(() => {
-    if (mode !== "clinical" || phase !== "dynamic" || !currentStep) return;
-    if (currentStep.fieldKey === "complete") return;
-
-    const draftValue = buildStepValue(currentStep, stepAnswer, textAnswer, customDetail);
-    const hasDraft =
-      (Array.isArray(draftValue) && draftValue.length > 0) ||
-      (typeof draftValue === "string" && draftValue.trim().length > 0);
-
-    if (!hasDraft) return;
-
-    scheduleAiRefresh(patientCase, {
-      fieldKey: currentStep.fieldKey,
-      category: currentStep.category,
-      value: draftValue,
-    });
-  }, [
-    mode,
-    phase,
-    currentStep,
-    stepAnswer,
-    textAnswer,
-    customDetail,
-    patientCase,
-    scheduleAiRefresh,
-  ]);
 
   const fetchNextStep = useCallback(
     async (caseData: PatientCase, stack: StepRecord[] = []) => {
@@ -176,6 +149,8 @@ export function useCaseWizard(mode: Mode) {
       return;
     }
 
+    aiAbortRef.current?.abort();
+    setAiError(null);
     setDiagnosing(true);
     setLoading(true);
     try {
@@ -186,12 +161,15 @@ export function useCaseWizard(mode: Mode) {
       });
       const data = await res.json();
       if (!res.ok || !data.diagnosis) {
-        setAiError(data.aiError ?? data.error ?? "Failed to generate diagnosis");
+        const message = formatAiError(data.aiError ?? data.error ?? "Failed to generate diagnosis");
+        setAiError(message);
         setDiagnosis(data.diagnosis ?? null);
+        setDiagnosisAiPowered(false);
         if (data.diagnosis) setPhase("results");
         return;
       }
-      setAiError(data.aiError ?? null);
+      setDiagnosisAiPowered(Boolean(data.aiPowered));
+      setAiError(data.aiPowered ? null : data.aiError ? formatAiError(data.aiError) : null);
       setDiagnosis(data.diagnosis);
       setPhase("results");
     } finally {
@@ -270,8 +248,6 @@ export function useCaseWizard(mode: Mode) {
     if (currentStep.category === "complete" || currentStep.fieldKey === "complete") {
       if (mode === "classic") await fetchPresentation(patientCase);
       else {
-        // Force a full AI synthesis for final diagnosis (don't use the lightweight preview)
-        aiAbortRef.current?.abort();
         aiDiagnosisPreview.current = null;
         await fetchDiagnosis(patientCase);
       }
@@ -346,6 +322,7 @@ export function useCaseWizard(mode: Mode) {
     setStepStack([]);
     setCurrentStep(null);
     setDiagnosis(null);
+    setDiagnosisAiPowered(null);
     setPresentation(null);
     setPresentationAiPowered(null);
     setAiInsight(null);
@@ -394,6 +371,7 @@ export function useCaseWizard(mode: Mode) {
     loading,
     diagnosing,
     diagnosis,
+    diagnosisAiPowered,
     presentation,
     presentationAiPowered,
     customComplaint,

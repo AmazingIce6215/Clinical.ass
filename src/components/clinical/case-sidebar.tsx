@@ -204,11 +204,19 @@ function AiLoadingCard() {
 }
 
 function AiErrorCard({ message }: { message: string }) {
+  const isRateLimit = /rate limit/i.test(message);
+
   return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-      <p className="text-xs font-semibold text-red-700">AI unavailable</p>
-      <p className="mt-2 text-sm text-red-600">{message}</p>
-      <p className="mt-2 text-xs text-muted">If this persists, ensure GROQ_API_KEY is configured on your environment.</p>
+    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
+      <p className="text-xs font-semibold text-red-700 dark:text-red-300">
+        {isRateLimit ? "AI is busy" : "AI unavailable"}
+      </p>
+      <p className="mt-2 text-sm text-red-600 dark:text-red-200">{message}</p>
+      <p className="mt-2 text-xs text-muted">
+        {isRateLimit
+          ? "Live differentials pause briefly to save your final diagnosis quota."
+          : "If this persists, ensure GROQ_API_KEY is configured on your environment."}
+      </p>
     </div>
   );
 }

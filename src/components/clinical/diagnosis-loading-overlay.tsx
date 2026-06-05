@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { pickDiagnosisLoadingMessage } from "@/lib/diagnosis-loading-messages";
 
-const ROTATE_MS = 4000;
+const ROTATE_MS = 7000;
 
 function RotatingDiagnosisMessage({
   patientName,

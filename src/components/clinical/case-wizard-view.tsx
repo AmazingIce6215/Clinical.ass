@@ -58,7 +58,11 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
           patientCase={w.patientCase}
           aiInsight={isClassic ? undefined : w.aiInsight}
           aiLoading={isClassic ? undefined : w.aiLoading}
-          aiError={isClassic ? undefined : w.aiError}
+          aiError={
+            isClassic || w.phase === "results"
+              ? undefined
+              : w.aiError
+          }
         />
 
         <main className="flex-1">
@@ -199,6 +203,8 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
               <FadeSlide key="res">
                 <ClinicalResults
                   diagnosis={w.diagnosis}
+                  aiPowered={Boolean(w.diagnosisAiPowered)}
+                  aiNotice={w.aiError}
                   onReset={w.reset}
                   onSave={w.saveCase}
                   saved={w.saved}
@@ -284,11 +290,15 @@ function NavRow({
 
 function ClinicalResults({
   diagnosis,
+  aiPowered,
+  aiNotice,
   onReset,
   onSave,
   saved,
 }: {
   diagnosis: DiagnosisResult;
+  aiPowered: boolean;
+  aiNotice?: string | null;
   onReset: () => void;
   onSave: () => void;
   saved: boolean;
@@ -299,6 +309,14 @@ function ClinicalResults({
 
   return (
     <div className="max-w-3xl space-y-4">
+      {!aiPowered && (
+        <GlassCard className="border-amber-500/30 bg-amber-500/10">
+          <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+            {aiNotice ??
+              "AI diagnosis was unavailable — showing an offline clinical template. Wait a minute and try a new case, or upgrade your Groq tier."}
+          </p>
+        </GlassCard>
+      )}
       <GlassCard>
         <p className="text-xs font-semibold uppercase text-accent">Primary diagnosis</p>
         <h2 className="mt-2 text-2xl font-semibold">{diagnosis.primaryDiagnosis}</h2>

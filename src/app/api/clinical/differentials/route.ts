@@ -34,7 +34,6 @@ export async function POST(request: Request) {
       AI_MODELS.fast,
       CLINICAL_DIAGNOSIS_SYSTEM,
       userPrompt,
-      { fallbackModel: AI_MODELS.smart },
     );
 
     const diagnosis = result.data ?? getFallbackDiagnosis(patientCase);
@@ -44,7 +43,7 @@ export async function POST(request: Request) {
       insight,
       diagnosis,
       aiPowered: !!result.data,
-      aiError: result.error?.message,
+      aiError: result.data ? undefined : result.error?.message,
     });
   } catch (error) {
     console.error("Differentials error:", error);
