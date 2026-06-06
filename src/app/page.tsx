@@ -44,6 +44,7 @@ export default function HomePage() {
   const [dotVisible, setDotVisible] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [userName, setUserName] = useState<string>("");
+  const [homepageVisible, setHomepageVisible] = useState(false);
 
   const fetchGreeting = async (name?: string) => {
     try {
@@ -69,6 +70,11 @@ export default function HomePage() {
     fetchGreeting(name);
   };
 
+  const handleOverlayExitComplete = () => {
+    // Show homepage after overlay is completely gone
+    setHomepageVisible(true);
+  };
+
   const handleClearName = () => {
     localStorage.removeItem("clincalass_username");
     setUserName("");
@@ -82,6 +88,10 @@ export default function HomePage() {
       setUserName(savedName);
       // Fetch greeting with name
       fetchGreeting(savedName);
+      // Small delay before showing homepage for returning users
+      setTimeout(() => {
+        setHomepageVisible(true);
+      }, 200);
     } else {
       // Show name prompt on first visit
       setShowNamePrompt(true);
@@ -106,7 +116,7 @@ export default function HomePage() {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  const shouldAnimate = !hasAnimated && !prefersReducedMotion;
+  const shouldAnimate = !hasAnimated && !prefersReducedMotion && homepageVisible;
 
   // Trigger dot visibility after title animation completes
   useEffect(() => {
@@ -125,9 +135,16 @@ export default function HomePage() {
   return (
     <AppShell>
       <AnimatePresence>
-        {showNamePrompt && <NamePromptOverlay onSubmit={handleNameSubmit} />}
+        {showNamePrompt && (
+          <NamePromptOverlay onSubmit={handleNameSubmit} onExitComplete={handleOverlayExitComplete} />
+        )}
       </AnimatePresence>
-      <section className="mx-auto flex max-w-4xl flex-1 flex-col justify-center py-8">
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: homepageVisible ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        className="mx-auto flex max-w-4xl flex-1 flex-col justify-center py-8"
+      >
         <div className="mb-12 text-center">
           {/* Logo icon */}
           <motion.div
@@ -262,7 +279,7 @@ export default function HomePage() {
             <span className="font-semibold text-accent">Groq</span>
           </p>
         </motion.div>
-      </section>
+      </motion.section>
     </AppShell>
   );
 }

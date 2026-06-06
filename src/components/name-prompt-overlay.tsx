@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface NamePromptOverlayProps {
   onSubmit: (name: string) => void;
+  onExitComplete?: () => void;
 }
 
-export default function NamePromptOverlay({ onSubmit }: NamePromptOverlayProps) {
+export default function NamePromptOverlay({ onSubmit, onExitComplete }: NamePromptOverlayProps) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isShaking, setIsShaking] = useState(false);
@@ -39,6 +40,11 @@ export default function NamePromptOverlay({ onSubmit }: NamePromptOverlayProps) 
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
+      onAnimationComplete={(definition) => {
+        if (definition === "exit" && onExitComplete) {
+          onExitComplete();
+        }
+      }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
     >
       <motion.div
