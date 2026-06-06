@@ -235,5 +235,5 @@ export async function GET(request: Request) {
   const aiGreeting = await fetchAiGreeting(name, timePeriod);
   const greeting = aiGreeting ?? getRandomGreeting(timePeriod, name);
 
-  return NextResponse.json({ greeting });
+  return NextResponse.json({ greeting }, { headers: { "Cache-Control": "no-store" } });
 }

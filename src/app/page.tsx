@@ -46,10 +46,11 @@ export default function HomePage() {
   const [userName, setUserName] = useState<string>("");
   const [homepageVisible, setHomepageVisible] = useState(false);
 
-  const fetchGreeting = async (name?: string) => {
+  const fetchGreeting = async () => {
     try {
-      const url = name ? `/api/greeting?name=${encodeURIComponent(name)}` : "/api/greeting";
-      const response = await fetch(url);
+      const timestamp = Date.now();
+      const url = `/api/greeting?_=${timestamp}`;
+      const response = await fetch(url, { cache: "no-store" });
       const data = await response.json();
       const newGreeting = data.greeting;
       setGreeting(newGreeting);
@@ -69,8 +70,8 @@ export default function HomePage() {
     // Reset animation state so animations play when entering name for first time
     sessionStorage.removeItem("homepageAnimated");
     setHasAnimated(false);
-    // Fetch greeting with name
-    fetchGreeting(name);
+    // Fetch greeting without name
+    fetchGreeting();
     // Show homepage after overlay exit animation completes (500ms)
     setTimeout(() => {
       setHomepageVisible(true);
@@ -88,8 +89,8 @@ export default function HomePage() {
     const savedName = localStorage.getItem("clincalass_username");
     if (savedName) {
       setUserName(savedName);
-      // Fetch greeting with name
-      fetchGreeting(savedName);
+      // Fetch greeting without name
+      fetchGreeting();
       // Small delay before showing homepage for returning users
       setTimeout(() => {
         setHomepageVisible(true);
@@ -200,6 +201,9 @@ export default function HomePage() {
               <span className="inline-flex items-center text-slate-950">
                 <span>clinical</span><span>.</span><span>ass</span>
               </span>
+              {userName && (
+                <span className="text-muted font-medium lowercase"> ({userName})</span>
+              )}
             </motion.h1>
 
             {/* 4. Subtitle slide-up (2.4s-3s) */}
