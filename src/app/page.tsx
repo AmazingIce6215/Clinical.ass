@@ -182,17 +182,6 @@ export default function HomePage() {
                 >
                   {greeting}
                 </motion.p>
-                {userName && (
-                  <motion.button
-                    initial={shouldAnimate ? { opacity: 0 } : false}
-                    animate={shouldAnimate ? { opacity: 1 } : false}
-                    transition={{ duration: 0.5, ease: "easeOut", delay: shouldAnimate ? 0.5 : 0 }}
-                    onClick={handleClearName}
-                    className="text-xs text-muted hover:text-accent"
-                  >
-                    Not {userName}? →
-                  </motion.button>
-                )}
               </div>
             )}
 
