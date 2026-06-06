@@ -53,15 +53,7 @@ export function AppShell({
                   <span className="text-lg text-muted">←</span>
                 </Link>
               )
-            ) : (
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-surface/70 px-3 py-2 text-xs font-medium text-muted backdrop-blur-md transition hover:border-accent/40 hover:text-accent"
-              >
-                <span>✅</span>
-                <span>Powered by GROQ</span>
-              </Link>
-            )}
+            ) : null}
             {(title || subtitle) && (
               <div className="hidden min-w-0 sm:block">
                 {title && <p className="truncate text-sm font-medium">{title}</p>}
