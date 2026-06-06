@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useAuth } from "@/context/auth-context";
+import NamePromptOverlay from "@/components/name-prompt-overlay";
 
 const modes = [
   {
@@ -41,10 +42,13 @@ export default function HomePage() {
   const [hasAnimated, setHasAnimated] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [dotVisible, setDotVisible] = useState(false);
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [userName, setUserName] = useState<string>("");
 
-  const fetchGreeting = async () => {
+  const fetchGreeting = async (name?: string) => {
     try {
-      const response = await fetch("/api/greeting");
+      const url = name ? `/api/greeting?name=${encodeURIComponent(name)}` : "/api/greeting";
+      const response = await fetch(url);
       const data = await response.json();
       const newGreeting = data.greeting;
       setGreeting(newGreeting);
@@ -57,15 +61,30 @@ export default function HomePage() {
     }
   };
 
+  const handleNameSubmit = (name: string) => {
+    localStorage.setItem("clincalass_username", name);
+    setUserName(name);
+    setShowNamePrompt(false);
+    // Fetch greeting with name after overlay closes
+    fetchGreeting(name);
+  };
+
+  const handleClearName = () => {
+    localStorage.removeItem("clincalass_username");
+    setUserName("");
+    setShowNamePrompt(true);
+  };
+
   useEffect(() => {
-    // Check sessionStorage for cached greeting
-    const cachedGreeting = sessionStorage.getItem("aiGreeting");
-    if (cachedGreeting) {
-      setGreeting(cachedGreeting);
-      setIsLoading(false);
+    // Check localStorage for user name
+    const savedName = localStorage.getItem("clincalass_username");
+    if (savedName) {
+      setUserName(savedName);
+      // Fetch greeting with name
+      fetchGreeting(savedName);
     } else {
-      // Fetch new greeting from API
-      fetchGreeting();
+      // Show name prompt on first visit
+      setShowNamePrompt(true);
     }
 
     // Check for animation preference
@@ -105,6 +124,9 @@ export default function HomePage() {
 
   return (
     <AppShell>
+      <AnimatePresence>
+        {showNamePrompt && <NamePromptOverlay onSubmit={handleNameSubmit} />}
+      </AnimatePresence>
       <section className="mx-auto flex max-w-4xl flex-1 flex-col justify-center py-8">
         <div className="mb-12 text-center">
           {/* Logo icon */}
@@ -122,14 +144,37 @@ export default function HomePage() {
             {isLoading ? (
               <div className="h-6 w-48 animate-pulse rounded bg-muted/30" />
             ) : (
-              <motion.p
-                initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
-                animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
-                transition={{ duration: 0.8, ease: "easeOut", delay: shouldAnimate ? 0 : 0 }}
-                className="text-base font-semibold uppercase tracking-[0.32em] text-accent/90 sm:text-sm"
-              >
-                {greeting}
-              </motion.p>
+              <div className="space-y-2">
+                {userName && (
+                  <motion.p
+                    initial={shouldAnimate ? { opacity: 0 } : false}
+                    animate={shouldAnimate ? { opacity: 1 } : false}
+                    transition={{ duration: 0.5, ease: "easeOut", delay: shouldAnimate ? 0 : 0 }}
+                    className="text-sm text-muted"
+                  >
+                    Hey, {userName} 👋
+                  </motion.p>
+                )}
+                <motion.p
+                  initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
+                  animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
+                  transition={{ duration: 0.8, ease: "easeOut", delay: shouldAnimate ? 0 : 0 }}
+                  className="text-base font-semibold uppercase tracking-[0.32em] text-accent/90 sm:text-sm"
+                >
+                  {greeting}
+                </motion.p>
+                {userName && (
+                  <motion.button
+                    initial={shouldAnimate ? { opacity: 0 } : false}
+                    animate={shouldAnimate ? { opacity: 1 } : false}
+                    transition={{ duration: 0.5, ease: "easeOut", delay: shouldAnimate ? 0.5 : 0 }}
+                    onClick={handleClearName}
+                    className="text-xs text-muted hover:text-accent"
+                  >
+                    Not {userName}? →
+                  </motion.button>
+                )}
+              </div>
             )}
 
             {/* 2. Title drop with bounce (1s-1.8s) */}

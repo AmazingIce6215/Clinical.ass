@@ -124,17 +124,54 @@ const greetings: Record<string, string[]> = {
   ],
 };
 
+function personalizeGreeting(greeting: string, name: string): string {
+  const upperName = name.toUpperCase();
+  
+  // Add name to the end of greetings
+  if (greeting.includes("DOCTOR")) {
+    return greeting.replace("DOCTOR", upperName);
+  }
+  
+  // For specific patterns, append the name
+  if (greeting === "MORNING" || greeting === "AFTERNOON" || greeting === "EVENING" || greeting === "NIGHT") {
+    return `${greeting} ${upperName}`;
+  }
+  
+  if (greeting === "RISE AND SHINE" || greeting === "WAKE UP") {
+    return `${greeting} ${upperName}`;
+  }
+  
+  if (greeting === "EARLY BIRD" || greeting === "NIGHT OWL") {
+    return `${greeting} ${upperName}`;
+  }
+  
+  if (greeting === "STILL AWAKE" || greeting === "STILL GOING") {
+    return `${greeting} ${upperName}`;
+  }
+  
+  // Default: append name
+  return `${greeting} ${upperName}`;
+}
+
 function getRandomGreeting(timePeriod: string): string {
   const timeGreetings = greetings[timePeriod] || greetings.MORNING;
   return timeGreetings[Math.floor(Math.random() * timeGreetings.length)];
 }
 
 export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const name = url.searchParams.get("name")?.trim();
+  
   const now = new Date();
   const hour = now.getHours();
   const timePeriod = getTimePeriod(hour);
 
-  const greeting = getRandomGreeting(timePeriod);
+  let greeting = getRandomGreeting(timePeriod);
+  
+  // Personalize greeting if name is provided
+  if (name) {
+    greeting = personalizeGreeting(greeting, name);
+  }
 
   return NextResponse.json({ greeting });
 }
