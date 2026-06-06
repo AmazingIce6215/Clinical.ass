@@ -27,7 +27,12 @@ export async function geminiJsonCompletion<T>(
 ): Promise<GeminiResult<T>> {
   const genAI = getGeminiClient();
   if (!genAI) {
-    console.error("Gemini not configured: GEMINI_API_KEY missing");
+    const apiKey = process.env.GEMINI_API_KEY;
+    console.error("Gemini not configured:", {
+      hasKey: !!apiKey,
+      keyLength: apiKey?.length,
+      keyPrefix: apiKey?.substring(0, 10),
+    });
     return {
       data: null,
       error: {
@@ -46,8 +51,10 @@ export async function geminiJsonCompletion<T>(
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const fullPrompt = `${system}\n\n${user}`;
+      console.log("Gemini request attempt:", attempt + 1, "prompt length:", fullPrompt.length);
       const result = await model.generateContent(fullPrompt);
       const text = result.response.text();
+      console.log("Gemini response received, length:", text?.length);
 
       if (!text) {
         return { data: null, error: { message: "Empty AI response" } };
@@ -58,7 +65,7 @@ export async function geminiJsonCompletion<T>(
       return { data: parsed as T };
     } catch (err) {
       lastError = err instanceof Error ? err.message : "AI request failed";
-      console.error(`Gemini error (attempt ${attempt + 1}/${maxRetries}):`, lastError);
+      console.error(`Gemini error (attempt ${attempt + 1}/${maxRetries}):`, lastError, err);
 
       if (attempt < maxRetries - 1) {
         // Wait before retrying with exponential backoff
