@@ -138,6 +138,14 @@ function replaceNameTokens(text: string, name: string): string {
   return text.replace(/\[NAME\]/g, upperName);
 }
 
+const VALID_GREETING_PREFIXES = [
+  "HEY",
+  "HELLO",
+  "GOOD",
+  "GREETINGS",
+  "HAPPY",
+];
+
 function ensureGreetingText(raw: string): string {
   const sanitized = raw
     .trim()
@@ -149,6 +157,19 @@ function ensureGreetingText(raw: string): string {
   const words = sanitized.split(" ").filter(Boolean);
   if (words.length <= 7) return sanitized;
   return words.slice(0, 7).join(" ");
+}
+
+function isValidGreeting(greeting: string, name: string): boolean {
+  const trimmed = greeting.trim();
+  if (!trimmed) return false;
+  const words = trimmed.split(" ").filter(Boolean);
+  if (words.length === 0 || words.length > 7) return false;
+  const prefix = words[0];
+  if (!VALID_GREETING_PREFIXES.includes(prefix)) return false;
+  const upperName = name.toUpperCase();
+  if (!trimmed.includes(upperName)) return false;
+  if (!/^[A-Z0-9\-\' ]+$/.test(trimmed)) return false;
+  return true;
 }
 
 function getRandomGreeting(timePeriod: string, name: string): string {
@@ -195,6 +216,7 @@ async function fetchAiGreeting(name: string, timePeriod: string): Promise<string
     if (!raw || typeof raw !== "string") return null;
 
     const greeting = ensureGreetingText(raw);
+    if (!isValidGreeting(greeting, name)) return null;
     return greeting;
   } catch {
     return null;
