@@ -194,10 +194,9 @@ export default function HomePage() {
                 ease: [0.34, 1.56, 0.64, 1],
                 delay: shouldAnimate ? 1 : 0,
               }}
-              className="mt-4 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl"
             >
-              Say hi to{" "}
-              <span className="inline-flex items-center">
+              <span className="text-base font-medium text-muted sm:text-lg">Say hi to </span>
+              <span className="inline-flex items-center text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
                 <span className="part1">Clinical</span><span className={`dot-reveal ${dotVisible ? 'visible' : ''}`}><span className="dot-inner">•</span></span><span className="part2">ass</span>
               </span>
             </motion.h1>
