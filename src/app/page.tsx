@@ -196,7 +196,7 @@ export default function HomePage() {
               }}
               className="mt-4 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl"
             >
-              Hi to{" "}
+              Say hi to{" "}
               <span className="inline-flex items-center">
                 <span className="part1">Clinical</span><span className={`dot-reveal ${dotVisible ? 'visible' : ''}`}><span className="dot-inner">•</span></span><span className="part2">ass</span>
               </span>
