@@ -161,16 +161,6 @@ export default function HomePage() {
               <div className="h-6 w-48 animate-pulse rounded bg-muted/30" />
             ) : (
               <div className="space-y-2">
-                {userName && (
-                  <motion.p
-                    initial={shouldAnimate ? { opacity: 0 } : false}
-                    animate={shouldAnimate ? { opacity: 1 } : false}
-                    transition={{ duration: 0.5, ease: "easeOut", delay: shouldAnimate ? 0 : 0 }}
-                    className="text-sm text-muted"
-                  >
-                    Hey, {userName} 👋
-                  </motion.p>
-                )}
                 <motion.p
                   initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
                   animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
