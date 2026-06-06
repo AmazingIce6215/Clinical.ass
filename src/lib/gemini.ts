@@ -43,7 +43,7 @@ export async function geminiJsonCompletion<T>(
     };
   }
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
   const maxRetries = options?.maxRetries ?? 4;
 
   let lastError = "AI request failed";
