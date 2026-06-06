@@ -63,6 +63,27 @@ export default function SettingsPage() {
     setTheme(selectedTheme);
   }, [selectedTheme, setTheme]);
 
+  const applyAccent = (accentKey: string) => {
+    const accentMap: Record<string, { accent: string; accentForeground: string }> = {
+      blue: { accent: "#2563eb", accentForeground: "#ffffff" },
+      teal: { accent: "#14b8a6", accentForeground: "#ffffff" },
+      green: { accent: "#22c55e", accentForeground: "#ffffff" },
+      purple: { accent: "#8b5cf6", accentForeground: "#ffffff" },
+      amber: { accent: "#f59e0b", accentForeground: "#0b1220" },
+    };
+
+    const values = accentMap[accentKey] ?? accentMap.blue;
+    document.documentElement.style.setProperty("--accent", values.accent);
+    document.documentElement.style.setProperty(
+      "--accent-foreground",
+      values.accentForeground,
+    );
+  };
+
+  useEffect(() => {
+    applyAccent(accent);
+  }, [accent]);
+
   const handleSave = () => {
     localStorage.setItem("clincalass_username", name);
     localStorage.setItem("clincalass_accent", accent);
