@@ -66,13 +66,12 @@ export default function HomePage() {
     localStorage.setItem("clincalass_username", name);
     setUserName(name);
     setShowNamePrompt(false);
-    // Fetch greeting with name after overlay closes
+    // Fetch greeting with name
     fetchGreeting(name);
-  };
-
-  const handleOverlayExitComplete = () => {
-    // Show homepage after overlay is completely gone
-    setHomepageVisible(true);
+    // Show homepage after overlay exit animation completes (500ms)
+    setTimeout(() => {
+      setHomepageVisible(true);
+    }, 500);
   };
 
   const handleClearName = () => {
@@ -136,7 +135,7 @@ export default function HomePage() {
     <AppShell>
       <AnimatePresence>
         {showNamePrompt && (
-          <NamePromptOverlay onSubmit={handleNameSubmit} onExitComplete={handleOverlayExitComplete} />
+          <NamePromptOverlay onSubmit={handleNameSubmit} />
         )}
       </AnimatePresence>
       <motion.section
