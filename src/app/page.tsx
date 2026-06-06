@@ -198,7 +198,7 @@ export default function HomePage() {
             >
               <span className="text-muted font-medium lowercase">say hi to </span>
               <span className="inline-flex items-center text-slate-950">
-                <span className="part1">Clinical</span><span className={`dot-reveal ${dotVisible ? 'visible' : ''}`}><span className="dot-inner">•</span></span><span className="part2">ass</span>
+                <span>clinical</span><span>.</span><span>ass</span>
               </span>
             </motion.h1>
 
