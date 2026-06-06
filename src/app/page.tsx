@@ -66,6 +66,9 @@ export default function HomePage() {
     localStorage.setItem("clincalass_username", name);
     setUserName(name);
     setShowNamePrompt(false);
+    // Reset animation state so animations play when entering name for first time
+    sessionStorage.removeItem("homepageAnimated");
+    setHasAnimated(false);
     // Fetch greeting with name
     fetchGreeting(name);
     // Show homepage after overlay exit animation completes (500ms)
@@ -100,8 +103,6 @@ export default function HomePage() {
     const hasSeenAnimation = sessionStorage.getItem("homepageAnimated");
     if (hasSeenAnimation) {
       setHasAnimated(true);
-    } else {
-      sessionStorage.setItem("homepageAnimated", "true");
     }
 
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -130,6 +131,18 @@ export default function HomePage() {
 
     return () => clearTimeout(timer);
   }, [shouldAnimate]);
+
+  // Mark animation as seen after it plays
+  useEffect(() => {
+    if (homepageVisible && shouldAnimate) {
+      const timer = setTimeout(() => {
+        sessionStorage.setItem("homepageAnimated", "true");
+        setHasAnimated(true);
+      }, 4000); // After all animations complete (~4s total)
+
+      return () => clearTimeout(timer);
+    }
+  }, [homepageVisible, shouldAnimate]);
 
   return (
     <AppShell>
