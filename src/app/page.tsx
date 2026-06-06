@@ -202,7 +202,7 @@ export default function HomePage() {
                 <span>clinical</span><span>.</span><span>ass</span>
               </span>
               {userName && (
-                <span className="text-muted font-medium lowercase"> ({userName})</span>
+                <span className="text-muted font-medium lowercase"> {userName}</span>
               )}
             </motion.h1>
 
