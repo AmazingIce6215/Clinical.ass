@@ -120,6 +120,14 @@ export function useCaseWizard(mode: Mode) {
     }
   }, [patientCase, coPilotInsight]);
 
+  // Refresh AI differentials when the complete step is shown
+  useEffect(() => {
+    if (mode === "clinical" && currentStep?.fieldKey === "complete" && patientCase.chiefComplaints.length > 0) {
+      refreshLocalInsight(patientCase);
+      fetchAiDifferentials(patientCase);
+    }
+  }, [currentStep?.fieldKey, mode, patientCase, refreshLocalInsight, fetchAiDifferentials]);
+
   const analyzeCoPilot = useCallback(async () => {
     if (mode !== "clinical" || patientCase.chiefComplaints.length === 0) return;
 
