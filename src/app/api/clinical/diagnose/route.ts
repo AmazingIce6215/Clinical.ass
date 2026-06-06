@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { geminiJsonCompletion } from "@/lib/gemini";
 import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
 import { buildClinicalAiContext, CLINICAL_DIAGNOSIS_SYSTEM } from "@/lib/clinical-ai";
 import { getFallbackDiagnosis, getFallbackReasonFromError } from "@/lib/clinical-fallback";
@@ -15,26 +14,12 @@ export async function POST(request: Request) {
     const context = buildClinicalAiContext(patientCase);
     const userPrompt = `Patient case summary:\n${context}\n\nUse only the information above. Do not invent any additional symptoms, exam findings, cardiac findings, or test results. Provide diagnosis, differentials, red flags, investigations, management plan, and teaching points based strictly on the provided data.`;
 
-    let provider = "gemini";
-
-    // Try Gemini first for final diagnosis
-    let result = await geminiJsonCompletion<DiagnosisResult>(
+    const result = await aiJsonCompletion<DiagnosisResult>(
+      AI_MODELS.smart,
       CLINICAL_DIAGNOSIS_SYSTEM,
       userPrompt,
-      { maxRetries: 6 },
+      { maxRetries: 6, baseRetryDelayMs: 2 },
     );
-
-    // Fall back to Groq if Gemini fails
-    if (!result.data) {
-      console.log("Gemini failed, falling back to Groq");
-      provider = "groq";
-      result = await aiJsonCompletion<DiagnosisResult>(
-        AI_MODELS.smart,
-        CLINICAL_DIAGNOSIS_SYSTEM,
-        userPrompt,
-        { maxRetries: 6, baseRetryDelayMs: 2 },
-      );
-    }
 
     const diagnosis =
       result.data ??
@@ -44,7 +29,6 @@ export async function POST(request: Request) {
       diagnosis,
       aiPowered: !!result.data,
       aiError: result.data ? undefined : result.error?.message,
-      provider,
     });
   } catch (error) {
     console.error("Diagnosis error:", error);
