@@ -36,7 +36,7 @@ export function SignInModal() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-accent-foreground shadow-glow">
             <span className="text-sm font-bold">Cl</span>
           </div>
-          <h2 className="text-xl font-semibold">Welcome to Clincalass</h2>
+          <h2 className="mt-3 text-xl font-semibold">Welcome to Clincalass</h2>
           <p className="mt-2 text-sm text-muted">
             Sign in with your first name and password to save cases.
           </p>

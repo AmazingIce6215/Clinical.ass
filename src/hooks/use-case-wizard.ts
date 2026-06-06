@@ -68,6 +68,7 @@ export function useCaseWizard(mode: Mode) {
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
   const [diagnosisAiPowered, setDiagnosisAiPowered] = useState<boolean | null>(null);
+  const [diagnosisProvider, setDiagnosisProvider] = useState<string | null>(null);
   const [presentation, setPresentation] = useState<ClassicPresentation | null>(null);
   const [presentationAiPowered, setPresentationAiPowered] = useState<boolean | null>(null);
   const [customComplaint, setCustomComplaint] = useState("");
@@ -201,6 +202,7 @@ export function useCaseWizard(mode: Mode) {
       }
 
       setDiagnosisAiPowered(Boolean(data.aiPowered));
+      setDiagnosisProvider(data.provider ?? null);
       setAiError(data.aiPowered ? null : data.aiError ? formatAiError(data.aiError) : null);
       setDiagnosis(data.diagnosis);
       if (data.aiPowered && data.diagnosis) {
@@ -363,6 +365,7 @@ export function useCaseWizard(mode: Mode) {
     setCurrentStep(null);
     setDiagnosis(null);
     setDiagnosisAiPowered(null);
+    setDiagnosisProvider(null);
     setPresentation(null);
     setPresentationAiPowered(null);
     setAiInsight(null);
@@ -416,6 +419,7 @@ export function useCaseWizard(mode: Mode) {
     diagnosing,
     diagnosis,
     diagnosisAiPowered,
+    diagnosisProvider,
     presentation,
     presentationAiPowered,
     customComplaint,

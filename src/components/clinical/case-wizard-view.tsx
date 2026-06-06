@@ -222,6 +222,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
                 <ClinicalResults
                   diagnosis={w.diagnosis}
                   aiPowered={Boolean(w.diagnosisAiPowered)}
+                  provider={w.diagnosisProvider}
                   aiNotice={w.aiError}
                   onRetry={w.retryDiagnosis}
                   retrying={w.diagnosing}
@@ -312,6 +313,7 @@ function NavRow({
 function ClinicalResults({
   diagnosis,
   aiPowered,
+  provider,
   aiNotice,
   onRetry,
   retrying,
@@ -322,6 +324,7 @@ function ClinicalResults({
 }: {
   diagnosis: DiagnosisResult;
   aiPowered: boolean;
+  provider?: string | null;
   aiNotice?: string | null;
   onRetry: () => void;
   retrying: boolean;
@@ -346,6 +349,14 @@ function ClinicalResults({
             {retrying ? "Retrying diagnosis…" : "Retry diagnosis"}
           </SecondaryButton>
         </GlassCard>
+      )}
+      {aiPowered && provider && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted">Powered by</span>
+          <span className="rounded-full px-2 py-1 text-[11px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-100">
+            {provider === "gemini" ? "Gemini" : "Groq"}
+          </span>
+        </div>
       )}
       <GlassCard>
         <p className="text-xs font-semibold uppercase text-accent">Primary diagnosis</p>
