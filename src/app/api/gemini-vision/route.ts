@@ -17,11 +17,15 @@ function cleanBase64(value: string) {
   return trimmed;
 }
 
+function normalizeModel(value: string) {
+  return value.trim().replace(/^models\//, "");
+}
+
 export async function POST(request: Request) {
   try {
     const apiKey =
-      process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-    const model = process.env.GEMINI_VISION_MODEL || "gemini-3.5-flash";
+      (process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY)?.trim();
+    const model = normalizeModel(process.env.GEMINI_VISION_MODEL || "gemini-3.5-flash");
     if (!apiKey) {
       return NextResponse.json(
         { error: "GEMINI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY is not configured" },
@@ -36,6 +40,14 @@ export async function POST(request: Request) {
 
     if (!imageBase64 || !prompt) {
       return NextResponse.json({ error: "imageBase64 and prompt are required" }, { status: 400 });
+    }
+
+    const cleanedImage = cleanBase64(imageBase64);
+    if (!/^[A-Za-z0-9+/=]+$/.test(cleanedImage)) {
+      return NextResponse.json(
+        { error: "Image data is not valid base64" },
+        { status: 400 },
+      );
     }
 
     const response = await fetch(
@@ -54,7 +66,7 @@ export async function POST(request: Request) {
                 {
                   inline_data: {
                     mime_type: mimeType,
-                    data: cleanBase64(imageBase64),
+                    data: cleanedImage,
                   },
                 },
                 { text: prompt },

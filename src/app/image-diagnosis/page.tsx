@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { AppShell, GlassCard } from "@/components/app-shell";
 
 const CLINICAL_PROMPT =
@@ -81,7 +80,7 @@ export default function ImageDiagnosisPage() {
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : "Something went wrong",
+        error: error instanceof Error ? error.message : "Something went wrong while reading or analyzing the image",
       }));
     }
   };
@@ -131,12 +130,10 @@ export default function ImageDiagnosisPage() {
 
           {state.previewUrl ? (
             <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-background/40">
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={state.previewUrl}
                 alt="Uploaded medical image preview"
-                width={1200}
-                height={900}
-                unoptimized
                 className="h-auto w-full"
               />
             </div>
