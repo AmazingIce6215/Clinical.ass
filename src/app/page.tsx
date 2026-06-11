@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
-import { useAuth } from "@/context/auth-context";
 
 const modes = [
   {
@@ -111,18 +110,15 @@ function pickGreeting(firstName: string) {
 }
 
 function getProfileName(sessionFirstName?: string | null) {
-  if (sessionFirstName?.trim()) return sessionFirstName.trim();
   if (typeof window === "undefined") return "";
-  return localStorage.getItem("clincalass_username")?.trim() || "";
+  return localStorage.getItem("clinicalass_username")?.trim() || sessionFirstName?.trim() || "";
 }
 
 export default function HomePage() {
-  const { session } = useAuth();
-  const [firstName] = useState(() => getProfileName(session?.firstName));
-  const [greeting] = useState(() => pickGreeting(getProfileName(session?.firstName)));
+  const [greeting, setGreeting] = useState(() => pickGreeting(getProfileName()));
   const [isFirstVisit] = useState(() =>
     typeof window !== "undefined"
-      ? localStorage.getItem("clincalass-homepage-visited") !== "true"
+      ? localStorage.getItem("clinicalass-homepage-visited") !== "true"
       : false,
   );
   const [heroStage, setHeroStage] = useState<"greeting" | "tagline">("greeting");
@@ -137,6 +133,12 @@ export default function HomePage() {
       ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
       : false,
   );
+  const [promptName, setPromptName] = useState("");
+  const [showNamePrompt, setShowNamePrompt] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem("clinicalass_username");
+  });
+  const [skipMessage, setSkipMessage] = useState("");
 
   const titleText = useMemo(
     () => (isFirstVisit ? "Say hi to Clinical.ass" : "Welcome back to Clinical.ass"),
@@ -144,7 +146,7 @@ export default function HomePage() {
   );
 
   useEffect(() => {
-    localStorage.setItem("clincalass-homepage-visited", "true");
+    localStorage.setItem("clinicalass-homepage-visited", "true");
 
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
@@ -158,7 +160,25 @@ export default function HomePage() {
       mediaQuery.removeEventListener("change", handleChange);
       window.clearTimeout(greetingTimer);
     };
-  }, [session?.firstName]);
+  }, []);
+
+  const saveName = (name: string) => {
+    const finalName = name.trim();
+    const nextName = finalName || "Stranger";
+    localStorage.setItem("clinicalass_username", nextName);
+    setGreeting(pickGreeting(nextName));
+    setShowNamePrompt(false);
+    setSkipMessage("");
+  };
+
+  const handleConfirmName = () => {
+    saveName(promptName);
+  };
+
+  const handleSkip = () => {
+    saveName("Stranger");
+    setSkipMessage("Alright, we'll call you Stranger then");
+  };
 
   const shouldAnimate = !hasAnimated && !prefersReducedMotion && homepageVisible;
 
@@ -202,6 +222,38 @@ export default function HomePage() {
               </div>
             </div>
 
+            {showNamePrompt && (
+              <div className="mx-auto mt-6 max-w-md rounded-2xl border border-border/70 bg-surface/80 px-5 py-4 text-left shadow-soft backdrop-blur-xl">
+                <p className="text-sm font-semibold text-foreground">Hey, what should we call you?</p>
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                  <input
+                    value={promptName}
+                    onChange={(event) => setPromptName(event.target.value)}
+                    placeholder="Your name"
+                    className="min-w-0 flex-1 rounded-xl border border-border/70 bg-background/80 px-4 py-3 text-sm outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+                  />
+                  <button
+                    type="button"
+                  onClick={handleConfirmName}
+                  className="rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
+                >
+                    Nice, that&apos;s me
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSkip}
+                  className="mt-3 text-sm text-muted underline-offset-4 transition hover:text-foreground hover:underline"
+                >
+                  I&apos;d rather stay anonymous
+                </button>
+              </div>
+            )}
+
+            {skipMessage && (
+              <p className="mt-4 text-sm font-medium text-muted">{skipMessage}</p>
+            )}
+
             <motion.p
               initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
               animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
@@ -211,11 +263,6 @@ export default function HomePage() {
               A personalized AI companion for clinical reasoning, case review, and medical learning.
             </motion.p>
 
-            {!firstName && (
-              <p className="mt-3 text-sm text-muted">
-                Sign in to personalize the greeting with your first name.
-              </p>
-            )}
           </div>
         </div>
 
