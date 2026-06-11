@@ -30,6 +30,14 @@ const modes = [
     icon: "📚",
     accent: "from-violet-500/20 to-fuchsia-500/10",
   },
+  {
+    href: "/image-diagnosis",
+    title: "Image Diagnosis",
+    description:
+      "Upload a medical image and get a concise visual impression, key findings, and standard management.",
+    icon: "🖼️",
+    accent: "from-emerald-500/20 to-teal-500/10",
+  },
 ] as const;
 
 const GREETINGS = {
