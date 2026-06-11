@@ -219,7 +219,7 @@ body {
 
 .hero-cube__face--front .hero-cube__text {
   font-size: clamp(2rem, 3.1vw, 2.2rem);
-  font-weight: 400;
+  font-weight: 700;
   opacity: 0.9;
 }
 
