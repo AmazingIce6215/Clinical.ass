@@ -34,24 +34,25 @@ export async function POST(request: Request) {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
           contents: [
             {
               role: "user",
               parts: [
-                { text: prompt },
                 {
-                  inlineData: {
-                    mimeType,
+                  inline_data: {
+                    mime_type: mimeType,
                     data: cleanBase64(imageBase64),
                   },
                 },
+                { text: prompt },
               ],
             },
           ],
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
     if (!response.ok) {
       const errorText = await response.text();
       return NextResponse.json(
-        { error: `Gemini request failed`, details: errorText },
+        { error: "Gemini request failed", details: errorText },
         { status: response.status },
       );
     }
