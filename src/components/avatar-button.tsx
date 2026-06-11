@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const getStoredUserName = () => {
   if (typeof window === "undefined") return "";
-  return localStorage.getItem("clincalass_username") || "";
+  return localStorage.getItem("clinicalass_username") || "";
 };
 
 export function AvatarButton() {
@@ -45,6 +45,7 @@ export function AvatarButton() {
   }, []);
 
   const initial = userName ? userName.charAt(0).toUpperCase() : "👤";
+  if (!userName) return null;
 
   return (
     <div className="fixed right-4 top-4 z-50">
@@ -109,7 +110,7 @@ export function AvatarButton() {
                 <button
                   type="button"
                   onClick={() => {
-                    localStorage.removeItem("clincalass_username");
+                    localStorage.removeItem("clinicalass_username");
                     setIsOpen(false);
                     window.location.reload();
                   }}

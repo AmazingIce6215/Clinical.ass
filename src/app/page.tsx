@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
 
 const modes = [
@@ -30,7 +30,7 @@ const modes = [
     icon: "📚",
     accent: "from-violet-500/20 to-fuchsia-500/10",
   },
-];
+] as const;
 
 const GREETINGS = {
   MORNING: [
@@ -109,36 +109,36 @@ function pickGreeting(firstName: string) {
     : template.replace(/\s*,\s*\{name\}/g, "").replaceAll("{name}", name);
 }
 
-function getProfileName(sessionFirstName?: string | null) {
+function getStoredName() {
   if (typeof window === "undefined") return "";
-  return localStorage.getItem("clinicalass_username")?.trim() || sessionFirstName?.trim() || "";
+  return localStorage.getItem("clinicalass_username")?.trim() || "";
 }
 
 export default function HomePage() {
-  const [greeting, setGreeting] = useState(() => pickGreeting(getProfileName()));
-  const [isFirstVisit] = useState(() =>
-    typeof window !== "undefined"
-      ? localStorage.getItem("clinicalass-homepage-visited") !== "true"
-      : false,
-  );
-  const [heroStage, setHeroStage] = useState<"greeting" | "tagline">("greeting");
-  const [homepageVisible] = useState(true);
-  const [hasAnimated] = useState(() =>
-    typeof window !== "undefined"
-      ? sessionStorage.getItem("homepageAnimated") === "true"
-      : false,
-  );
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
-    typeof window !== "undefined"
-      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false,
-  );
-  const [promptName, setPromptName] = useState("");
-  const [showNamePrompt, setShowNamePrompt] = useState(() => {
+  const [greeting] = useState(() => pickGreeting(getStoredName()));
+  const [isFirstVisit] = useState(() => {
     if (typeof window === "undefined") return false;
     return !localStorage.getItem("clinicalass_username");
   });
-  const [skipMessage, setSkipMessage] = useState("");
+  const [showPrompt, setShowPrompt] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem("clinicalass_username");
+  });
+  const [promptName, setPromptName] = useState("");
+  const [isPromptVisible, setIsPromptVisible] = useState(true);
+  const [heroStage, setHeroStage] = useState<"greeting" | "tagline">("greeting");
+  const [homepageVisible, setHomepageVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean(localStorage.getItem("clinicalass_username"));
+  });
+  const [hasAnimated] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem("homepageAnimated") === "true";
+  });
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
 
   const titleText = useMemo(
     () => (isFirstVisit ? "Say hi to Clinical.ass" : "Welcome back to Clinical.ass"),
@@ -146,169 +146,176 @@ export default function HomePage() {
   );
 
   useEffect(() => {
-    localStorage.setItem("clinicalass-homepage-visited", "true");
-
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handleChange);
 
-    const greetingTimer = window.setTimeout(() => {
-      setHeroStage("tagline");
-    }, 2000);
-
     return () => {
       mediaQuery.removeEventListener("change", handleChange);
-      window.clearTimeout(greetingTimer);
     };
   }, []);
 
-  const saveName = (name: string) => {
-    const finalName = name.trim();
-    const nextName = finalName || "Stranger";
-    localStorage.setItem("clinicalass_username", nextName);
-    setGreeting(pickGreeting(nextName));
-    setShowNamePrompt(false);
-    setSkipMessage("");
-  };
-
-  const handleConfirmName = () => {
-    saveName(promptName);
-  };
-
-  const handleSkip = () => {
-    saveName("Stranger");
-    setSkipMessage("Alright, we'll call you Stranger then");
-  };
+  useEffect(() => {
+    if (!homepageVisible) return;
+    const timer = window.setTimeout(() => {
+      setHeroStage("tagline");
+      sessionStorage.setItem("homepageAnimated", "true");
+    }, 2000);
+    return () => window.clearTimeout(timer);
+  }, [homepageVisible]);
 
   const shouldAnimate = !hasAnimated && !prefersReducedMotion && homepageVisible;
 
-  useEffect(() => {
-    if (!homepageVisible || !shouldAnimate) return;
-    const timer = window.setTimeout(() => {
-      sessionStorage.setItem("homepageAnimated", "true");
-    }, 4000);
-    return () => window.clearTimeout(timer);
-  }, [homepageVisible, shouldAnimate]);
-
   return (
     <AppShell>
-      <motion.section
-        initial={{ opacity: 0 }}
-        animate={{ opacity: homepageVisible ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        className="mx-auto flex max-w-4xl flex-1 flex-col justify-center py-8"
-      >
-        <div className="mb-12 text-center">
-          <motion.div
-            initial={shouldAnimate ? { opacity: 0, scale: 0.8 } : false}
-            animate={shouldAnimate ? { opacity: 1, scale: 1 } : false}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted/10 text-5xl shadow-inner text-muted"
-          >
-            <span>🩺</span>
-          </motion.div>
-
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="hero-cube-perspective mx-auto">
-              <div className={`hero-cube ${heroStage === "tagline" ? "hero-cube--turned" : ""}`}>
-                <div className="hero-cube__face hero-cube__face--front">
-                  <p className="hero-cube__text uppercase tracking-[0.32em] text-accent/90">
-                    {greeting}
+      <div className="relative min-h-[calc(100dvh-6rem)] overflow-hidden">
+        {showPrompt ? (
+          <AnimatePresence mode="wait" initial={false}>
+            {isPromptVisible && (
+              <motion.div
+                key="prompt"
+                className="absolute inset-0 z-20 flex items-center justify-center px-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+              >
+                <div className="w-full max-w-xl text-center">
+                  <p className="mx-auto max-w-lg text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                    Hey, what should we call you?
                   </p>
+                  <div className="mx-auto mt-6 flex max-w-md flex-col gap-3 sm:flex-row">
+                    <input
+                      value={promptName}
+                      onChange={(event) => setPromptName(event.target.value)}
+                      placeholder="Your name"
+                      className="min-w-0 flex-1 rounded-2xl border border-border/70 bg-surface/80 px-4 py-3 text-base text-foreground outline-none backdrop-blur-md transition placeholder:text-muted/60 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextName = promptName.trim() || "Stranger";
+                        localStorage.setItem("clinicalass_username", nextName);
+                        setIsPromptVisible(false);
+                        setTimeout(() => {
+                          setShowPrompt(false);
+                          setHomepageVisible(true);
+                        }, 350);
+                      }}
+                      className="rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
+                    >
+                      Nice, that&apos;s me
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem("clinicalass_username", "Stranger");
+                      setIsPromptVisible(false);
+                      setTimeout(() => {
+                        setShowPrompt(false);
+                        setHomepageVisible(true);
+                      }, 350);
+                    }}
+                    className="mt-4 text-sm text-muted underline-offset-4 transition hover:text-foreground hover:underline"
+                  >
+                    I&apos;d rather stay anonymous
+                  </button>
                 </div>
-                <div className="hero-cube__face hero-cube__face--bottom">
-                  <h1 className="hero-cube__text">{titleText}</h1>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        ) : null}
+
+        {homepageVisible ? (
+          <motion.section
+            key="homepage"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="mx-auto flex max-w-4xl flex-1 flex-col justify-center py-8"
+          >
+            <div className="mb-12 text-center">
+              <motion.div
+                initial={shouldAnimate ? { opacity: 0, scale: 0.8 } : false}
+                animate={shouldAnimate ? { opacity: 1, scale: 1 } : false}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted/10 text-5xl shadow-inner text-muted"
+              >
+                <span>🩺</span>
+              </motion.div>
+
+              <div className="mx-auto max-w-3xl text-center">
+                <div className="hero-cube-perspective mx-auto">
+                  <div className={`hero-cube ${heroStage === "tagline" ? "hero-cube--turned" : ""}`}>
+                    <div className="hero-cube__face hero-cube__face--front">
+                      <p className="hero-cube__text uppercase tracking-[0.32em] text-accent/90">
+                        {greeting}
+                      </p>
+                    </div>
+                    <div className="hero-cube__face hero-cube__face--bottom">
+                      <h1 className="hero-cube__text">{titleText}</h1>
+                    </div>
+                  </div>
                 </div>
+
+                <motion.p
+                  initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
+                  animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: shouldAnimate ? 2.4 : 0 }}
+                  className="mx-auto mt-4 max-w-xl text-lg font-medium text-muted sm:text-xl"
+                >
+                  A personalized AI companion for clinical reasoning, case review, and medical learning.
+                </motion.p>
+
               </div>
             </div>
 
-            {showNamePrompt && (
-              <div className="mx-auto mt-6 max-w-md rounded-2xl border border-border/70 bg-surface/80 px-5 py-4 text-left shadow-soft backdrop-blur-xl">
-                <p className="text-sm font-semibold text-foreground">Hey, what should we call you?</p>
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                  <input
-                    value={promptName}
-                    onChange={(event) => setPromptName(event.target.value)}
-                    placeholder="Your name"
-                    className="min-w-0 flex-1 rounded-xl border border-border/70 bg-background/80 px-4 py-3 text-sm outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-                  />
-                  <button
-                    type="button"
-                  onClick={handleConfirmName}
-                  className="rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
-                >
-                    Nice, that&apos;s me
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSkip}
-                  className="mt-3 text-sm text-muted underline-offset-4 transition hover:text-foreground hover:underline"
-                >
-                  I&apos;d rather stay anonymous
-                </button>
-              </div>
-            )}
-
-            {skipMessage && (
-              <p className="mt-4 text-sm font-medium text-muted">{skipMessage}</p>
-            )}
-
-            <motion.p
-              initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
-              animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
-              transition={{ duration: 0.6, ease: "easeOut", delay: shouldAnimate ? 2.4 : 0 }}
-              className="mx-auto mt-4 max-w-xl text-lg font-medium text-muted sm:text-xl"
-            >
-              A personalized AI companion for clinical reasoning, case review, and medical learning.
-            </motion.p>
-
-          </div>
-        </div>
-
-        <motion.div
-          initial={shouldAnimate ? { opacity: 0 } : false}
-          animate={shouldAnimate ? { opacity: 1 } : false}
-          transition={{ duration: 0.5, delay: shouldAnimate ? 3 : 0 }}
-          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {modes.map((mode, index) => (
             <motion.div
-              key={mode.href}
-              initial={shouldAnimate ? { opacity: 0, y: 30 } : false}
-              animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
-              transition={{
-                duration: 0.6,
-                ease: "easeOut",
-                delay: shouldAnimate ? 3 + index * 0.15 : 0,
-              }}
-              whileHover={{ y: -4 }}
-              className="block h-full"
+              initial={shouldAnimate ? { opacity: 0 } : false}
+              animate={shouldAnimate ? { opacity: 1 } : false}
+              transition={{ duration: 0.5, delay: shouldAnimate ? 3 : 0 }}
+              className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
             >
-              <Link href={mode.href} className="block h-full">
-                <GlassCard
-                  hover
-                  className={`group relative h-full overflow-hidden bg-gradient-to-br ${mode.accent} transition-shadow duration-200 hover:shadow-lg`}
+              {modes.map((mode, index) => (
+                <motion.div
+                  key={mode.href}
+                  initial={shouldAnimate ? { opacity: 0, y: 30 } : false}
+                  animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
+                  transition={{
+                    duration: 0.6,
+                    ease: "easeOut",
+                    delay: shouldAnimate ? 3 + index * 0.15 : 0,
+                  }}
+                  whileHover={{ y: -4 }}
+                  className="block h-full"
                 >
-                  <div className="relative z-10">
-                    <span className="text-3xl">{mode.icon}</span>
-                    <h2 className="mt-4 text-xl font-semibold transition-colors group-hover:text-accent">
-                      {mode.title}
-                    </h2>
-                    <p className="mt-2 text-sm leading-relaxed text-muted">{mode.description}</p>
-                    <p className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-accent">
-                      Open
-                      <motion.span className="inline-block" whileHover={{ x: 4 }}>
-                        →
-                      </motion.span>
-                    </p>
-                  </div>
-                </GlassCard>
-              </Link>
+                  <Link href={mode.href} className="block h-full">
+                    <GlassCard
+                      hover
+                      className={`group relative h-full overflow-hidden bg-gradient-to-br ${mode.accent} transition-shadow duration-200 hover:shadow-lg`}
+                    >
+                      <div className="relative z-10">
+                        <span className="text-3xl">{mode.icon}</span>
+                        <h2 className="mt-4 text-xl font-semibold transition-colors group-hover:text-accent">
+                          {mode.title}
+                        </h2>
+                        <p className="mt-2 text-sm leading-relaxed text-muted">{mode.description}</p>
+                        <p className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-accent">
+                          Open
+                          <motion.span className="inline-block" whileHover={{ x: 4 }}>
+                            →
+                          </motion.span>
+                        </p>
+                      </div>
+                    </GlassCard>
+                  </Link>
+                </motion.div>
+              ))}
             </motion.div>
-          ))}
-        </motion.div>
-      </motion.section>
+          </motion.section>
+        ) : null}
+      </div>
     </AppShell>
   );
 }
