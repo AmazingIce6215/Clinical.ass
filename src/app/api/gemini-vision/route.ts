@@ -19,9 +19,13 @@ function cleanBase64(value: string) {
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey =
+      process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "GEMINI_API_KEY is not configured" }, { status: 500 });
+      return NextResponse.json(
+        { error: "GEMINI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY is not configured" },
+        { status: 500 },
+      );
     }
 
     const body = (await request.json()) as GeminiVisionBody;
