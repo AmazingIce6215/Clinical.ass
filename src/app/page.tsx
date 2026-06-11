@@ -285,7 +285,7 @@ export default function HomePage() {
               initial={shouldAnimate ? { opacity: 0 } : false}
               animate={shouldAnimate ? { opacity: 1 } : false}
               transition={{ duration: 0.5, delay: shouldAnimate ? 3 : 0 }}
-              className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+              className="grid auto-cols-[minmax(0,1fr)] grid-flow-col gap-4 overflow-x-auto pb-1 lg:overflow-visible"
             >
               {modes.map((mode, index) => (
                 <motion.div
@@ -298,7 +298,7 @@ export default function HomePage() {
                     delay: shouldAnimate ? 3 + index * 0.15 : 0,
                   }}
                   whileHover={{ y: -4 }}
-                  className="block h-full"
+                  className="block h-full min-w-[17rem]"
                 >
                   <Link href={mode.href} className="block h-full">
                     <GlassCard
