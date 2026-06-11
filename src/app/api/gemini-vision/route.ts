@@ -21,6 +21,7 @@ export async function POST(request: Request) {
   try {
     const apiKey =
       process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    const model = process.env.GEMINI_VISION_MODEL || "gemini-3.5-flash";
     if (!apiKey) {
       return NextResponse.json(
         { error: "GEMINI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY is not configured" },
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: "POST",
         headers: {
@@ -66,8 +67,16 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       const errorText = await response.text();
+      let details = errorText;
+      try {
+        const parsed = JSON.parse(errorText) as { error?: { message?: string } };
+        details = parsed.error?.message || errorText;
+      } catch {
+        details = errorText;
+      }
+
       return NextResponse.json(
-        { error: "Gemini request failed", details: errorText },
+        { error: "Gemini request failed", details, model },
         { status: response.status },
       );
     }
@@ -84,7 +93,7 @@ export async function POST(request: Request) {
         .join("")
         .trim() || "";
 
-    return NextResponse.json({ text });
+    return NextResponse.json({ text, model });
   } catch (error) {
     console.error("Gemini vision error:", error);
     return NextResponse.json({ error: "Failed to analyze image" }, { status: 500 });

@@ -69,7 +69,7 @@ export default function ImageDiagnosisPage() {
 
       const data = (await response.json()) as { text?: string; error?: string; details?: string };
       if (!response.ok) {
-        throw new Error(data.error || "Image analysis failed");
+        throw new Error(data.details || data.error || "Image analysis failed");
       }
 
       setState((prev) => ({
