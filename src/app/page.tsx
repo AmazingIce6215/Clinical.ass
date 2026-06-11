@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
-import NamePromptOverlay from "@/components/name-prompt-overlay";
+import { useAuth } from "@/context/auth-context";
 
 const modes = [
   {
@@ -33,130 +33,145 @@ const modes = [
   },
 ];
 
-export default function HomePage() {
-  const [userName, setUserName] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("clincalass_username") || "";
-  });
-  const [greeting, setGreeting] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [showNamePrompt, setShowNamePrompt] = useState(false);
-  const [homepageVisible, setHomepageVisible] = useState(false);
+const GREETINGS = {
+  MORNING: [
+    "Good morning, {name}",
+    "Rise and grind, {name}",
+    "Morning, {name}. Your patients won't diagnose themselves",
+    "Up early or never slept?",
+    "Good morning, the wards are waiting",
+    "Morning rounds start with you, {name}",
+    "Another day, another diagnosis",
+    "Morning, future doctor",
+    "Caffeine loaded, {name}? Let's go",
+    "The early med student gets the diagnosis",
+    "Good morning. Stethoscope on, brain on",
+    "Morning, {name}. Somewhere a patient needs you to know this",
+  ],
+  AFTERNOON: [
+    "Good afternoon, {name}",
+    "Afternoon grind, let's get it",
+    "Post-lunch brain fog? Push through it",
+    "Hey {name}, the wards called",
+    "Afternoon, {name}. Halfway through the day",
+    "Still at it, {name}. Respect",
+    "Good afternoon, future clinician",
+    "Lunch break is over. Back to it",
+    "Afternoon, {name}. The textbooks aren't reading themselves",
+    "Keep pushing, {name}",
+    "Good afternoon. What are we learning today",
+    "Afternoon session unlocked",
+  ],
+  EVENING: [
+    "Good evening, {name}",
+    "Evening grind hits different",
+    "Hey {name}, still at it",
+    "Evening, {name}. Most people have clocked out",
+    "The evening belongs to the disciplined",
+    "Good evening, future doctor",
+    "Lights low, focus high",
+    "Evening mode activated, {name}",
+    "Good evening. One more session won't hurt",
+    "Hey {name}, the library is quieter now",
+    "Evening, {name}. Let's make it count",
+    "Still studying? Good",
+  ],
+  NIGHT: [
+    "Hey night owl",
+    "Burning the midnight oil again",
+    "It's late, {name}. But you're here",
+    "Night shift studying, respect",
+    "The night is yours, {name}",
+    "Late night session, the best kind",
+    "Everyone else is asleep. You're not",
+    "Hey {name}, even the consultants are asleep right now",
+    "Late nights build great doctors",
+    "Midnight medicine, let's go",
+    "It's quiet. Good time to actually focus",
+    "You chose studying over sleep. Bold move",
+  ],
+} as const;
 
-  const fetchGreeting = useCallback(
-    async (name?: string) => {
-      try {
-        const timestamp = Date.now();
-        const query = name ? `&name=${encodeURIComponent(name)}` : "";
-        const url = `/api/greeting?_=${timestamp}${query}`;
-        const response = await fetch(url, { cache: "no-store" });
-        const data = await response.json();
-        const newGreeting = data.greeting;
-        setGreeting(newGreeting);
-        sessionStorage.setItem("aiGreeting", newGreeting);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Failed to fetch greeting:", error);
-        setGreeting("HELLO DOCTOR");
-        setIsLoading(false);
-      }
-    },
-    [],
+function getTimeBucket(hour: number) {
+  if (hour >= 5 && hour < 12) return "MORNING";
+  if (hour >= 12 && hour < 17) return "AFTERNOON";
+  if (hour >= 17 && hour < 21) return "EVENING";
+  return "NIGHT";
+}
+
+function pickGreeting(firstName: string) {
+  const hour = new Date().getHours();
+  const bucket = getTimeBucket(hour);
+  const pool = GREETINGS[bucket];
+  const template = pool[Math.floor(Math.random() * pool.length)];
+  const name = firstName.trim();
+  return template.includes("{name}") && name
+    ? template.replaceAll("{name}", name)
+    : template.replace(/\s*,\s*\{name\}/g, "").replaceAll("{name}", name);
+}
+
+function getProfileName(sessionFirstName?: string | null) {
+  if (sessionFirstName?.trim()) return sessionFirstName.trim();
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem("clincalass_username")?.trim() || "";
+}
+
+export default function HomePage() {
+  const { session } = useAuth();
+  const [firstName] = useState(() => getProfileName(session?.firstName));
+  const [greeting] = useState(() => pickGreeting(getProfileName(session?.firstName)));
+  const [isFirstVisit] = useState(() =>
+    typeof window !== "undefined"
+      ? localStorage.getItem("clincalass-homepage-visited") !== "true"
+      : false,
+  );
+  const [heroStage, setHeroStage] = useState<"greeting" | "tagline">("greeting");
+  const [homepageVisible] = useState(true);
+  const [hasAnimated] = useState(() =>
+    typeof window !== "undefined"
+      ? sessionStorage.getItem("homepageAnimated") === "true"
+      : false,
+  );
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false,
   );
 
-  const handleNameSubmit = (name: string) => {
-    localStorage.setItem("clincalass_username", name);
-    setUserName(name);
-    setShowNamePrompt(false);
-    // Reset animation state so animations play when entering name for first time
-    sessionStorage.removeItem("homepageAnimated");
-    setHasAnimated(false);
-    // Fetch greeting for the current user
-    fetchGreeting(name);
-    // Show homepage after overlay exit animation completes (500ms)
-    setTimeout(() => {
-      setHomepageVisible(true);
-    }, 500);
-  };
+  const titleText = useMemo(
+    () => (isFirstVisit ? "Say hi to Clinical.ass" : "Welcome back to Clinical.ass"),
+    [isFirstVisit],
+  );
 
   useEffect(() => {
-    // Check localStorage for user name
-    const savedName = localStorage.getItem("clincalass_username");
-    if (savedName) {
-      // Fetch greeting for the saved name
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchGreeting(savedName);
-      // Small delay before showing homepage for returning users
-      setTimeout(() => {
-        setHomepageVisible(true);
-      }, 200);
-    } else {
-      // Show name prompt on first visit
-      setShowNamePrompt(true);
-    }
-
-    // Check for animation preference
-    const hasSeenAnimation = sessionStorage.getItem("homepageAnimated");
-    if (hasSeenAnimation) {
-      setHasAnimated(true);
-    }
+    localStorage.setItem("clincalass-homepage-visited", "true");
 
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setPrefersReducedMotion(e.matches);
-    };
-
+    const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handleChange);
-    const greetingTimer = window.setInterval(() => {
-      const currentName = localStorage.getItem("clincalass_username");
-      if (currentName) {
-        fetchGreeting(currentName);
-      }
-    }, 10 * 60 * 1000);
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        const currentName = localStorage.getItem("clincalass_username");
-        if (currentName) {
-          fetchGreeting(currentName);
-        }
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    const greetingTimer = window.setTimeout(() => {
+      setHeroStage("tagline");
+    }, 2000);
 
     return () => {
       mediaQuery.removeEventListener("change", handleChange);
-      window.clearInterval(greetingTimer);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.clearTimeout(greetingTimer);
     };
-  }, [fetchGreeting]);
+  }, [session?.firstName]);
 
   const shouldAnimate = !hasAnimated && !prefersReducedMotion && homepageVisible;
 
-  // Mark animation as seen after it plays
   useEffect(() => {
-    if (homepageVisible && shouldAnimate) {
-      const timer = setTimeout(() => {
-        sessionStorage.setItem("homepageAnimated", "true");
-        setHasAnimated(true);
-      }, 4000); // After all animations complete (~4s total)
-
-      return () => clearTimeout(timer);
-    }
+    if (!homepageVisible || !shouldAnimate) return;
+    const timer = window.setTimeout(() => {
+      sessionStorage.setItem("homepageAnimated", "true");
+    }, 4000);
+    return () => window.clearTimeout(timer);
   }, [homepageVisible, shouldAnimate]);
 
   return (
     <AppShell>
-      <AnimatePresence>
-        {showNamePrompt && (
-          <NamePromptOverlay onSubmit={handleNameSubmit} />
-        )}
-      </AnimatePresence>
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: homepageVisible ? 1 : 0 }}
@@ -164,7 +179,6 @@ export default function HomePage() {
         className="mx-auto flex max-w-4xl flex-1 flex-col justify-center py-8"
       >
         <div className="mb-12 text-center">
-          {/* Logo icon */}
           <motion.div
             initial={shouldAnimate ? { opacity: 0, scale: 0.8 } : false}
             animate={shouldAnimate ? { opacity: 1, scale: 1 } : false}
@@ -175,42 +189,18 @@ export default function HomePage() {
           </motion.div>
 
           <div className="mx-auto max-w-3xl text-center">
-            {/* 1. Greeting fade-in (0s-1s) */}
-            {isLoading ? (
-              <div className="h-6 w-48 animate-pulse rounded bg-muted/30" />
-            ) : (
-              <div className="space-y-2">
-                <motion.p
-                  initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
-                  animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
-                  transition={{ duration: 0.8, ease: "easeOut", delay: shouldAnimate ? 0 : 0 }}
-                  className="text-base font-semibold uppercase tracking-[0.32em] text-accent/90 sm:text-sm"
-                >
-                  {greeting}
-                </motion.p>
-              </div>
-            )}
+            <div className={`hero-line ${heroStage === "greeting" ? "hero-line--visible" : "hero-line--hidden"}`}>
+              <p className="text-base font-semibold uppercase tracking-[0.32em] text-accent/90 sm:text-sm">
+                {greeting}
+              </p>
+            </div>
 
-            {/* 2. Title drop with bounce (1s-1.8s) */}
-            <motion.h1
-              initial={shouldAnimate ? { opacity: 0, y: -40 } : false}
-              animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
-              transition={{
-                duration: 0.8,
-                ease: [0.34, 1.56, 0.64, 1],
-                delay: shouldAnimate ? 1 : 0,
-              }}
-              className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl"
-            >
-              <span className="text-muted font-medium lowercase">
-                {userName ? `Welcome back, ${userName}` : "Welcome to"}
-              </span>
-              <span className="ml-3 inline-flex items-center text-slate-950">
-                Clinical reasoning made simple
-              </span>
-            </motion.h1>
+            <div className={`hero-line hero-line--tagline ${heroStage === "tagline" ? "hero-line--visible" : ""}`}>
+              <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
+                {titleText}
+              </h1>
+            </div>
 
-            {/* 4. Subtitle slide-up (2.4s-3s) */}
             <motion.p
               initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
               animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
@@ -219,10 +209,15 @@ export default function HomePage() {
             >
               A personalized AI companion for clinical reasoning, case review, and medical learning.
             </motion.p>
+
+            {!firstName && (
+              <p className="mt-3 text-sm text-muted">
+                Sign in to personalize the greeting with your first name.
+              </p>
+            )}
           </div>
         </div>
 
-        {/* 5. Cards staggered entrance (3s-4s) */}
         <motion.div
           initial={shouldAnimate ? { opacity: 0 } : false}
           animate={shouldAnimate ? { opacity: 1 } : false}
@@ -264,19 +259,6 @@ export default function HomePage() {
               </Link>
             </motion.div>
           ))}
-        </motion.div>
-
-        {/* 6. Powered by Groq badge */}
-        <motion.div
-          initial={shouldAnimate ? { opacity: 0 } : false}
-          animate={shouldAnimate ? { opacity: 1 } : false}
-          transition={{ duration: 0.5, delay: shouldAnimate ? 3.5 : 0 }}
-          className="mt-8 text-center"
-        >
-          <p className="text-xs text-muted">
-            Powered by{" "}
-            <span className="font-semibold text-accent">Groq</span>
-          </p>
         </motion.div>
       </motion.section>
     </AppShell>
