@@ -21,11 +21,60 @@ function normalizeModel(value: string) {
   return value.trim().replace(/^models\//, "");
 }
 
+function getModelCandidates() {
+  const envModel = process.env.GEMINI_VISION_MODEL?.trim();
+  const candidates = [
+    envModel ? normalizeModel(envModel) : null,
+    "gemini-2.5-flash-lite",
+    "gemini-2.0-flash-lite",
+  ].filter((value): value is string => Boolean(value));
+
+  return [...new Set(candidates)];
+}
+
+async function callGeminiVision(params: {
+  apiKey: string;
+  model: string;
+  imageBase64: string;
+  mimeType: string;
+  prompt: string;
+}) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${params.model}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": params.apiKey,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                inline_data: {
+                  mime_type: params.mimeType,
+                  data: params.imageBase64,
+                },
+              },
+              { text: params.prompt },
+            ],
+          },
+        ],
+      }),
+    },
+  );
+
+  const responseText = await response.text();
+  return { response, responseText };
+}
+
 export async function POST(request: Request) {
   try {
     const apiKey =
       (process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY)?.trim();
-    const model = normalizeModel(process.env.GEMINI_VISION_MODEL || "gemini-3.5-flash");
+    const models = getModelCandidates();
     if (!apiKey) {
       return NextResponse.json(
         { error: "GEMINI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY is not configured" },
@@ -56,72 +105,65 @@ export async function POST(request: Request) {
       );
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  inline_data: {
-                    mime_type: mimeType,
-                    data: cleanedImage,
-                  },
-                },
-                { text: prompt },
-              ],
-            },
-          ],
-        }),
-      },
-    );
+    let lastDetails = "";
+    let lastStatus = 502;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      let details = errorText;
-      try {
-        const parsed = JSON.parse(errorText) as { error?: { message?: string } };
-        details = parsed.error?.message || errorText;
-      } catch {
-        details = errorText;
+    for (const model of models) {
+      const { response, responseText } = await callGeminiVision({
+        apiKey,
+        model,
+        imageBase64: cleanedImage,
+        mimeType,
+        prompt,
+      });
+
+      if (!response.ok) {
+        lastStatus = response.status;
+        try {
+          const parsed = JSON.parse(responseText) as { error?: { message?: string } };
+          lastDetails = parsed.error?.message || responseText;
+        } catch {
+          lastDetails = responseText;
+        }
+
+        const shouldFallback =
+          response.status === 429 ||
+          /high demand|quota|rate limit|overloaded|try again later/i.test(lastDetails);
+        if (shouldFallback && model !== models[models.length - 1]) {
+          continue;
+        }
+
+        continue;
       }
 
-      return NextResponse.json(
-        { error: "Gemini request failed", details, model },
-        { status: response.status },
-      );
+      let data: {
+        candidates?: Array<{
+          content?: { parts?: Array<{ text?: string }> };
+        }>;
+      };
+
+      try {
+        data = JSON.parse(responseText) as typeof data;
+      } catch {
+        return NextResponse.json(
+          { error: "Gemini returned a non-JSON response", details: responseText, model },
+          { status: 502 },
+        );
+      }
+
+      const text =
+        data.candidates?.[0]?.content?.parts
+          ?.map((part) => part.text || "")
+          .join("")
+          .trim() || "";
+
+      return NextResponse.json({ text, model });
     }
 
-    const responseText = await response.text();
-    let data: {
-      candidates?: Array<{
-        content?: { parts?: Array<{ text?: string }> };
-      }>;
-    };
-
-    try {
-      data = JSON.parse(responseText) as typeof data;
-    } catch {
-      return NextResponse.json(
-        { error: "Gemini returned a non-JSON response", details: responseText, model },
-        { status: 502 },
-      );
-    }
-
-    const text =
-      data.candidates?.[0]?.content?.parts
-        ?.map((part) => part.text || "")
-        .join("")
-        .trim() || "";
-
-    return NextResponse.json({ text, model });
+    return NextResponse.json(
+      { error: "Gemini request failed", details: lastDetails, model: models[models.length - 1] },
+      { status: lastStatus },
+    );
   } catch (error) {
     console.error("Gemini vision error:", error);
     return NextResponse.json({ error: "Failed to analyze image" }, { status: 500 });
