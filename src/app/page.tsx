@@ -169,6 +169,12 @@ export default function HomePage() {
   return (
     <AppShell>
       <div className="relative min-h-[calc(100dvh-6rem)] overflow-hidden">
+        <div className="homepage-orbs" aria-hidden="true">
+          <span className="homepage-orb homepage-orb--one" />
+          <span className="homepage-orb homepage-orb--two" />
+          <span className="homepage-orb homepage-orb--three" />
+          <span className="homepage-orb homepage-orb--four" />
+        </div>
         {showPrompt ? (
           <AnimatePresence mode="wait" initial={false}>
             {isPromptVisible && (
