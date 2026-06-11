@@ -195,7 +195,7 @@ export default function HomePage() {
                       value={promptName}
                       onChange={(event) => setPromptName(event.target.value)}
                       placeholder="Your name"
-                      className="min-w-0 flex-1 rounded-2xl border border-border/70 bg-surface/80 px-4 py-3 text-base text-foreground outline-none backdrop-blur-md transition placeholder:text-muted/60 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+                      className="min-w-0 flex-1 rounded-2xl border border-border/70 bg-surface/90 px-4 py-3 text-base text-foreground outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
                     />
                     <button
                       type="button"
