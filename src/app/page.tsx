@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
-import { StaggerContainer, StaggerItem } from "@/components/motion";
-import { useAuth } from "@/context/auth-context";
 import NamePromptOverlay from "@/components/name-prompt-overlay";
 
 const modes = [
@@ -36,32 +34,37 @@ const modes = [
 ];
 
 export default function HomePage() {
-  const { session } = useAuth();
+  const [userName, setUserName] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("clincalass_username") || "";
+  });
   const [greeting, setGreeting] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [hasAnimated, setHasAnimated] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [dotVisible, setDotVisible] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
-  const [userName, setUserName] = useState<string>("");
   const [homepageVisible, setHomepageVisible] = useState(false);
 
-  const fetchGreeting = async () => {
-    try {
-      const timestamp = Date.now();
-      const url = `/api/greeting?_=${timestamp}`;
-      const response = await fetch(url, { cache: "no-store" });
-      const data = await response.json();
-      const newGreeting = data.greeting;
-      setGreeting(newGreeting);
-      sessionStorage.setItem("aiGreeting", newGreeting);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Failed to fetch greeting:", error);
-      setGreeting("HELLO DOCTOR");
-      setIsLoading(false);
-    }
-  };
+  const fetchGreeting = useCallback(
+    async (name?: string) => {
+      try {
+        const timestamp = Date.now();
+        const query = name ? `&name=${encodeURIComponent(name)}` : "";
+        const url = `/api/greeting?_=${timestamp}${query}`;
+        const response = await fetch(url, { cache: "no-store" });
+        const data = await response.json();
+        const newGreeting = data.greeting;
+        setGreeting(newGreeting);
+        sessionStorage.setItem("aiGreeting", newGreeting);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch greeting:", error);
+        setGreeting("HELLO DOCTOR");
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   const handleNameSubmit = (name: string) => {
     localStorage.setItem("clincalass_username", name);
@@ -70,27 +73,21 @@ export default function HomePage() {
     // Reset animation state so animations play when entering name for first time
     sessionStorage.removeItem("homepageAnimated");
     setHasAnimated(false);
-    // Fetch greeting without name
-    fetchGreeting();
+    // Fetch greeting for the current user
+    fetchGreeting(name);
     // Show homepage after overlay exit animation completes (500ms)
     setTimeout(() => {
       setHomepageVisible(true);
     }, 500);
   };
 
-  const handleClearName = () => {
-    localStorage.removeItem("clincalass_username");
-    setUserName("");
-    setShowNamePrompt(true);
-  };
-
   useEffect(() => {
     // Check localStorage for user name
     const savedName = localStorage.getItem("clincalass_username");
     if (savedName) {
-      setUserName(savedName);
-      // Fetch greeting without name
-      fetchGreeting();
+      // Fetch greeting for the saved name
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchGreeting(savedName);
       // Small delay before showing homepage for returning users
       setTimeout(() => {
         setHomepageVisible(true);
@@ -114,24 +111,32 @@ export default function HomePage() {
     };
 
     mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
+    const greetingTimer = window.setInterval(() => {
+      const currentName = localStorage.getItem("clincalass_username");
+      if (currentName) {
+        fetchGreeting(currentName);
+      }
+    }, 10 * 60 * 1000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        const currentName = localStorage.getItem("clincalass_username");
+        if (currentName) {
+          fetchGreeting(currentName);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+      window.clearInterval(greetingTimer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [fetchGreeting]);
 
   const shouldAnimate = !hasAnimated && !prefersReducedMotion && homepageVisible;
-
-  // Trigger dot visibility after title animation completes
-  useEffect(() => {
-    if (!shouldAnimate) {
-      setDotVisible(true);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setDotVisible(true);
-    }, 2100); // 2.1s after page load (title lands at 1.8s + 300ms)
-
-    return () => clearTimeout(timer);
-  }, [shouldAnimate]);
 
   // Mark animation as seen after it plays
   useEffect(() => {
@@ -197,13 +202,12 @@ export default function HomePage() {
               }}
               className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl"
             >
-              <span className="text-muted font-medium lowercase">say hi to </span>
-              <span className="inline-flex items-center text-slate-950">
-                <span>clinical</span><span>.</span><span>ass</span>
+              <span className="text-muted font-medium lowercase">
+                {userName ? `Welcome back, ${userName}` : "Welcome to"}
               </span>
-              {userName && (
-                <span className="text-muted font-medium lowercase"> {userName}</span>
-              )}
+              <span className="ml-3 inline-flex items-center text-slate-950">
+                Clinical reasoning made simple
+              </span>
             </motion.h1>
 
             {/* 4. Subtitle slide-up (2.4s-3s) */}
