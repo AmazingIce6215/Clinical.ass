@@ -189,16 +189,17 @@ export default function HomePage() {
           </motion.div>
 
           <div className="mx-auto max-w-3xl text-center">
-            <div className={`hero-line ${heroStage === "greeting" ? "hero-line--visible" : "hero-line--hidden"}`}>
-              <p className="text-base font-semibold uppercase tracking-[0.32em] text-accent/90 sm:text-sm">
-                {greeting}
-              </p>
-            </div>
-
-            <div className={`hero-line hero-line--tagline ${heroStage === "tagline" ? "hero-line--visible" : ""}`}>
-              <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
-                {titleText}
-              </h1>
+            <div className="hero-cube-perspective mx-auto">
+              <div className={`hero-cube ${heroStage === "tagline" ? "hero-cube--turned" : ""}`}>
+                <div className="hero-cube__face hero-cube__face--front">
+                  <p className="hero-cube__text uppercase tracking-[0.32em] text-accent/90">
+                    {greeting}
+                  </p>
+                </div>
+                <div className="hero-cube__face hero-cube__face--bottom">
+                  <h1 className="hero-cube__text">{titleText}</h1>
+                </div>
+              </div>
             </div>
 
             <motion.p
