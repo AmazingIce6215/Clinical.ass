@@ -181,10 +181,10 @@ export default function HomePage() {
               <motion.div
                 key="prompt"
                 className="absolute inset-0 z-20 flex items-center justify-center px-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 10, scale: 0.985 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
               >
                 <div className="w-full max-w-xl text-center">
                   <p className="mx-auto max-w-lg text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
