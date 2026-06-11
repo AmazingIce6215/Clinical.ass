@@ -267,6 +267,10 @@ body {
   opacity: 0.9;
 }
 
+.dark .hero-cube__face--front .hero-cube__text {
+  color: #94a3b8;
+}
+
 .hero-cube__face--bottom .hero-cube__text {
   font-size: clamp(2.4rem, 4vw, 3rem);
   font-weight: 700;
