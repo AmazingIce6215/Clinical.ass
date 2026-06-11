@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
 
 const modes = [
@@ -126,6 +126,7 @@ export default function HomePage() {
   });
   const [promptName, setPromptName] = useState("");
   const [isPromptVisible, setIsPromptVisible] = useState(true);
+  const [promptEntered, setPromptEntered] = useState(false);
   const [heroStage, setHeroStage] = useState<"greeting" | "tagline">("greeting");
   const [homepageVisible, setHomepageVisible] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -149,9 +150,11 @@ export default function HomePage() {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handleChange);
+    const enterTimer = window.setTimeout(() => setPromptEntered(true), 20);
 
     return () => {
       mediaQuery.removeEventListener("change", handleChange);
+      window.clearTimeout(enterTimer);
     };
   }, []);
 
@@ -176,61 +179,54 @@ export default function HomePage() {
           <span className="homepage-orb homepage-orb--four" />
         </div>
         {showPrompt ? (
-          <AnimatePresence mode="wait" initial={false}>
-            {isPromptVisible && (
-              <motion.div
-                key="prompt"
-                className="absolute inset-0 z-20 flex items-center justify-center px-4"
-                initial={{ opacity: 0, y: 10, scale: 0.985 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
+          <div
+            className={`absolute inset-0 z-20 flex items-center justify-center px-4 ${
+              isPromptVisible ? "prompt-shell prompt-shell--visible" : "prompt-shell prompt-shell--exit"
+            } ${promptEntered ? "prompt-shell--entered" : ""}`}
+          >
+            <div className="w-full max-w-xl text-center">
+              <p className="mx-auto max-w-lg text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                Hey, what should we call you?
+              </p>
+              <div className="mx-auto mt-6 flex max-w-md flex-col gap-3 sm:flex-row">
+                <input
+                  value={promptName}
+                  onChange={(event) => setPromptName(event.target.value)}
+                  placeholder="Your name"
+                  className="min-w-0 flex-1 rounded-2xl border border-border/70 bg-surface/90 px-4 py-3 text-base text-foreground outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextName = promptName.trim() || "Stranger";
+                    localStorage.setItem("clinicalass_username", nextName);
+                    setIsPromptVisible(false);
+                    setTimeout(() => {
+                      setShowPrompt(false);
+                      setHomepageVisible(true);
+                    }, 350);
+                  }}
+                  className="rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
+                >
+                  Nice, that&apos;s me
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.setItem("clinicalass_username", "Stranger");
+                  setIsPromptVisible(false);
+                  setTimeout(() => {
+                    setShowPrompt(false);
+                    setHomepageVisible(true);
+                  }, 350);
+                }}
+                className="mt-4 text-sm text-muted underline-offset-4 transition hover:text-foreground hover:underline"
               >
-                <div className="w-full max-w-xl text-center">
-                  <p className="mx-auto max-w-lg text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                    Hey, what should we call you?
-                  </p>
-                  <div className="mx-auto mt-6 flex max-w-md flex-col gap-3 sm:flex-row">
-                    <input
-                      value={promptName}
-                      onChange={(event) => setPromptName(event.target.value)}
-                      placeholder="Your name"
-                      className="min-w-0 flex-1 rounded-2xl border border-border/70 bg-surface/90 px-4 py-3 text-base text-foreground outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const nextName = promptName.trim() || "Stranger";
-                        localStorage.setItem("clinicalass_username", nextName);
-                        setIsPromptVisible(false);
-                        setTimeout(() => {
-                          setShowPrompt(false);
-                          setHomepageVisible(true);
-                        }, 350);
-                      }}
-                      className="rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
-                    >
-                      Nice, that&apos;s me
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      localStorage.setItem("clinicalass_username", "Stranger");
-                      setIsPromptVisible(false);
-                      setTimeout(() => {
-                        setShowPrompt(false);
-                        setHomepageVisible(true);
-                      }, 350);
-                    }}
-                    className="mt-4 text-sm text-muted underline-offset-4 transition hover:text-foreground hover:underline"
-                  >
-                    I&apos;d rather stay anonymous
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                I&apos;d rather stay anonymous
+              </button>
+            </div>
+          </div>
         ) : null}
 
         {homepageVisible ? (
