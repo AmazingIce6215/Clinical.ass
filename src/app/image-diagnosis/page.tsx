@@ -31,6 +31,28 @@ function fileToDataUrl(file: File) {
   });
 }
 
+function getPureBase64(dataUrl: string) {
+  const match = dataUrl.match(/^data:([^;,]+);base64,(.+)$/);
+  if (!match?.[2]) {
+    throw new Error("Could not read image as a base64 file");
+  }
+  return match[2].trim();
+}
+
+async function readApiResponse(response: Response) {
+  const raw = await response.text();
+  if (!raw) return {};
+
+  try {
+    return JSON.parse(raw) as { text?: string; error?: string; details?: string };
+  } catch {
+    return {
+      error: response.ok ? "Unexpected server response" : "Server returned a non-JSON response",
+      details: raw,
+    };
+  }
+}
+
 export default function ImageDiagnosisPage() {
   const [state, setState] = useState(initialState);
 
@@ -46,7 +68,7 @@ export default function ImageDiagnosisPage() {
       }));
 
       const dataUrl = await fileToDataUrl(file);
-      const base64 = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
+      const base64 = getPureBase64(dataUrl);
 
       setState((prev) => ({
         ...prev,
@@ -66,7 +88,7 @@ export default function ImageDiagnosisPage() {
         }),
       });
 
-      const data = (await response.json()) as { text?: string; error?: string; details?: string };
+      const data = await readApiResponse(response);
       if (!response.ok) {
         throw new Error(data.details || data.error || "Image analysis failed");
       }

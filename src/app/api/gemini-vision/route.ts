@@ -33,7 +33,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = (await request.json()) as GeminiVisionBody;
+    let body: GeminiVisionBody;
+    try {
+      body = (await request.json()) as GeminiVisionBody;
+    } catch {
+      return NextResponse.json({ error: "Request body must be valid JSON" }, { status: 400 });
+    }
+
     const imageBase64 = body.imageBase64?.trim();
     const mimeType = body.mimeType?.trim() || "image/jpeg";
     const prompt = body.prompt?.trim();
@@ -93,11 +99,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const data = (await response.json()) as {
+    const responseText = await response.text();
+    let data: {
       candidates?: Array<{
         content?: { parts?: Array<{ text?: string }> };
       }>;
     };
+
+    try {
+      data = JSON.parse(responseText) as typeof data;
+    } catch {
+      return NextResponse.json(
+        { error: "Gemini returned a non-JSON response", details: responseText, model },
+        { status: 502 },
+      );
+    }
 
     const text =
       data.candidates?.[0]?.content?.parts
