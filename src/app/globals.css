@@ -379,6 +379,12 @@ body {
   .mode-tiles > * {
     min-width: 0;
     flex: none;
+    min-height: 0;
+  }
+
+  .mode-tiles > a,
+  .mode-tiles > div > a {
+    min-height: 0;
   }
 
   .mode-tiles > * > a > div {
