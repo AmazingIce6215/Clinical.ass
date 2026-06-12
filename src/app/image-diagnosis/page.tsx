@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AppShell, GlassCard } from "@/components/app-shell";
 
 const CLINICAL_PROMPT =
-  "You are a clinical study assistant. Analyze this medical image for educational purposes only. Describe the visible findings, note the most likely clinical category or common possibilities if uncertain, and summarize typical management context in a concise clinical structure. Do not include a safety disclaimer unless required by policy.";
+  "You are a clinical study assistant. Analyze this medical image for educational purposes only and respond in markdown. Use clear headings and concise clinical language. Structure the answer with these sections: ## Findings, ## Likely Diagnosis, ## Management, and ## Treatment. Use bullet points where helpful, keep the response organized, and do not include a safety disclaimer unless required by policy.";
 
 type AnalysisState = {
   loading: boolean;
@@ -51,6 +51,107 @@ async function readApiResponse(response: Response) {
       details: raw,
     };
   }
+}
+
+function renderInlineMarkdown(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+
+  return parts.map((part, index) => {
+    const boldMatch = part.match(/^\*\*([^*]+)\*\*$/);
+    if (boldMatch) {
+      return (
+        <strong key={`${index}-${part}`} className="font-semibold text-foreground">
+          {boldMatch[1]}
+        </strong>
+      );
+    }
+
+    return (
+      <span key={`${index}-${part}`} className="text-foreground">
+        {part}
+      </span>
+    );
+  });
+}
+
+function MarkdownLine({ line }: { line: string }) {
+  const bulletMatch = line.match(/^[-*]\s+(.*)$/);
+  const numberedMatch = line.match(/^(\d+)\.\s+(.*)$/);
+
+  if (bulletMatch) {
+    return (
+      <div className="flex gap-2 pl-1">
+        <span className="mt-[0.66rem] h-1.5 w-1.5 shrink-0 rounded-full bg-accent/80" />
+        <p className="min-w-0 flex-1 text-sm leading-7 text-foreground">
+          {renderInlineMarkdown(bulletMatch[1])}
+        </p>
+      </div>
+    );
+  }
+
+  if (numberedMatch) {
+    return (
+      <div className="flex gap-3 pl-1">
+        <span className="min-w-4 shrink-0 text-sm font-semibold leading-7 text-accent/90">
+          {numberedMatch[1]}.
+        </span>
+        <p className="min-w-0 flex-1 text-sm leading-7 text-foreground">
+          {renderInlineMarkdown(numberedMatch[2])}
+        </p>
+      </div>
+    );
+  }
+
+  if (!line) {
+    return null;
+  }
+
+  return <p className="text-sm leading-7 text-foreground">{renderInlineMarkdown(line)}</p>;
+}
+
+function MarkdownResponse({ content }: { content: string }) {
+  const blocks = content
+    .replace(/\r\n/g, "\n")
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="space-y-4">
+      {blocks.map((block, blockIndex) => {
+        const lines = block.split("\n").map((line) => line.trim());
+        const headingMatch = lines[0]?.match(/^(#{1,3})\s+(.*)$/);
+
+        if (headingMatch) {
+          const level = headingMatch[1].length;
+          const headingText = headingMatch[2];
+          const headingClass =
+            level === 1
+              ? "text-lg font-semibold tracking-tight text-foreground"
+              : level === 2
+                ? "text-base font-semibold tracking-tight text-foreground"
+                : "text-sm font-semibold tracking-tight text-foreground";
+
+          return (
+            <section key={blockIndex} className="space-y-2">
+              <h3 className={headingClass}>{renderInlineMarkdown(headingText)}</h3>
+              {lines.slice(1).map((line, lineIndex) => (
+                <MarkdownLine key={`${blockIndex}-${lineIndex}`} line={line} />
+              ))}
+            </section>
+          );
+        }
+
+        return (
+          <div key={blockIndex} className="space-y-2">
+            {lines.map((line, lineIndex) => (
+              <MarkdownLine key={`${blockIndex}-${lineIndex}`} line={line} />
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function ImageDiagnosisPage() {
@@ -174,7 +275,7 @@ export default function ImageDiagnosisPage() {
             ) : state.error ? (
               <p className="text-sm text-rose-500">{state.error}</p>
             ) : state.result ? (
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{state.result}</p>
+              <MarkdownResponse content={state.result} />
             ) : (
               <p className="text-sm text-muted">Your result will appear here after analysis.</p>
             )}
