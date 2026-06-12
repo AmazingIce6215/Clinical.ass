@@ -3,32 +3,14 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const MODE_MESSAGES = {
-  generic: [
-    "Analyzing...",
-    "Thinking it through...",
-    "Reviewing the clinical picture...",
-    "Almost there...",
-    "Cross-checking findings...",
-    "Putting it together...",
-  ],
-  teaching: [
-    "Creating 3 unique cases for you...",
-    "Generating patient vignettes...",
-    "Crafting clinical scenarios...",
-    "Building MCQ questions...",
-    "Almost done, just polishing...",
-    "Preparing your teaching session...",
-  ],
-  "image-diagnosis": [
-    "Analyzing image...",
-    "Reading radiographic findings...",
-    "Interpreting the clinical picture...",
-    "Cross-referencing patterns...",
-    "Formulating impressions...",
-    "Almost there...",
-  ],
-} as const;
+const LOADING_MESSAGES = [
+  "Analyzing...",
+  "Thinking it through...",
+  "Reviewing the clinical picture...",
+  "Almost there...",
+  "Cross-checking findings...",
+  "Putting it together...",
+];
 
 const ORBS = [
   { className: "left-[8%] top-[8%] w-[12rem] h-[12rem] bg-blue-400/30" },
@@ -109,14 +91,11 @@ function RotatingIcon() {
 export function LoadingPanel({
   visible,
   fullScreen,
-  mode = "generic",
 }: {
   visible: boolean;
   fullScreen?: boolean;
-  mode?: keyof typeof MODE_MESSAGES;
 }) {
   const reduceMotion = useReducedMotion();
-  const messages = MODE_MESSAGES[mode];
 
   const orbLayer = (
     <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-80 blur-3xl">
@@ -140,7 +119,7 @@ export function LoadingPanel({
           Working on it
         </p>
       </div>
-      <RotatingMessages messages={messages} />
+      <RotatingMessages messages={LOADING_MESSAGES} />
     </div>
   );
 

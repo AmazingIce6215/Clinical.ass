@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { AppShell, GlassCard, PrimaryButton } from "@/components/app-shell";
 import { CasePlayer } from "@/components/teaching/case-player";
 import { FadeSlide } from "@/components/motion";
-import { LoadingPanel } from "@/components/loading-panel";
+import { TeachingLoadingOverlay } from "@/components/teaching/teaching-loading-overlay";
 import {
   getSeenDiseases,
   getSeenTitles,
@@ -75,7 +75,7 @@ export default function SubjectCasePage({
   if (loading) {
     return (
       <>
-        <LoadingPanel visible={true} fullScreen mode="teaching" />
+        <TeachingLoadingOverlay visible={true} />
         <AppShell backHref="/teaching" title="Generating session..." subtitle="AI is building 3 unique patients">
           <div className="invisible" />
         </AppShell>

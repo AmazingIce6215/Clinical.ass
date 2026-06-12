@@ -268,7 +268,7 @@ export default function ImageDiagnosisPage() {
 
           <div className="rounded-2xl border border-border/60 bg-background/40">
             {state.loading ? (
-              <LoadingPanel visible={true} mode="image-diagnosis" />
+              <LoadingPanel visible={true} />
             ) : (
               <div className="p-5">
                 {state.error ? (
