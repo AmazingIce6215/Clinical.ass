@@ -44,16 +44,18 @@ export function CaseSidebar({
 
   return (
     <>
+      {/* Mobile: always show minimized leading cause only */}
       {showAiSection && (
         <div className="mb-4 lg:hidden">
-          {aiCollapsed && aiInsight ? (
+          {aiInsight && (
             <MinimizedAiPanel
               insight={aiInsight}
               onExpand={() => setUserExpanded(true)}
               compact
             />
-          ) : (
-            aiPanel
+          )}
+          {aiError && !aiInsight && (
+            <AiErrorCard message={aiError} />
           )}
         </div>
       )}
