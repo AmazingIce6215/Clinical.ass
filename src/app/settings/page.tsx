@@ -32,7 +32,7 @@ export default function SettingsPage() {
       window.addEventListener("storage", notify);
       return () => window.removeEventListener("storage", notify);
     },
-    () => getStoredValue("clincalass_username", ""),
+    () => getStoredValue("clinicalass_username", ""),
     () => "",
   );
   const persistedAccent = useSyncExternalStore(
@@ -85,7 +85,7 @@ export default function SettingsPage() {
   }, [accent]);
 
   const handleSave = () => {
-    localStorage.setItem("clincalass_username", name);
+    localStorage.setItem("clinicalass_username", name);
     localStorage.setItem("clincalass_accent", accent);
     localStorage.setItem("clincalass_theme", selectedTheme);
     setTheme(selectedTheme);
