@@ -11,6 +11,7 @@ const modes = [
     title: "Clincalass Companion",
     description:
       "Real-life workup: triage, targeted HPI, exam, investigations → diagnosis, differentials & management.",
+    mobileDescription: "Chat through cases with live AI differentials",
     icon: "🩺",
     accent: "from-blue-500/20 to-cyan-500/10",
   },
@@ -19,6 +20,7 @@ const modes = [
     title: "Classic Mode",
     description:
       "Full ward-round history taking — build a structured case presentation for your consultant.",
+    mobileDescription: "Generate structured study guides",
     icon: "📋",
     accent: "from-amber-500/20 to-orange-500/10",
   },
@@ -27,6 +29,7 @@ const modes = [
     title: "Teaching Mode",
     description:
       "Case-based Q-bank with 3 unique patient vignettes per session, MCQs, and detailed explanations.",
+    mobileDescription: "Practice AMBOSS-style clinical cases",
     icon: "📚",
     accent: "from-violet-500/20 to-fuchsia-500/10",
   },
@@ -35,6 +38,7 @@ const modes = [
     title: "Image Diagnosis",
     description:
       "Upload a medical image and get a concise visual impression, key findings, and standard management.",
+    mobileDescription: "Upload an image for AI-assisted diagnosis",
     icon: "🖼️",
     accent: "from-emerald-500/20 to-teal-500/10",
   },
@@ -383,8 +387,11 @@ export default function HomePage() {
                         <h2 className="mt-3 text-lg font-semibold leading-tight transition-colors group-hover:text-accent">
                           {mode.title}
                         </h2>
-                        <p className="mt-2 flex-1 text-xs leading-relaxed text-muted">
+                        <p className="mt-2 hidden flex-1 text-xs leading-relaxed text-muted sm:block">
                           {mode.description}
+                        </p>
+                        <p className="mt-2 block flex-1 text-xs leading-relaxed text-muted sm:hidden">
+                          {mode.mobileDescription}
                         </p>
                         <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent">
                           Open
