@@ -3,14 +3,32 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const LOADING_MESSAGES = [
-  "Analyzing...",
-  "Thinking it through...",
-  "Reviewing the clinical picture...",
-  "Almost there...",
-  "Cross-checking findings...",
-  "Putting it together...",
-];
+const MODE_MESSAGES = {
+  generic: [
+    "Analyzing...",
+    "Thinking it through...",
+    "Reviewing the clinical picture...",
+    "Almost there...",
+    "Cross-checking findings...",
+    "Putting it together...",
+  ],
+  teaching: [
+    "Creating 3 unique cases for you...",
+    "Generating patient vignettes...",
+    "Crafting clinical scenarios...",
+    "Building MCQ questions...",
+    "Almost done, just polishing...",
+    "Preparing your teaching session...",
+  ],
+  "image-diagnosis": [
+    "Analyzing image...",
+    "Reading radiographic findings...",
+    "Interpreting the clinical picture...",
+    "Cross-referencing patterns...",
+    "Formulating impressions...",
+    "Almost there...",
+  ],
+} as const;
 
 const ORBS = [
   { className: "left-[8%] top-[8%] w-[12rem] h-[12rem] bg-blue-400/30" },
@@ -21,16 +39,16 @@ const ORBS = [
 
 const ICONS = ["🧠", "🩺", "💓", "📋", "🔬", "🫀"];
 
-function RotatingMessages() {
+function RotatingMessages({ messages }: { messages: readonly string[] }) {
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIndex((i) => (i + 1) % LOADING_MESSAGES.length);
+      setIndex((i) => (i + 1) % messages.length);
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [messages.length]);
 
   return (
     <div className="relative h-8">
@@ -43,7 +61,7 @@ function RotatingMessages() {
           exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
           transition={{ duration: reduceMotion ? 0 : 0.35, ease: "easeInOut" }}
         >
-          {LOADING_MESSAGES[index]}
+          {messages[index]}
         </motion.p>
       </AnimatePresence>
     </div>
@@ -88,8 +106,17 @@ function RotatingIcon() {
   );
 }
 
-export function LoadingPanel({ visible, fullScreen }: { visible: boolean; fullScreen?: boolean }) {
+export function LoadingPanel({
+  visible,
+  fullScreen,
+  mode = "generic",
+}: {
+  visible: boolean;
+  fullScreen?: boolean;
+  mode?: keyof typeof MODE_MESSAGES;
+}) {
   const reduceMotion = useReducedMotion();
+  const messages = MODE_MESSAGES[mode];
 
   const orbLayer = (
     <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-80 blur-3xl">
@@ -113,7 +140,7 @@ export function LoadingPanel({ visible, fullScreen }: { visible: boolean; fullSc
           Working on it
         </p>
       </div>
-      <RotatingMessages />
+      <RotatingMessages messages={messages} />
     </div>
   );
 

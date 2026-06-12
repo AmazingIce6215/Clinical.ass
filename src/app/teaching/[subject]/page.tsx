@@ -75,7 +75,7 @@ export default function SubjectCasePage({
   if (loading) {
     return (
       <>
-        <LoadingPanel visible={true} fullScreen />
+        <LoadingPanel visible={true} fullScreen mode="teaching" />
         <AppShell backHref="/teaching" title="Generating session..." subtitle="AI is building 3 unique patients">
           <div className="invisible" />
         </AppShell>
