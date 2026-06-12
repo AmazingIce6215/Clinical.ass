@@ -354,6 +354,11 @@ export function useCaseWizard(mode: Mode) {
       id: `${mode}-${Date.now()}`,
       mode,
       title: `${patientCase.name} — ${patientCase.chiefComplaints.join(", ") || "case"}`,
+      subject: mode === "clinical"
+        ? diagnosis?.primaryDiagnosis
+        : mode === "classic"
+          ? presentation?.oneLiner
+          : undefined,
       tags: patientCase.chiefComplaints,
       savedAt: Date.now(),
       patientCase,
