@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { AppShell, GlassCard } from "@/components/app-shell";
+import { LoadingPanel } from "@/components/loading-panel";
+
 
 const CLINICAL_PROMPT =
   "You are an educational image interpretation assistant. Analyze this image in a concise radiology-style way and respond in markdown. Focus on visible findings, the most likely interpretation, and brief next-step guidance if relevant. Use clear headings like ## Findings, ## Likely Diagnosis, ## Management, and ## Treatment when appropriate. Use bullet points where helpful, keep the response organized, and do not mention policy, safety disclaimers, or refusals unless absolutely required.";
@@ -264,15 +266,19 @@ export default function ImageDiagnosisPage() {
             </div>
           ) : null}
 
-          <div className="rounded-2xl border border-border/60 bg-background/40 p-5">
+          <div className="rounded-2xl border border-border/60 bg-background/40">
             {state.loading ? (
-              <p className="text-sm text-muted">Analyzing image...</p>
-            ) : state.error ? (
-              <p className="text-sm text-rose-500">{state.error}</p>
-            ) : state.result ? (
-              <MarkdownResponse content={state.result} />
+              <LoadingPanel visible={true} />
             ) : (
-              <p className="text-sm text-muted">Your result will appear here after analysis.</p>
+              <div className="p-5">
+                {state.error ? (
+                  <p className="text-sm text-rose-500">{state.error}</p>
+                ) : state.result ? (
+                  <MarkdownResponse content={state.result} />
+                ) : (
+                  <p className="text-sm text-muted">Your result will appear here after analysis.</p>
+                )}
+              </div>
             )}
           </div>
         </GlassCard>

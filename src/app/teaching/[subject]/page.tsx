@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AppShell, GlassCard, PrimaryButton } from "@/components/app-shell";
 import { CasePlayer } from "@/components/teaching/case-player";
 import { FadeSlide } from "@/components/motion";
+import { LoadingPanel } from "@/components/loading-panel";
 import {
   getSeenDiseases,
   getSeenTitles,
@@ -75,13 +76,7 @@ export default function SubjectCasePage({
     return (
       <AppShell backHref="/teaching" title="Generating session..." subtitle="AI is building 3 unique patients">
         <div className="mx-auto flex max-w-md flex-col items-center justify-center py-24">
-          <FadeSlide>
-            <div className="relative h-16 w-16">
-              <div className="absolute inset-0 animate-spin rounded-full border-2 border-accent/20 border-t-accent" />
-              <div className="absolute inset-2 animate-pulse rounded-full bg-accent/10" />
-            </div>
-          </FadeSlide>
-          <p className="mt-6 text-sm text-muted">Creating a unique session for you...</p>
+          <LoadingPanel visible={true} />
         </div>
       </AppShell>
     );
