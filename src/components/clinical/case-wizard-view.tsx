@@ -10,6 +10,7 @@ import {
 } from "@/components/app-shell";
 import { CaseSidebar, CaseSummarySidebar, CoPilotSidebar } from "@/components/clinical/case-sidebar";
 import { ReasoningTreeView } from "@/components/clinical/reasoning-tree";
+import { DiagnosisLoadingOverlay } from "@/components/clinical/diagnosis-loading-overlay";
 import { LoadingPanel } from "@/components/loading-panel";
 import { ReasonBanner, StepInput } from "@/components/clinical/step-input";
 import { FadeSlide, ProgressBar } from "@/components/motion";
@@ -27,8 +28,10 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
 
   return (
     <>
-    <LoadingPanel
+    <DiagnosisLoadingOverlay
       visible={!isClassic && w.diagnosing}
+      patientName={w.patientCase.name}
+      complaints={w.patientCase.chiefComplaints}
     />
     <AppShell
       backHref="/"
