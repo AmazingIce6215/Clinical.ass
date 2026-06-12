@@ -77,31 +77,29 @@ export function TeachingLoadingOverlay({ visible }: { visible: boolean }) {
             ))}
           </div>
 
-          {/* Content card */}
-          <div className="relative z-10 mx-auto max-w-md">
-            <div className="flex flex-col items-center gap-6 rounded-2xl border border-border/50 bg-surface/70 p-10 backdrop-blur-xl shadow-2xl">
-              {/* Teaching-specific icon */}
-              <div className="relative flex h-16 w-16 items-center justify-center">
-                <div
-                  className="absolute inset-0 rounded-full border-2 border-violet-400/20"
-                  style={reduceMotion ? undefined : { animation: "teaching-loading-spin 2.8s linear infinite" }}
-                />
-                <div
-                  className="absolute inset-0 rounded-full border-2 border-transparent border-t-violet-400"
-                  style={reduceMotion ? undefined : { animation: "teaching-loading-spin 2.8s linear infinite" }}
-                />
-                <div className="absolute inset-3 rounded-full bg-violet-400/15" />
-                <span className="relative text-2xl">📚</span>
-              </div>
+          {/* Content — floating freely, no containing card */}
+          <div className="relative z-10 flex flex-col items-center gap-8">
+            {/* Teaching-specific icon */}
+            <div className="relative flex h-20 w-20 items-center justify-center">
+              <div
+                className="absolute inset-0 rounded-full border-[3px] border-violet-400/20"
+                style={reduceMotion ? undefined : { animation: "teaching-loading-spin 2.8s linear infinite" }}
+              />
+              <div
+                className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-violet-400"
+                style={reduceMotion ? undefined : { animation: "teaching-loading-spin 2.8s linear infinite" }}
+              />
+              <div className="absolute inset-3 rounded-full bg-violet-400/15" />
+              <span className="relative text-4xl">📚</span>
+            </div>
 
-              {/* Title */}
-              <div className="text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-violet-500/80">
-                  Teaching session
-                </p>
-              </div>
+            {/* Title */}
+            <p className="text-sm font-semibold uppercase tracking-[0.4em] text-violet-400/70">
+              Teaching session
+            </p>
 
-              {/* Rotating messages */}
+            {/* Rotating messages */}
+            <div className="w-full max-w-md text-center">
               <RotatingMessage />
             </div>
           </div>
