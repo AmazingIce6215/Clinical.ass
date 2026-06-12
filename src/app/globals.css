@@ -373,7 +373,7 @@ body {
   .mode-tiles {
     flex-direction: column;
     overflow-x: hidden;
-    gap: 0.5rem;
+    gap: 0.375rem;
   }
 
   .mode-tiles > * {
@@ -389,25 +389,24 @@ body {
 
   .mode-tiles > * > a > div {
     min-height: 0;
-    padding: 0.75rem;
+    padding: 0.5rem 0.625rem;
   }
 
   .mode-tiles > * > a > div .text-3xl {
-    font-size: 1.5rem;
+    font-size: 1.125rem;
   }
 
   .mode-tiles > * > a > div h2 {
-    font-size: 0.9375rem;
-    margin-top: 0.375rem;
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
   }
 
   .mode-tiles > * > a > div p.mt-2 {
-    margin-top: 0.25rem;
-    font-size: 0.6875rem;
+    display: none;
   }
 
   .mode-tiles > * > a > div p.mt-4 {
-    margin-top: 0.5rem;
-    font-size: 0.75rem;
+    margin-top: 0.375rem;
+    font-size: 0.6875rem;
   }
 }

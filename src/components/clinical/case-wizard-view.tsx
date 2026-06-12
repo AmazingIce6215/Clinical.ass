@@ -72,15 +72,19 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
               minimizeAi={!isClassic && w.phase === "results"}
             />
             {w.phase !== "results" && w.phase !== "presentation" && (
-              <CoPilotSidebar
-                insight={isClassic ? undefined : w.coPilotInsight}
-                loading={isClassic ? undefined : w.coPilotLoading}
-                error={isClassic ? undefined : w.coPilotError}
-                stale={isClassic ? undefined : w.coPilotStale}
-                onAnalyze={isClassic ? undefined : w.analyzeCoPilot}
-              />
+              <div className="hidden lg:block">
+                <CoPilotSidebar
+                  insight={isClassic ? undefined : w.coPilotInsight}
+                  loading={isClassic ? undefined : w.coPilotLoading}
+                  error={isClassic ? undefined : w.coPilotError}
+                  stale={isClassic ? undefined : w.coPilotStale}
+                  onAnalyze={isClassic ? undefined : w.analyzeCoPilot}
+                />
+              </div>
             )}
-            <CaseSummarySidebar patientCase={w.patientCase} />
+            <div className="hidden lg:block">
+              <CaseSummarySidebar patientCase={w.patientCase} />
+            </div>
           </div>
         </aside>
 
