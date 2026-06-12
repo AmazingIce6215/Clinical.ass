@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
 
 const modes = [
@@ -140,6 +140,10 @@ export default function HomePage() {
     if (typeof window === "undefined") return false;
     return Boolean(localStorage.getItem("clinicalass_username"));
   });
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem("clinicalass_onboarded") && Boolean(localStorage.getItem("clinicalass_username"));
+  });
   const [hasAnimated] = useState(() => {
     if (typeof window === "undefined") return false;
     return sessionStorage.getItem("homepageAnimated") === "true";
@@ -175,7 +179,8 @@ export default function HomePage() {
     return () => window.clearTimeout(timer);
   }, [homepageVisible]);
 
-  const shouldAnimate = !hasAnimated && !prefersReducedMotion && homepageVisible;
+  const shouldAnimate = !hasAnimated && !prefersReducedMotion && homepageVisible && !showOnboarding;
+  const storedName = getStoredName();
 
   return (
     <AppShell>
@@ -186,6 +191,72 @@ export default function HomePage() {
           <span className="homepage-orb homepage-orb--three" />
           <span className="homepage-orb homepage-orb--four" />
         </div>
+
+        {/* Onboarding guide for first-time users */}
+        <AnimatePresence>
+          {showOnboarding && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-30 flex items-center justify-center bg-background/80 backdrop-blur-sm px-4"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full max-w-lg overflow-y-auto max-h-[85vh] rounded-3xl border border-border/60 bg-surface/90 backdrop-blur-xl p-6 shadow-2xl"
+              >
+                <div className="text-center mb-5">
+                  <p className="text-3xl mb-2">👋</p>
+                  <h2 className="text-xl font-semibold text-foreground">
+                    Hey{storedName && storedName !== "Stranger" ? ` ${storedName}` : ""}, welcome aboard!
+                  </h2>
+                  <p className="mt-2 text-sm text-muted leading-relaxed">
+                    Thanks for trying out Clinical.ass! Here's a quick overview of what you can do.
+                  </p>
+                </div>
+
+                <div className="space-y-3 mb-5">
+                  <OnboardingMode icon="🩺" title="Companion" desc="Real clinical workup — triage, history, exam, investigations, then diagnosis with differentials." />
+                  <OnboardingMode icon="📋" title="Classic" desc="Full ward-round history taking to build a structured case presentation." />
+                  <OnboardingMode icon="📚" title="Teaching" desc="Case-based Q-bank with patient vignettes, MCQs, and detailed explanations." />
+                  <OnboardingMode icon="🖼️" title="Image Diagnosis" desc="Upload a medical image and get a visual impression with key findings." />
+                </div>
+
+                <div className="rounded-2xl border border-border/50 bg-surface/60 p-4 mb-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-1.5">A quick heads-up</p>
+                  <p className="text-sm text-muted leading-relaxed">
+                    This app runs on free tiers of Groq and Gemini APIs, so responses may occasionally be slow or fail.
+                    Don't let that stop you — just hit retry and it usually works fine.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-border/50 bg-surface/60 p-4 mb-5">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-1.5">Got feedback?</p>
+                  <p className="text-sm text-muted leading-relaxed">
+                    Anytime you have a suggestion or run into something odd, tap your avatar and use{" "}
+                    <span className="font-medium text-foreground">Meet the Developer</span> to send a message directly. I read every one.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem("clinicalass_onboarded", "true");
+                    setShowOnboarding(false);
+                  }}
+                  className="w-full rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
+                >
+                  Let's go
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {showPrompt ? (
           <div
             className={`absolute inset-0 z-20 flex items-center justify-center px-4 ${
@@ -209,14 +280,15 @@ export default function HomePage() {
                     const nextName = promptName.trim() || "Stranger";
                     localStorage.setItem("clinicalass_username", nextName);
                     setIsPromptVisible(false);
-                    setTimeout(() => {
+                setTimeout(() => {
                       setShowPrompt(false);
                       setHomepageVisible(true);
+                      setShowOnboarding(true);
                     }, 350);
                   }}
                   className="rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
                 >
-                  Nice, that&apos;s me
+                  Nice, that's me
                 </button>
               </div>
               <button
@@ -227,6 +299,7 @@ export default function HomePage() {
                   setTimeout(() => {
                     setShowPrompt(false);
                     setHomepageVisible(true);
+                    setShowOnboarding(true);
                   }, 350);
                 }}
                 className="mt-4 text-sm text-muted underline-offset-4 transition hover:text-foreground hover:underline"
@@ -329,5 +402,25 @@ export default function HomePage() {
         ) : null}
       </div>
     </AppShell>
+  );
+}
+
+function OnboardingMode({
+  icon,
+  title,
+  desc,
+}: {
+  icon: string;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-border/50 bg-surface/50 p-3">
+      <span className="text-xl shrink-0">{icon}</span>
+      <div>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-xs text-muted leading-relaxed mt-0.5">{desc}</p>
+      </div>
+    </div>
   );
 }
