@@ -92,12 +92,14 @@ export function GlassCard({
   children,
   className,
   hover = false,
-}: {
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & {
   children: React.ReactNode;
   className?: string;
   hover?: boolean;
 }) {
   const Comp = hover ? motion.div : "div";
+  const divProps = props as React.HTMLAttributes<HTMLDivElement>;
   const motionProps = hover
     ? {
         whileHover: { y: -4, scale: 1.01 },
@@ -113,6 +115,7 @@ export function GlassCard({
         className,
       )}
       {...motionProps}
+      {...divProps}
     >
       {children}
     </Comp>
