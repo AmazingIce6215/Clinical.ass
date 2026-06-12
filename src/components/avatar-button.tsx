@@ -111,6 +111,16 @@ export function AvatarButton() {
                   <span>⚙️ Settings</span>
                   <span className="text-muted">→</span>
                 </Link>
+                <a
+                  href="https://github.com/AmazingIce6215/DxFlow/issues/new?title=Feedback&body=Describe your feedback here."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/10 hover:text-accent"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span>💬 Send Feedback</span>
+                  <span className="text-muted">↗</span>
+                </a>
               </div>
               <div className="border-t border-border/40" />
               <div className="p-1">
