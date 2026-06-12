@@ -1,0 +1,130 @@
+export type GeminiTextResult = {
+  text: string;
+  model: string;
+};
+
+export type GeminiTextConfig = {
+  prompt: string;
+  systemPrompt?: string;
+  temperature?: number;
+  maxOutputTokens?: number;
+  modelCandidates?: string[];
+};
+
+function normalizeModel(value: string) {
+  return value.trim().replace(/^models\//, "");
+}
+
+function getApiKey() {
+  return (process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY)?.trim() || "";
+}
+
+function getDefaultModelCandidates() {
+  const envModel = process.env.GEMINI_TEXT_MODEL?.trim();
+  const candidates = [
+    envModel ? normalizeModel(envModel) : null,
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+  ].filter((value): value is string => Boolean(value));
+
+  return [...new Set(candidates)];
+}
+
+function extractText(responseText: string) {
+  const data = JSON.parse(responseText) as {
+    candidates?: Array<{
+      content?: { parts?: Array<{ text?: string }> };
+    }>;
+  };
+
+  return (
+    data.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text || "")
+      .join("")
+      .trim() || ""
+  );
+}
+
+async function callGeminiText(params: {
+  apiKey: string;
+  model: string;
+  prompt: string;
+  systemPrompt?: string;
+  temperature?: number;
+  maxOutputTokens?: number;
+}) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${params.model}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": params.apiKey,
+      },
+      body: JSON.stringify({
+        ...(params.systemPrompt
+          ? {
+              systemInstruction: {
+                parts: [{ text: params.systemPrompt }],
+              },
+            }
+          : {}),
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: params.prompt }],
+          },
+        ],
+        generationConfig: {
+          temperature: params.temperature ?? 0.8,
+          topP: 0.95,
+          maxOutputTokens: params.maxOutputTokens ?? 4096,
+        },
+      }),
+    },
+  );
+
+  const responseText = await response.text();
+  return { response, responseText };
+}
+
+export async function generateGeminiText(config: GeminiTextConfig): Promise<GeminiTextResult> {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY is not configured");
+  }
+
+  const models = config.modelCandidates?.length ? config.modelCandidates : getDefaultModelCandidates();
+  let lastError = "";
+
+  for (const model of models) {
+    const { response, responseText } = await callGeminiText({
+      apiKey,
+      model,
+      prompt: config.prompt,
+      systemPrompt: config.systemPrompt,
+      temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens,
+    });
+
+    if (!response.ok) {
+      try {
+        const parsed = JSON.parse(responseText) as { error?: { message?: string } };
+        lastError = parsed.error?.message || responseText;
+      } catch {
+        lastError = responseText;
+      }
+
+      if (response.status === 429 || /high demand|quota|rate limit|overloaded|try again later/i.test(lastError)) {
+        continue;
+      }
+
+      continue;
+    }
+
+    const text = extractText(responseText);
+    return { text, model };
+  }
+
+  throw new Error(lastError || "Gemini request failed");
+}
