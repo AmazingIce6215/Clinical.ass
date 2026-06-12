@@ -325,18 +325,6 @@ export default function HomePage() {
                 </motion.div>
               ))}
             </motion.div>
-
-            <motion.footer
-              initial={shouldAnimate ? { opacity: 0 } : false}
-              animate={shouldAnimate ? { opacity: 1 } : false}
-              transition={{ duration: 0.6, delay: shouldAnimate ? 4 : 0 }}
-              className="mt-10 mb-4 text-center"
-            >
-              <p className="inline-flex items-center gap-1.5 text-[11px] text-muted/60">
-                <span className="text-muted/50">🛡️</span>
-                All data stored locally — nothing leaves your device
-              </p>
-            </motion.footer>
           </motion.section>
         ) : null}
       </div>
