@@ -417,16 +417,16 @@ body {
 /* ── Homepage hero text mobile ── */
 @media (max-width: 768px) {
   .hero-cube-text {
-    font-size: clamp(1.5rem, 6vw, 2rem) !important;
+    font-size: clamp(1.25rem, 5vw, 1.75rem) !important;
   }
 
   .hero-cube__face--front .hero-cube-text,
   .hero-cube__face--bottom .hero-cube-text {
-    font-size: clamp(1.5rem, 6vw, 2rem) !important;
+    font-size: clamp(1.25rem, 5vw, 1.75rem) !important;
   }
 
   .hero-cube {
-    height: 5rem !important;
+    height: 4rem !important;
   }
 
   .hero-cube__face--front,
@@ -435,10 +435,14 @@ body {
   }
 
   .hero-cube__face--front {
-    transform: rotateX(0deg) translateZ(2.5rem) !important;
+    transform: rotateX(0deg) translateZ(2rem) !important;
   }
 
   .hero-cube__face--bottom {
-    transform: rotateX(-90deg) translateZ(2.5rem) !important;
+    transform: rotateX(-90deg) translateZ(2rem) !important;
+  }
+
+  .hero-cube-perspective {
+    width: 100% !important;
   }
 }
