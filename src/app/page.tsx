@@ -285,7 +285,7 @@ export default function HomePage() {
               initial={shouldAnimate ? { opacity: 0 } : false}
               animate={shouldAnimate ? { opacity: 1 } : false}
               transition={{ duration: 0.5, delay: shouldAnimate ? 3 : 0 }}
-              className="flex w-full flex-nowrap gap-4 overflow-x-auto pb-1 lg:overflow-visible"
+              className="flex w-full flex-nowrap items-stretch gap-4 overflow-x-auto pb-1 lg:overflow-visible"
             >
               {modes.map((mode, index) => (
                 <motion.div
@@ -298,19 +298,21 @@ export default function HomePage() {
                     delay: shouldAnimate ? 3 + index * 0.15 : 0,
                   }}
                   whileHover={{ y: -4 }}
-                  className="flex h-full min-w-[14rem] flex-1 basis-0"
+                  className="flex h-full min-w-[14rem] flex-1 basis-0 self-stretch"
                 >
                   <Link href={mode.href} className="block h-full">
                     <GlassCard
                       hover
-                      className={`group relative h-full overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg`}
+                      className={`group relative flex h-full min-h-[17rem] flex-col overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg`}
                     >
-                      <div className="relative z-10">
+                      <div className="relative z-10 flex h-full flex-col">
                         <span className="text-3xl">{mode.icon}</span>
-                        <h2 className="mt-3 text-lg font-semibold transition-colors group-hover:text-accent">
+                        <h2 className="mt-3 text-lg font-semibold leading-tight transition-colors group-hover:text-accent">
                           {mode.title}
                         </h2>
-                        <p className="mt-2 text-xs leading-relaxed text-muted">{mode.description}</p>
+                        <p className="mt-2 flex-1 text-xs leading-relaxed text-muted">
+                          {mode.description}
+                        </p>
                         <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent">
                           Open
                           <motion.span className="inline-block" whileHover={{ x: 4 }}>
