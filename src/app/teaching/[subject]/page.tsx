@@ -74,11 +74,12 @@ export default function SubjectCasePage({
 
   if (loading) {
     return (
-      <AppShell backHref="/teaching" title="Generating session..." subtitle="AI is building 3 unique patients">
-        <div className="mx-auto flex max-w-md flex-col items-center justify-center py-24">
-          <LoadingPanel visible={true} />
-        </div>
-      </AppShell>
+      <>
+        <LoadingPanel visible={true} fullScreen />
+        <AppShell backHref="/teaching" title="Generating session..." subtitle="AI is building 3 unique patients">
+          <div className="invisible" />
+        </AppShell>
+      </>
     );
   }
 

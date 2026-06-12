@@ -88,8 +88,58 @@ function RotatingIcon() {
   );
 }
 
-export function LoadingPanel({ visible }: { visible: boolean }) {
+export function LoadingPanel({ visible, fullScreen }: { visible: boolean; fullScreen?: boolean }) {
   const reduceMotion = useReducedMotion();
+
+  const orbLayer = (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-80 blur-3xl">
+      {ORBS.map((orb, i) => (
+        <div
+          key={i}
+          className={`absolute rounded-full ${orb.className}`}
+          style={{
+            animation: `loading-orb-drift-${i + 1} ${18 + i * 4}s ease-in-out infinite alternate`,
+          }}
+        />
+      ))}
+    </div>
+  );
+
+  const content = (
+    <div className="relative z-10 flex flex-col items-center gap-5">
+      <RotatingIcon />
+      <div className="text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent/70">
+          Working on it
+        </p>
+      </div>
+      <RotatingMessages />
+    </div>
+  );
+
+  if (fullScreen) {
+    return (
+      <AnimatePresence>
+        {visible && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.35, ease: "easeInOut" }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-background/85 px-6 backdrop-blur-md"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div className="relative mx-auto flex max-w-lg flex-col items-center overflow-hidden rounded-2xl border border-border/60 bg-surface/80 p-12 backdrop-blur-xl shadow-2xl">
+              {orbLayer}
+              {content}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  }
 
   return (
     <AnimatePresence>
@@ -104,29 +154,8 @@ export function LoadingPanel({ visible }: { visible: boolean }) {
           aria-live="polite"
           aria-busy="true"
         >
-          {/* Animated orb blobs (contained within the panel) */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-80 blur-3xl">
-            {ORBS.map((orb, i) => (
-              <div
-                key={i}
-                className={`absolute rounded-full ${orb.className}`}
-                style={{
-                  animation: `loading-orb-drift-${i + 1} ${18 + i * 4}s ease-in-out infinite alternate`,
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Content */}
-          <div className="relative z-10 flex flex-col items-center gap-5">
-            <RotatingIcon />
-            <div className="text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent/70">
-                Working on it
-              </p>
-            </div>
-            <RotatingMessages />
-          </div>
+          {orbLayer}
+          {content}
         </motion.div>
       )}
     </AnimatePresence>
