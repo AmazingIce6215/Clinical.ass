@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
 
@@ -23,7 +24,11 @@ export function AvatarButton() {
   );
   const { session } = useAuth();
   const userName = storedName || session?.firstName || "";
+  const pathname = usePathname();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Hide button on the homepage name-prompt overlay during first visit
+  if (!userName && pathname === "/") return null;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
