@@ -251,6 +251,7 @@ export default function HomePage() {
                   onClick={() => {
                     localStorage.setItem("clinicalass_onboarded", "true");
                     setShowOnboarding(false);
+                    setHomepageVisible(true);
                   }}
                   className="w-full rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
                 >
@@ -286,7 +287,6 @@ export default function HomePage() {
                     setIsPromptVisible(false);
                 setTimeout(() => {
                       setShowPrompt(false);
-                      setHomepageVisible(true);
                       setShowOnboarding(true);
                     }, 350);
                   }}
@@ -302,7 +302,6 @@ export default function HomePage() {
                   setIsPromptVisible(false);
                   setTimeout(() => {
                     setShowPrompt(false);
-                    setHomepageVisible(true);
                     setShowOnboarding(true);
                   }, 350);
                 }}
