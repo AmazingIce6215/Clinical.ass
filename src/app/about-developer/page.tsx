@@ -76,13 +76,9 @@ export default function AboutDeveloperPage() {
               <h1 className="text-2xl font-bold tracking-tight">Hi, I'm Rivindu {"👋"}</h1>
               <p className="mt-3 text-sm leading-relaxed text-muted">
                 I'm a medical student building this app to make clinical reasoning practice more
-                accessible, interactive, and actually enjoyable. I've been working on this as a
-                side project to help fellow students sharpen their diagnostic thinking in a more
-                practical, hands-on way.
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-muted">
-                This is very much a work in progress, so if something feels off or you have an
-                idea, I'd love to hear from you. Drop a message below.
+                accessible, interactive, and actually enjoyable. This is very much a work in
+                progress, so if something feels off or you have an idea, I'd love to hear from you.
+                Drop a message below.
               </p>
             </div>
           </GlassCard>
