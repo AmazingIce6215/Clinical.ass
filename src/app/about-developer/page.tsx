@@ -61,6 +61,27 @@ export default function AboutDeveloperPage() {
         ))}
       </div>
 
+      {/* Decorative lizard image */}
+      <img
+        src="/images/Tom_Lizard_Render.webp"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none fixed bottom-0 left-0 z-0 -translate-x-[20%] translate-y-[10%] opacity-0 mix-blend-luminosity sm:block"
+        style={{ width: 260, height: "auto" }}
+      />
+      <style>{`
+        @media (min-width: 640px) {
+          img[src="/images/Tom_Lizard_Render.webp"] {
+            opacity: 0.2;
+          }
+        }
+        @media (max-width: 639px) {
+          img[src="/images/Tom_Lizard_Render.webp"] {
+            display: none;
+          }
+        }
+      `}</style>
+
       <AppShell
         backHref="/"
         title="About the Developer"
