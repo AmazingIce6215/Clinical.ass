@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/context/auth-context";
 
 const getStoredUserName = () => {
   if (typeof window === "undefined") return "";
@@ -11,7 +12,7 @@ const getStoredUserName = () => {
 
 export function AvatarButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const userName = useSyncExternalStore(
+  const storedName = useSyncExternalStore(
     (notify) => {
       if (typeof window === "undefined") return () => {};
       window.addEventListener("storage", notify);
@@ -20,6 +21,8 @@ export function AvatarButton() {
     getStoredUserName,
     () => "",
   );
+  const { session } = useAuth();
+  const userName = storedName || session?.firstName || "";
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,7 +48,6 @@ export function AvatarButton() {
   }, []);
 
   const initial = userName ? userName.charAt(0).toUpperCase() : "👤";
-  if (!userName) return null;
 
   return (
     <div className="fixed right-4 top-4 z-50">
