@@ -13,6 +13,7 @@ const modes = [
       "Real-life workup: triage, targeted HPI, exam, investigations → diagnosis, differentials & management.",
     icon: "🩺",
     accent: "from-blue-500/20 to-cyan-500/10",
+    tint: "rgba(59, 130, 246, 0.10)",
   },
   {
     href: "/classic",
@@ -21,6 +22,7 @@ const modes = [
       "Full ward-round history taking — build a structured case presentation for your consultant.",
     icon: "📋",
     accent: "from-amber-500/20 to-orange-500/10",
+    tint: "rgba(245, 158, 11, 0.10)",
   },
   {
     href: "/teaching",
@@ -29,6 +31,7 @@ const modes = [
       "Case-based Q-bank with 3 unique patient vignettes per session, MCQs, and detailed explanations.",
     icon: "📚",
     accent: "from-violet-500/20 to-fuchsia-500/10",
+    tint: "rgba(168, 85, 247, 0.10)",
   },
   {
     href: "/image-diagnosis",
@@ -37,6 +40,7 @@ const modes = [
       "Upload a medical image and get a concise visual impression, key findings, and standard management.",
     icon: "🖼️",
     accent: "from-emerald-500/20 to-teal-500/10",
+    tint: "rgba(16, 185, 129, 0.10)",
   },
 ] as const;
 
@@ -303,7 +307,10 @@ export default function HomePage() {
                   <Link href={mode.href} className="block h-full">
                     <GlassCard
                       hover
-                      className={`group relative h-full overflow-hidden bg-gradient-to-br p-4 transition-shadow duration-200 hover:shadow-lg`}
+                      className="group relative h-full overflow-hidden p-4 transition-shadow duration-200 hover:shadow-lg"
+                      style={{
+                        backgroundImage: `linear-gradient(135deg, ${mode.tint}, rgba(255,255,255,0.05))`,
+                      }}
                     >
                       <div className="relative z-10">
                         <span className="text-3xl">{mode.icon}</span>
