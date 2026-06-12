@@ -13,6 +13,7 @@ const getStoredUserName = () => {
 
 export function AvatarButton() {
   const [isOpen, setIsOpen] = useState(false);
+  const [visible, setVisible] = useState(false);
   const storedName = useSyncExternalStore(
     (notify) => {
       if (typeof window === "undefined") return () => {};
@@ -27,8 +28,15 @@ export function AvatarButton() {
   const pathname = usePathname();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Hide button on the homepage name-prompt overlay during first visit
-  if (!userName && pathname === "/") return null;
+  // On the homepage, delay appearance until all animations finish (~4.5s)
+  useEffect(() => {
+    if (pathname === "/" && userName) {
+      const timer = setTimeout(() => setVisible(true), 4500);
+      return () => clearTimeout(timer);
+    } else {
+      setVisible(true);
+    }
+  }, [pathname, userName]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -52,10 +60,20 @@ export function AvatarButton() {
     };
   }, []);
 
+  // Hide button on the homepage name-prompt overlay during first visit
+  if (!userName && pathname === "/") return null;
+
   const initial = userName ? userName.charAt(0).toUpperCase() : "👤";
 
+  if (!visible) return null;
+
   return (
-    <div className="fixed right-4 top-4 z-50">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="fixed right-4 top-4 z-50"
+    >
       <div className="relative" ref={dropdownRef}>
         <motion.button
           type="button"
@@ -140,6 +158,6 @@ export function AvatarButton() {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
