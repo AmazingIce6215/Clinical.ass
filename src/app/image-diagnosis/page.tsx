@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AppShell, GlassCard } from "@/components/app-shell";
 
 const CLINICAL_PROMPT =
-  "You are a clinical study assistant. Analyze this medical image for educational purposes only and respond in markdown. Use clear headings and concise clinical language. Structure the answer with these sections: ## Findings, ## Likely Diagnosis, ## Management, and ## Treatment. Use bullet points where helpful, keep the response organized, and do not include a safety disclaimer unless required by policy.";
+  "You are an educational image interpretation assistant. Analyze this image in a concise radiology-style way and respond in markdown. Focus on visible findings, the most likely interpretation, and brief next-step guidance if relevant. Use clear headings like ## Findings, ## Likely Diagnosis, ## Management, and ## Treatment when appropriate. Use bullet points where helpful, keep the response organized, and do not mention policy, safety disclaimers, or refusals unless absolutely required.";
 
 type AnalysisState = {
   loading: boolean;
@@ -195,16 +195,11 @@ export default function ImageDiagnosisPage() {
       }
 
       const resultText = data.text || "No response returned.";
-      const isRefusal = /cannot provide medical assistance|cannot diagnose|qualified healthcare professional/i.test(
-        resultText,
-      );
 
       setState((prev) => ({
         ...prev,
         loading: false,
-        result: isRefusal
-          ? "The model declined this medical-style request. Try a more descriptive image-study prompt, or upload a different image."
-          : resultText,
+        result: resultText,
       }));
     } catch (error) {
       setState((prev) => ({
