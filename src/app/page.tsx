@@ -285,7 +285,7 @@ export default function HomePage() {
               initial={shouldAnimate ? { opacity: 0 } : false}
               animate={shouldAnimate ? { opacity: 1 } : false}
               transition={{ duration: 0.5, delay: shouldAnimate ? 3 : 0 }}
-              className="flex w-full flex-nowrap items-stretch gap-4 overflow-x-auto pb-1 lg:overflow-visible"
+              className="mode-tiles"
             >
               {modes.map((mode, index) => (
                 <motion.div

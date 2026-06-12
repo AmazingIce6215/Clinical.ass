@@ -352,3 +352,31 @@ body {
   50% { transform: translate3d(-2vw, -1.5vh, 0) scale(1.08); }
   100% { transform: translate3d(1.5vw, 2vh, 0) scale(0.92); }
 }
+
+/* ── Homepage mode-tiles mobile stack ── */
+.mode-tiles {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+@media (min-width: 1024px) {
+  .mode-tiles {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 768px) {
+  .mode-tiles {
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  .mode-tiles > * {
+    min-width: 0;
+    flex: none;
+  }
+}
