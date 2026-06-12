@@ -30,12 +30,29 @@ export function AvatarButton() {
 
   // On the homepage, delay appearance until all animations finish (~4.5s)
   useEffect(() => {
-    if (pathname === "/" && userName) {
-      const timer = setTimeout(() => setVisible(true), 4500);
-      return () => clearTimeout(timer);
+    if (pathname === "/") {
+      if (userName) {
+        const timer = setTimeout(() => setVisible(true), 4500);
+        return () => clearTimeout(timer);
+      }
     } else {
       setVisible(true);
     }
+  }, [pathname, userName]);
+
+  // Listen for onboarding completion to reset timer on first visit
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "clinicalass_onboarded" && e.newValue === "true" && pathname === "/" && userName) {
+        // Onboarding just completed, reset the timer
+        setVisible(false);
+        const timer = setTimeout(() => setVisible(true), 3500);
+        return () => clearTimeout(timer);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [pathname, userName]);
 
   useEffect(() => {
@@ -127,6 +144,14 @@ export function AvatarButton() {
                   onClick={() => setIsOpen(false)}
                 >
                   <span>{"⚙️"} Settings</span>
+                  <span className="text-muted">{"→"}</span>
+                </Link>
+                <Link
+                  href="/privacy-policy"
+                  className="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/10 hover:text-accent"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span>{"🔒"} Privacy Policy</span>
                   <span className="text-muted">{"→"}</span>
                 </Link>
                 <Link
