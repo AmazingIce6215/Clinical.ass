@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateGeminiText, isGeminiQuotaError } from "@/lib/gemini-text";
+import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
 import { getFallbackTeachingCase } from "@/lib/teaching-fallback";
 import { getSubject } from "@/lib/teaching-subjects";
 import type { GeneratedTeachingCase } from "@/lib/types";
@@ -25,16 +25,6 @@ function buildAvoidList(body: TeachingGenerateBody) {
     .join("\n");
 }
 
-function extractJson(text: string) {
-  const trimmed = text.trim();
-  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fenceMatch?.[1]) return fenceMatch[1].trim();
-  const start = trimmed.indexOf("{");
-  const end = trimmed.lastIndexOf("}");
-  if (start >= 0 && end > start) return trimmed.slice(start, end + 1);
-  return trimmed;
-}
-
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as TeachingGenerateBody;
@@ -44,7 +34,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unknown subject" }, { status: 400 });
     }
 
-    const systemPrompt = `You are an expert medical educator creating AMBOSS-style clinical teaching cases for medical students.
+    const systemPrompt = `You are an expert medical educator creating AMBOSS-style clinical Q-bank cases for medical students.
 Return ONLY valid JSON and nothing else.
 Schema:
 {
@@ -70,8 +60,8 @@ Rules:
 - Each question must be a single best-answer MCQ with 4 or 5 options, but prefer 5 options unless clinically awkward
 - Each question MUST have a different, unrelated patient with its own vignette and patientLabel
 - Vary the patient demographics, presentation style, specialty, and specific disease within the topic so repeated requests do not produce the same or similar cases
-- Include realistic demographics, history, symptoms, vital signs, and relevant exam or lab findings in each vignette
-- Keep the cases clinically accurate, exam-relevant, and educational
+- Each vignette must feel like a high-quality exam question with realistic demographics, history, symptoms, vital signs, and relevant exam or lab findings
+- Keep the cases clinically accurate, exam-relevant, educational, and detailed enough to function like a true Q-bank item
 - Each explanation must include: why the correct answer is right, why each incorrect option is wrong, the underlying mechanism or pathophysiology, and a relevant clinical pearl
 - optionExplanations MUST have one entry per option
 - MUST be completely different from any case in the avoid lists`;
@@ -82,46 +72,16 @@ Use varied patient demographics, presentations, specialties, and specific diseas
 ${buildAvoidList(body)}
 Seed for uniqueness: ${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-    let raw = "";
-    try {
-      const result = await generateGeminiText({
-        systemPrompt,
-        prompt: userPrompt,
-        temperature: 0.9,
-        maxOutputTokens: 4096,
-        modelCandidates: ["gemini-2.0-flash"],
-      });
-      raw = result.text;
-    } catch (error) {
-      const fallback = getFallbackTeachingCase(body.subject, subjectInfo.name);
-      return NextResponse.json({
-        case: fallback,
-        aiPowered: false,
-        aiError:
-          error instanceof Error && !isGeminiQuotaError(error.message)
-            ? error.message
-            : undefined,
-      });
-    }
+    const generated = await aiJsonCompletion<
+      Omit<GeneratedTeachingCase, "id" | "subject" | "subjectName" | "generatedAt">
+    >(AI_MODELS.smart, systemPrompt, userPrompt, { fallbackModel: AI_MODELS.fast });
 
-    let parsed: Omit<GeneratedTeachingCase, "id" | "subject" | "subjectName" | "generatedAt">;
-    try {
-      parsed = JSON.parse(extractJson(raw)) as typeof parsed;
-    } catch {
+    if (!generated.data?.questions || generated.data.questions.length < 3) {
       const fallback = getFallbackTeachingCase(body.subject, subjectInfo.name);
       return NextResponse.json({
         case: fallback,
         aiPowered: false,
-        aiError: undefined,
-      });
-    }
-
-    if (!parsed?.questions || parsed.questions.length < 3) {
-      const fallback = getFallbackTeachingCase(body.subject, subjectInfo.name);
-      return NextResponse.json({
-        case: fallback,
-        aiPowered: false,
-        aiError: undefined,
+        aiError: generated.error?.message ?? "AI failed to generate a full teaching case",
       });
     }
 
@@ -129,13 +89,13 @@ Seed for uniqueness: ${Date.now()}-${Math.random().toString(36).slice(2)}`;
       id: `${body.subject}-${Date.now()}`,
       subject: body.subject,
       subjectName: subjectInfo.name,
-      title: parsed.title,
-      difficulty: parsed.difficulty ?? "medium",
-      vignette: parsed.vignette,
-      questions: parsed.questions.slice(0, 3).map((q, i) => ({
+      title: generated.data.title,
+      difficulty: generated.data.difficulty ?? "medium",
+      vignette: generated.data.vignette,
+      questions: generated.data.questions.slice(0, 3).map((q, i) => ({
         ...q,
         id: q.id ?? `q${i + 1}`,
-        vignette: q.vignette || parsed.vignette,
+        vignette: q.vignette || generated.data!.vignette,
         optionExplanations:
           q.optionExplanations?.length === q.options.length
             ? q.optionExplanations
