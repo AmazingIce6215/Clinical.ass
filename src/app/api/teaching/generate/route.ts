@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateGeminiText } from "@/lib/gemini-text";
+import { generateGeminiText, isGeminiQuotaError } from "@/lib/gemini-text";
 import { getFallbackTeachingCase } from "@/lib/teaching-fallback";
 import { getSubject } from "@/lib/teaching-subjects";
 import type { GeneratedTeachingCase } from "@/lib/types";
@@ -89,7 +89,7 @@ Seed for uniqueness: ${Date.now()}-${Math.random().toString(36).slice(2)}`;
         prompt: userPrompt,
         temperature: 0.9,
         maxOutputTokens: 4096,
-        modelCandidates: ["gemini-2.0-flash", "gemini-2.0-flash-lite"],
+        modelCandidates: ["gemini-2.0-flash"],
       });
       raw = result.text;
     } catch (error) {
@@ -97,7 +97,10 @@ Seed for uniqueness: ${Date.now()}-${Math.random().toString(36).slice(2)}`;
       return NextResponse.json({
         case: fallback,
         aiPowered: false,
-        aiError: error instanceof Error ? error.message : "AI failed to generate a full teaching case",
+        aiError:
+          error instanceof Error && !isGeminiQuotaError(error.message)
+            ? error.message
+            : undefined,
       });
     }
 
@@ -109,7 +112,7 @@ Seed for uniqueness: ${Date.now()}-${Math.random().toString(36).slice(2)}`;
       return NextResponse.json({
         case: fallback,
         aiPowered: false,
-        aiError: "Gemini returned an invalid teaching case payload",
+        aiError: undefined,
       });
     }
 
@@ -118,7 +121,7 @@ Seed for uniqueness: ${Date.now()}-${Math.random().toString(36).slice(2)}`;
       return NextResponse.json({
         case: fallback,
         aiPowered: false,
-        aiError: "Gemini failed to generate enough questions",
+        aiError: undefined,
       });
     }
 

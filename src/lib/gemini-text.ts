@@ -11,6 +11,12 @@ export type GeminiTextConfig = {
   modelCandidates?: string[];
 };
 
+export function isGeminiQuotaError(message: string) {
+  return /quota exceeded|rate limit|high demand|free_tier|limit: 0|please retry|billing details/i.test(
+    message,
+  );
+}
+
 function normalizeModel(value: string) {
   return value.trim().replace(/^models\//, "");
 }
@@ -115,7 +121,7 @@ export async function generateGeminiText(config: GeminiTextConfig): Promise<Gemi
         lastError = responseText;
       }
 
-      if (response.status === 429 || /high demand|quota|rate limit|overloaded|try again later/i.test(lastError)) {
+      if (response.status === 429 || isGeminiQuotaError(lastError) || /overloaded|try again later/i.test(lastError)) {
         continue;
       }
 
