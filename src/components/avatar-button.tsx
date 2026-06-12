@@ -63,7 +63,7 @@ export function AvatarButton() {
   // Hide button on the homepage name-prompt overlay during first visit
   if (!userName && pathname === "/") return null;
 
-  const initial = userName ? userName.charAt(0).toUpperCase() : "👤";
+  const initial = userName ? userName.charAt(0).toUpperCase() : "\u{1F464}";
 
   if (!visible) return null;
 
@@ -108,7 +108,7 @@ export function AvatarButton() {
             >
               <div className="p-3">
                 <p className="text-xs text-muted">
-                  Hey, {userName || "there"} 👋
+                  Hey, {userName || "there"} {"👋"}
                 </p>
               </div>
               <div className="border-t border-border/40" />
@@ -118,27 +118,25 @@ export function AvatarButton() {
                   className="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/10 hover:text-accent"
                   onClick={() => setIsOpen(false)}
                 >
-                  <span>📚 Library</span>
-                  <span className="text-muted">→</span>
+                  <span>{"📚"} Library</span>
+                  <span className="text-muted">{"→"}</span>
                 </Link>
                 <Link
                   href="/settings"
                   className="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/10 hover:text-accent"
                   onClick={() => setIsOpen(false)}
                 >
-                  <span>⚙️ Settings</span>
-                  <span className="text-muted">→</span>
+                  <span>{"⚙️"} Settings</span>
+                  <span className="text-muted">{"→"}</span>
                 </Link>
-                <a
-                  href="https://github.com/AmazingIce6215/DxFlow/issues/new?title=Feedback&body=Describe your feedback here."
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/about-developer"
                   className="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/10 hover:text-accent"
                   onClick={() => setIsOpen(false)}
                 >
-                  <span>💬 Send Feedback</span>
-                  <span className="text-muted">↗</span>
-                </a>
+                  <span>{"🧑‍💻"} Meet the Developer</span>
+                  <span className="text-muted">{"→"}</span>
+                </Link>
               </div>
               <div className="border-t border-border/40" />
               <div className="p-1">
@@ -151,7 +149,7 @@ export function AvatarButton() {
                   }}
                   className="w-full rounded-xl px-3 py-2 text-left text-xs text-muted transition hover:bg-accent/10 hover:text-accent"
                 >
-                  🚪 Reset
+                  {"🚪"} Reset
                 </button>
               </div>
             </motion.div>
