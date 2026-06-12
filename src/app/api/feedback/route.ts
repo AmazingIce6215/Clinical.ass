@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY ?? "");
 
 export async function POST(request: Request) {
   try {
@@ -10,23 +11,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    const logDir = path.join(process.cwd(), "data");
-    const logPath = path.join(logDir, "feedback.log");
-
-    // Ensure data directory exists
-    try {
-      await fs.mkdir(logDir, { recursive: true });
-    } catch {
-      // directory already exists
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.error("RESEND_API_KEY is not set");
+      return NextResponse.json(
+        { error: "Email service is not configured. Please try again later." },
+        { status: 500 },
+      );
     }
 
-    const timestamp = new Date().toISOString();
-    const entry = `[${timestamp}] ${message.trim()}\n`;
+    const toEmail = process.env.FEEDBACK_EMAIL_TO;
+    if (!toEmail) {
+      console.error("FEEDBACK_EMAIL_TO is not set");
+      return NextResponse.json(
+        { error: "Email service is not configured. Please try again later." },
+        { status: 500 },
+      );
+    }
 
-    await fs.appendFile(logPath, entry, "utf-8");
+    const timestamp = new Date().toLocaleString("en-US", {
+      dateStyle: "long",
+      timeStyle: "short",
+      timeZone: "UTC",
+    });
+
+    await resend.emails.send({
+      from: "Clinical.ass <onboarding@resend.dev>",
+      to: toEmail,
+      subject: "New Feedback - Clinical.ass",
+      text: `Message:\n${message.trim()}\n\n---\nSent at: ${timestamp} UTC`,
+    });
 
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Failed to save feedback" }, { status: 500 });
+  } catch (err) {
+    console.error("Failed to send feedback email:", err);
+    return NextResponse.json(
+      { error: "Couldn't send your message right now. Please try again later." },
+      { status: 500 },
+    );
   }
 }
