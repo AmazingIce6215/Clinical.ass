@@ -1,10 +1,10 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import { notFound } from "next/navigation";
+import { motion } from "framer-motion";
 import { AppShell, GlassCard, PrimaryButton } from "@/components/app-shell";
 import { CasePlayer } from "@/components/teaching/case-player";
-import { FadeSlide } from "@/components/motion";
 import { TeachingLoadingOverlay } from "@/components/teaching/teaching-loading-overlay";
 import {
   getSeenDiseases,
@@ -24,13 +24,13 @@ export default function SubjectCasePage({
   const [teachingCase, setTeachingCase] = useState<GeneratedTeachingCase | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [aiNotice, setAiNotice] = useState<string | null>(null);
+
+  const fetchInitRef = useRef(false);
 
   const generateCase = useCallback(async () => {
     if (!subjectInfo) return;
     setLoading(true);
     setError(null);
-    setAiNotice(null);
     setTeachingCase(null);
 
     try {
@@ -45,17 +45,14 @@ export default function SubjectCasePage({
         }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        setError(data.error ?? "Failed to generate case");
+        const data = await res.json().catch(() => ({}));
+        setError(data.detail ?? data.error ?? "Failed to generate case");
         return;
       }
 
+      const data = await res.json();
       setTeachingCase(data.case);
-      if (!data.aiPowered && data.aiError) {
-        setAiNotice(data.aiError);
-      }
     } catch {
       setError("Network error — check your connection");
     } finally {
@@ -64,10 +61,9 @@ export default function SubjectCasePage({
   }, [subjectId, subjectInfo]);
 
   useEffect(() => {
-    if (!subjectInfo) return;
-    void (async () => {
-      await generateCase();
-    })();
+    if (!subjectInfo || fetchInitRef.current) return;
+    fetchInitRef.current = true;
+    generateCase();
   }, [subjectInfo, generateCase]);
 
   if (!subjectInfo) notFound();
@@ -86,12 +82,38 @@ export default function SubjectCasePage({
   if (error) {
     return (
       <AppShell backHref="/teaching" title="Generation failed">
-        <GlassCard className="mx-auto max-w-md text-center">
-          <p className="text-muted">{error}</p>
-          <PrimaryButton className="mt-6" onClick={generateCase}>
-            Try again
-          </PrimaryButton>
-        </GlassCard>
+        <div className="mx-auto flex max-w-lg flex-col items-center text-center">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          >
+            <GlassCard>
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/15">
+                  <span className="text-3xl">⚠️</span>
+                </div>
+                <h2 className="text-lg font-semibold">No cached content available</h2>
+                <p className="max-w-sm text-sm leading-relaxed text-muted">
+                  {error}
+                </p>
+                <div className="mt-2 rounded-xl border border-border/50 bg-surface/50 p-4 text-left text-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+                    Why this happens
+                  </p>
+                  <p className="mt-2 text-xs leading-relaxed text-muted">
+                    New cases must be generated in real-time to ensure learning
+                    quality. The AI system was unable to create a fresh,
+                    unique set of questions for this session.
+                  </p>
+                </div>
+                <PrimaryButton className="mt-2" onClick={generateCase}>
+                  Try again
+                </PrimaryButton>
+              </div>
+            </GlassCard>
+          </motion.div>
+        </div>
       </AppShell>
     );
   }
@@ -99,20 +121,11 @@ export default function SubjectCasePage({
   if (!teachingCase) return null;
 
   return (
-    <>
-      {aiNotice && (
-        <div className="fixed inset-x-0 top-4 z-50 mx-auto max-w-2xl px-4">
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 backdrop-blur-md dark:text-amber-100">
-            {aiNotice}
-          </div>
-        </div>
-      )}
-      <CasePlayer
-        teachingCase={teachingCase}
-        backHref="/teaching"
-        showNewCase
-        onNewCase={generateCase}
-      />
-    </>
+    <CasePlayer
+      teachingCase={teachingCase}
+      backHref="/teaching"
+      showNewCase
+      onNewCase={generateCase}
+    />
   );
 }
