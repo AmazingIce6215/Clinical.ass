@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
+import { geminiJsonCompletion } from "@/lib/gemini-text";
 import type { SubjectAiInsight } from "@/lib/types";
 
 export const maxDuration = 60;
@@ -78,11 +78,10 @@ ${attemptsText}
 
 Identify their strengths, weaknesses, and give targeted recommendations.`;
 
-    const result = await aiJsonCompletion<SubjectAiInsight>(
-      AI_MODELS.smart,
+    const result = await geminiJsonCompletion<SubjectAiInsight>(
       SYSTEM_PROMPT,
       userPrompt,
-      { fallbackModel: AI_MODELS.fast },
+      { temperature: 0.3, maxOutputTokens: 4096 },
     );
 
     if (!result.data) {
