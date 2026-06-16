@@ -355,43 +355,20 @@ body {
 
 /* ── Homepage mode-tiles mobile stack ── */
 .mode-tiles {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 1rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
-}
-
-@media (min-width: 1024px) {
-  .mode-tiles {
-    overflow: visible;
-  }
 }
 
 @media (max-width: 768px) {
   .mode-tiles {
-    flex-direction: column;
-    overflow-x: hidden;
+    grid-template-columns: 1fr;
     gap: 0.5rem;
     margin: 0 -1rem;
     padding: 0 1rem;
   }
 
-  .mode-tiles > * {
-    min-width: 0;
-    flex: none;
-    min-height: 0;
-  }
-
-  .mode-tiles > a,
-  .mode-tiles > div > a {
-    min-height: 0;
-    width: 100%;
-  }
-
   .mode-tiles > * > a > div {
-    min-height: 0;
     padding: 0.625rem 0.75rem;
   }
 

@@ -49,7 +49,16 @@ const modes = [
       "Evidence-based scoring tools: GCS, CURB-65, Wells, HEART, CHA₂DS₂-VASc, SOFA, and more.",
     mobileDescription: "Instant offline clinical score calculations",
     icon: "📊",
-    accent: "from-blue-500/20 to-indigo-500/10",
+    accent: "from-sky-500/20 to-indigo-500/10",
+  },
+  {
+    href: "/osce",
+    title: "OSCE Examiner",
+    description:
+      "Simulated OSCE station with AI patient. Real-time history taking, timed exam, and strict grading.",
+    mobileDescription: "Timed OSCE practice with AI patient and grading",
+    icon: "🎓",
+    accent: "from-rose-500/20 to-pink-500/10",
   },
 ];
 
@@ -228,7 +237,7 @@ export default function HomePage() {
                     Hey{storedName && storedName !== "Stranger" ? ` ${storedName}` : ""}, welcome aboard!
                   </h2>
                   <p className="mt-2 text-sm text-muted leading-relaxed">
-                    Thanks for trying out Clinical.ass! Here's a quick overview of what you can do.
+                    Thanks for trying out Clinical.ass! Here&apos;s a quick overview of what you can do.
                   </p>
                 </div>
 
@@ -237,13 +246,15 @@ export default function HomePage() {
                   <OnboardingMode icon="📋" title="Classic" desc="Full ward-round history taking to build a structured case presentation." />
                   <OnboardingMode icon="📚" title="Teaching" desc="Case-based Q-bank with patient vignettes, MCQs, and detailed explanations." />
                   <OnboardingMode icon="🖼️" title="Image Diagnosis" desc="Upload a medical image and get a visual impression with key findings." />
+                  <OnboardingMode icon="📊" title="Calculators" desc="Evidence-based scoring tools: GCS, CURB-65, Wells, HEART, SOFA, and more." />
+                  <OnboardingMode icon="🎓" title="OSCE Examiner" desc="Timed OSCE station with AI patient simulation and strict grading." />
                 </div>
 
                 <div className="rounded-2xl border border-border/50 bg-surface/60 p-4 mb-4">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-1.5">A quick heads-up</p>
                   <p className="text-sm text-muted leading-relaxed">
                     This app runs on free tiers of Groq and Gemini APIs, so responses may occasionally be slow or fail.
-                    Don't let that stop you — just hit retry and it usually works fine.
+                    Don&apos;t let that stop you — just hit retry and it usually works fine.
                   </p>
                 </div>
 
@@ -264,7 +275,7 @@ export default function HomePage() {
                   }}
                   className="w-full rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
                 >
-                  Let's go
+                  Let&apos;s go
                 </button>
               </motion.div>
             </motion.div>
@@ -301,7 +312,7 @@ export default function HomePage() {
                   }}
                   className="rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
                 >
-                  Nice, that's me
+                  Nice, that&apos;s me
                 </button>
               </div>
               <button
@@ -383,7 +394,6 @@ export default function HomePage() {
                     delay: shouldAnimate ? 3 + index * 0.15 : 0,
                   }}
                   whileHover={{ y: -4 }}
-                  className="flex h-full min-w-[14rem] flex-1 basis-0 self-stretch"
                 >
                   <Link href={mode.href} className="block h-full">
                     <GlassCard
