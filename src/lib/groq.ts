@@ -16,23 +16,6 @@ const PLACEHOLDER_KEYS = new Set([
 ]);
 
 const DEFAULT_MAX_RETRIES = 4;
-const MIN_REQUEST_INTERVAL = 3000;
-let lastRequestTime = 0;
-let requestQueue: Promise<void> = Promise.resolve();
-
-async function throttleRequest(): Promise<void> {
-  const prev = requestQueue;
-  requestQueue = (async () => {
-    await prev;
-    const now = Date.now();
-    const wait = Math.max(0, MIN_REQUEST_INTERVAL - (now - lastRequestTime));
-    if (wait > 0) {
-      await sleep(wait);
-    }
-    lastRequestTime = Date.now();
-  })();
-  await requestQueue;
-}
 
 export function isGroqConfigured(): boolean {
   const apiKey = process.env.GROQ_API_KEY?.trim();
@@ -91,10 +74,10 @@ function parseRateLimitDelayMs(message: string): number | null {
 
   const tryAgain = message.match(/try again in (\d+)ms/i);
   if (tryAgain) {
-    return Math.max(parseInt(tryAgain[1]!, 10) + 500, 5000);
+    return Math.max(parseInt(tryAgain[1]!, 10) + 250, 750);
   }
 
-  return 15000;
+  return 1500;
 }
 
 function extractErrorMessage(err: unknown): string {
@@ -109,7 +92,7 @@ async function runCompletion<T>(
   options?: { maxRetries?: number; baseRetryDelayMs?: number },
 ): Promise<AiResult<T>> {
   const maxRetries = options?.maxRetries ?? DEFAULT_MAX_RETRIES;
-  const baseRetryDelayMs = options?.baseRetryDelayMs ?? 3000;
+  const baseRetryDelayMs = options?.baseRetryDelayMs ?? 1;
   const groq = getGroqClient();
   if (!groq) {
     return {
@@ -125,7 +108,6 @@ async function runCompletion<T>(
   let lastError = "AI request failed";
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
-    await throttleRequest();
     try {
       const completion = await groq.chat.completions.create({
         model,
@@ -147,12 +129,7 @@ async function runCompletion<T>(
       const retryDelay = parseRateLimitDelayMs(lastError);
 
       if (retryDelay && attempt < maxRetries - 1) {
-        await sleep(Math.max(retryDelay * (attempt + 1), baseRetryDelayMs));
-        continue;
-      }
-
-      if (attempt < maxRetries - 1) {
-        await sleep(Math.max(2000 * (attempt + 1), baseRetryDelayMs));
+        await sleep(Math.max(retryDelay * (attempt + 1), baseRetryDelayMs * 1000));
         continue;
       }
 
@@ -189,9 +166,10 @@ export async function aiJsonCompletion<T>(
   const primary = await runCompletion<T>(model, system, user, runOptions);
   if (primary.data) return primary;
 
+  const isRateLimited = primary.error?.code === "rate_limit_exceeded";
   const fallbackModel = options?.fallbackModel;
 
-  if (!fallbackModel || fallbackModel === model) {
+  if (!fallbackModel || fallbackModel === model || isRateLimited) {
     return primary;
   }
 
