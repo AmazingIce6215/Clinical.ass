@@ -168,13 +168,22 @@ export function AvatarButton() {
                 <button
                   type="button"
                   onClick={() => {
-                    localStorage.removeItem("clinicalass_username");
+                    const keys = Object.keys(localStorage);
+                    for (const key of keys) {
+                      if (
+                        key.startsWith("clincalass-") ||
+                        key.startsWith("dxflow-") ||
+                        key.startsWith("clinicalass_")
+                      ) {
+                        localStorage.removeItem(key);
+                      }
+                    }
                     setIsOpen(false);
                     window.location.reload();
                   }}
                   className="w-full rounded-xl px-3 py-2 text-left text-xs text-muted transition hover:bg-accent/10 hover:text-accent"
                 >
-                  {"🚪"} Reset
+                  {"🚪"} Reset everything
                 </button>
               </div>
             </motion.div>
