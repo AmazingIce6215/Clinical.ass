@@ -251,3 +251,23 @@ export interface OsceStats {
   streak: StreakData;
   weeklyLog: ActivityDay[];
 }
+
+// ── Clinical Consistency Engine ──
+
+export interface ClinicalMemoryEntry {
+  symptom: string;
+  present: boolean;
+  source: string;
+  rawValue: string;
+}
+
+export interface ClinicalContradiction {
+  type: "direct" | "timeline" | "severity" | "logical";
+  symptom: string;
+  detail: string;
+  clinicalSignificance: string;
+  clarificationPrompt: string;
+  previousEntry: ClinicalMemoryEntry;
+  newEntry: ClinicalMemoryEntry;
+  severity: "high" | "medium" | "low";
+}

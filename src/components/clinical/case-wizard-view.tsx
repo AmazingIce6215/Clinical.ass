@@ -196,20 +196,64 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
                     customDetail={w.customDetail}
                     setCustomDetail={w.setCustomDetail}
                   />
+
+                  {w.contradiction && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-xs font-bold text-amber-500">
+                          !
+                        </span>
+                        <div className="min-w-0 space-y-2">
+                          <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                            History inconsistency detected
+                          </p>
+                          <p className="text-sm text-amber-600/90 dark:text-amber-400/80">
+                            {w.contradiction.detail}
+                          </p>
+                          <p className="text-xs leading-relaxed text-amber-600/80 dark:text-amber-400/70">
+                            <span className="font-medium">Clinical significance: </span>
+                            {w.contradiction.clinicalSignificance}
+                          </p>
+                          <p className="text-xs font-medium text-amber-600/90 dark:text-amber-400/85">
+                            {w.contradiction.clarificationPrompt}
+                          </p>
+                          <textarea
+                            value={w.contradictionClarification}
+                            onChange={(e) => w.setContradictionClarification(e.target.value)}
+                            placeholder="Type your clarification here..."
+                            rows={2}
+                            className="mt-2 w-full rounded-xl border border-amber-500/30 bg-surface/60 px-3 py-2.5 text-sm outline-none focus:border-accent/50 placeholder:text-xs"
+                          />
+                          {!w.contradictionClarification.trim() && (
+                            <p className="text-[11px] text-amber-500/70">
+                              Provide clarification or press Back to revise your answers.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
                   <NavRow
                     onBack={w.goBack}
-                    onNext={w.submitStep}
-                    onSkip={!isComplete ? w.skipStep : undefined}
+                    onNext={w.contradiction ? w.resolveContradiction : w.submitStep}
+                    onSkip={!isComplete && !w.contradiction ? w.skipStep : undefined}
                     nextLabel={
-                      isComplete
-                        ? w.loading
-                          ? (isClassic ? "Generating presentation…" : "Analyzing case…")
-                          : isClassic
-                            ? "Generate presentation"
-                            : "Diagnose"
-                        : w.loading
-                          ? "Loading..."
-                          : "Continue"
+                      w.contradiction
+                        ? "Clarify & continue"
+                        : isComplete
+                          ? w.loading
+                            ? (isClassic ? "Generating presentation…" : "Analyzing case…")
+                            : isClassic
+                              ? "Generate presentation"
+                              : "Diagnose"
+                          : w.loading
+                            ? "Loading..."
+                            : "Continue"
                     }
                     nextDisabled={
                       isComplete

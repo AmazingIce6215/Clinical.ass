@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   ClassicPresentation,
   ClinicalAiInsight,
+  ClinicalContradiction,
   ClinicalStepResponse,
   CoPilotInsight,
   DiagnosisResult,
@@ -11,6 +12,7 @@ import type {
   SavedCase,
   Sex,
 } from "@/lib/types";
+import { detectContradictions } from "@/lib/clinical-memory";
 import { formatAiError } from "@/lib/ai";
 import { diagnosisToInsight } from "@/lib/clinical-ai";
 import { getLocalClinicalInsight } from "@/lib/clinical-fallback";
@@ -79,6 +81,9 @@ export function useCaseWizard(mode: Mode) {
   const [coPilotLoading, setCoPilotLoading] = useState(false);
   const [coPilotError, setCoPilotError] = useState<string | null>(null);
   const [coPilotStale, setCoPilotStale] = useState(false);
+  const [contradiction, setContradiction] = useState<ClinicalContradiction | null>(null);
+  const [contradictionClarification, setContradictionClarification] = useState("");
+  const pendingContradiction = useRef<{ updated: PatientCase; newStack: StepRecord[] } | null>(null);
   const aiAbortRef = useRef<AbortController | null>(null);
 
   const apiBase = mode === "classic" ? "/api/classic" : "/api/clinical";
@@ -305,7 +310,44 @@ export function useCaseWizard(mode: Mode) {
     const value = buildStepValue(currentStep, stepAnswer, textAnswer, customDetail);
     const updated = applyAnswer(patientCase, currentStep, value);
     const newStack = [...stepStack, { fieldKey: currentStep.fieldKey, category: currentStep.category }];
+
+    const detected = detectContradictions(updated, currentStep.fieldKey, value);
+    if (detected.length > 0) {
+      setContradiction(detected[0]);
+      setContradictionClarification("");
+      pendingContradiction.current = { updated, newStack };
+      return;
+    }
+
     await advanceStep(updated, newStack);
+  };
+
+  const resolveContradiction = async () => {
+    if (!pendingContradiction.current || !currentStep) return;
+    const { updated, newStack } = pendingContradiction.current;
+
+    if (contradictionClarification.trim()) {
+      const existing = updated.history[currentStep.fieldKey];
+      const clarification = `[CLARIFIED: ${contradictionClarification.trim()}]`;
+      if (Array.isArray(existing)) {
+        updated.history = { ...updated.history, [currentStep.fieldKey]: [...existing, clarification] };
+      } else if (typeof existing === "string") {
+        updated.history = { ...updated.history, [currentStep.fieldKey]: `${existing} ${clarification}` };
+      } else {
+        updated.history = { ...updated.history, [`${currentStep.fieldKey}_clarification`]: clarification };
+      }
+    }
+
+    setContradiction(null);
+    setContradictionClarification("");
+    pendingContradiction.current = null;
+    await advanceStep(updated, newStack);
+  };
+
+  const dismissContradiction = () => {
+    setContradiction(null);
+    setContradictionClarification("");
+    pendingContradiction.current = null;
   };
 
   const skipStep = async () => {
@@ -317,6 +359,10 @@ export function useCaseWizard(mode: Mode) {
   };
 
   const goBack = async () => {
+    if (contradiction) {
+      dismissContradiction();
+      return;
+    }
     if (phase === "complaints") {
       setPhase("demographics");
       return;
@@ -444,6 +490,11 @@ export function useCaseWizard(mode: Mode) {
     coPilotError,
     coPilotStale,
     analyzeCoPilot,
+    contradiction,
+    contradictionClarification,
+    setContradictionClarification,
+    resolveContradiction,
+    dismissContradiction,
     goToComplaints,
     goToDynamic,
     submitStep,
