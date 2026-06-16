@@ -5,6 +5,10 @@ export function middleware(request: NextRequest) {
   const isMaintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
   if (!isMaintenance) return NextResponse.next();
 
+  const host = request.headers.get("host") || "";
+  const isLocalhost = host === "localhost:3000" || host === "127.0.0.1:3000" || host.startsWith("localhost:") || host.endsWith(".local");
+  if (isLocalhost) return NextResponse.next();
+
   const { pathname, searchParams, origin } = request.nextUrl;
 
   const bypassCookie = request.cookies.get("maintenance_bypass")?.value === "true";
