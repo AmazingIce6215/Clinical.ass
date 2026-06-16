@@ -79,10 +79,9 @@ ${attemptsText}
 Identify their strengths, weaknesses, and give targeted recommendations.`;
 
     const result = await aiJsonCompletion<SubjectAiInsight>(
-      AI_MODELS.smart,
+      AI_MODELS.fast,
       SYSTEM_PROMPT,
       userPrompt,
-      { fallbackModel: AI_MODELS.fast },
     );
 
     if (!result.data) {

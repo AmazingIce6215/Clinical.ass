@@ -23,7 +23,7 @@ export async function getPatientResponse(
   ];
 
   const completion = await groq.chat.completions.create({
-    model: AI_MODELS.smart,
+    model: AI_MODELS.fast,
     temperature: 0.7,
     max_tokens: 1024,
     messages,
@@ -49,10 +49,9 @@ export async function gradeSession(
   const userPrompt = `## CASE DETAILS\n${session.caseFullDetails}\n\n## TRANSCRIPT\n${transcript}\n\n## EVALUATION\nEvaluate the student's performance strictly based on the above transcript and case.`;
 
   const result = await aiJsonCompletion<OsceGradeResult>(
-    AI_MODELS.smart,
+    AI_MODELS.fast,
     systemPrompt,
     userPrompt,
-    { fallbackModel: AI_MODELS.fast },
   );
 
   if (result.error) {

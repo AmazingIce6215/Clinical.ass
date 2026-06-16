@@ -15,10 +15,9 @@ export async function POST(request: Request) {
     const prompt = buildCaseGenerationPrompt(difficulty);
 
     const result = await aiJsonCompletion<OsceCase>(
-      AI_MODELS.smart,
+      AI_MODELS.fast,
       "You are a medical educator generating OSCE cases. Return ONLY valid JSON. No markdown formatting. No code blocks.",
       prompt,
-      { fallbackModel: AI_MODELS.fast },
     );
 
     if (result.error) {
