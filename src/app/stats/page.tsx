@@ -1,9 +1,8 @@
 "use client";
 
-/* eslint-disable react-hooks/set-state-in-effect */
-
-import { motion, AnimatePresence } from "framer-motion";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import { AppShell, GlassCard } from "@/components/app-shell";
 import { FadeSlide } from "@/components/motion";
 import {
@@ -11,15 +10,10 @@ import {
   getOverallStats,
   getRecentAttempts,
   getStreak,
-  getSubjectAiInsight,
-  getSubjectAttemptsForAnalysis,
   getSubjectBreakdown,
   getWeakTopics,
-  needsAnalysis,
-  setSubjectAiInsight,
 } from "@/lib/teaching-stats";
 import { teachingSubjects } from "@/lib/teaching-subjects";
-import type { SubjectAiInsight } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 function formatTime(seconds: number): string {
@@ -39,18 +33,12 @@ function formatDate(ts: number): string {
 }
 
 export default function StatsPage() {
-  const [heatmapYear] = useState(() => getActivityHeatmapData());
-  const [analyzingSubjects, setAnalyzingSubjects] = useState<Set<string>>(new Set());
-  const [insightsCache, setInsightsCache] = useState<Record<string, SubjectAiInsight>>({});
-  const [analysisErrors, setAnalysisErrors] = useState<Record<string, string>>({});
-  const initRef = useRef(false);
-  const [analyzeQueue, setAnalyzeQueue] = useState<string[]>([]);
-
   const overall = useMemo(() => getOverallStats(), []);
   const subjects = useMemo(() => getSubjectBreakdown(), []);
   const weakTopics = useMemo(() => getWeakTopics(), []);
   const streak = useMemo(() => getStreak(), []);
   const recent = useMemo(() => getRecentAttempts(10), []);
+  const [heatmapYear] = useState(() => getActivityHeatmapData());
 
   const subjectMap = useMemo(() => {
     const map: Record<string, { name: string; icon: string }> = {};
@@ -61,89 +49,6 @@ export default function StatsPage() {
   }, []);
 
   const streakActive = streak.current > 0;
-
-  useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
-    const cached: Record<string, SubjectAiInsight> = {};
-    for (const s of subjects) {
-      if (!needsAnalysis(s.id)) {
-        const insight = getSubjectAiInsight(s.id);
-        if (insight) cached[s.id] = insight;
-      }
-    }
-    if (Object.keys(cached).length > 0) {
-      setInsightsCache((prev) => ({ ...prev, ...cached }));
-    }
-    const toAnalyze = subjects.filter((s) => needsAnalysis(s.id));
-    if (toAnalyze.length > 0) {
-      setTimeout(() => setAnalyzeQueue(toAnalyze.map((s) => s.id)), 0);
-    }
-  }, [subjects]);
-
-  useEffect(() => {
-    if (analyzeQueue.length === 0 || analyzingSubjects.size > 0) return;
-    setTimeout(() => {
-      setAnalyzingSubjects((prev) => {
-        const next = new Set(prev);
-        for (const id of analyzeQueue) next.add(id);
-        return next;
-      });
-      setAnalyzeQueue([]);
-    }, 0);
-  }, [analyzeQueue, analyzingSubjects]);
-
-  useEffect(() => {
-    if (analyzingSubjects.size === 0) return;
-    const subject = [...analyzingSubjects][0];
-    const info = subjects.find((s) => s.id === subject);
-    if (!info) return;
-    setTimeout(() => {
-      setAnalyzingSubjects((prev) => {
-        const next = new Set(prev);
-        next.delete(subject);
-        return next;
-      });
-    }, 0);
-    (async () => {
-      try {
-        const attempts = getSubjectAttemptsForAnalysis(subject);
-        if (attempts.length === 0) return;
-        const res = await fetch("/api/teaching/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            subject,
-            subjectName: info.name,
-            attempts: attempts.map((a) => ({
-              vignette: a.vignette,
-              prompt: a.prompt,
-              options: a.options,
-              correctAnswerText: a.correctAnswerText,
-              userAnswerText: a.userAnswerText,
-              correct: a.correct,
-              timeTaken: a.timeTaken,
-              difficulty: a.difficulty,
-            })),
-          }),
-        });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          setAnalysisErrors((prev) => ({ ...prev, [subject]: data.error ?? "Analysis failed" }));
-          return;
-        }
-        const data = await res.json();
-        setSubjectAiInsight(subject, data.insight);
-        setInsightsCache((prev) => ({ ...prev, [subject]: data.insight }));
-      } catch {
-        setAnalysisErrors((prev) => ({ ...prev, [subject]: "Network error" }));
-      }
-    })();
-  }, [analyzingSubjects, subjects]);
-
-  const triggerAnalysis = useCallback((subjectId: string) => {
-    setAnalyzeQueue((prev) => (prev.includes(subjectId) ? prev : [...prev, subjectId]));
-  }, []);
 
   return (
     <AppShell backHref="/" title="Learning Stats" subtitle="Track your teaching mode performance">
@@ -185,11 +90,8 @@ export default function StatsPage() {
                 {subjects.map((s: { id: string; name: string; icon: string; attempted: number; accuracy: number }) => {
                   const isWeakest = s.id === overall.weakest && subjects.length > 1;
                   const isStrongest = s.id === overall.strongest && subjects.length > 1;
-                  const insight = insightsCache[s.id];
-                  const analyzing = analyzingSubjects.has(s.id);
-                  const error = analysisErrors[s.id];
                   return (
-                    <div key={s.id}>
+                    <Link key={s.id} href={`/stats/${s.id}`} className="group block">
                       <div className="mb-1.5 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-base">{s.icon}</span>
@@ -224,38 +126,15 @@ export default function StatsPage() {
                           transition={{ type: "spring", stiffness: 60, damping: 20 }}
                         />
                       </div>
-                      <p className="mt-1 text-[11px] text-muted">
-                        {s.attempted} question{s.attempted !== 1 ? "s" : ""}
-                      </p>
-
-                      {analyzing && (
-                        <div className="mt-3 flex items-center gap-2 rounded-xl border border-border/40 bg-surface/40 px-4 py-3">
-                          <motion.div
-                            className="h-4 w-4 shrink-0 rounded-full border-2 border-accent/30 border-t-accent"
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          />
-                          <p className="text-xs text-muted">Analyzing your performance in {s.name}...</p>
-                        </div>
-                      )}
-
-                      {error && (
-                        <div className="mt-3 flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3">
-                          <p className="text-xs text-red-500">{error}</p>
-                          <button
-                            type="button"
-                            onClick={() => triggerAnalysis(s.id)}
-                            className="shrink-0 text-xs font-medium text-accent hover:underline"
-                          >
-                            Retry
-                          </button>
-                        </div>
-                      )}
-
-                      {insight && !analyzing && (
-                        <SubjectInsightPanel insight={insight} onRefresh={() => triggerAnalysis(s.id)} />
-                      )}
-                    </div>
+                      <div className="mt-1 flex items-center justify-between">
+                        <p className="text-[11px] text-muted">
+                          {s.attempted} question{s.attempted !== 1 ? "s" : ""}
+                        </p>
+                        <span className="text-[11px] font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
+                          View analysis →
+                        </span>
+                      </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -497,142 +376,7 @@ function StatCard({
   );
 }
 
-function SubjectInsightPanel({
-  insight,
-  onRefresh,
-}: {
-  insight: SubjectAiInsight;
-  onRefresh: () => void;
-}) {
-  const [open, setOpen] = useState(false);
 
-  return (
-    <div className="mt-3">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between rounded-xl border border-border/40 bg-surface/30 px-4 py-2.5 text-left transition hover:bg-surface/50"
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">AI Performance Analysis</span>
-          <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
-            {insight.strengths.length} strengths · {insight.weaknesses.length} weaknesses
-          </span>
-        </div>
-        <motion.span
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="text-xs text-muted"
-        >
-          ▼
-        </motion.span>
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="overflow-hidden"
-          >
-            <div className="mt-2 space-y-4 rounded-xl border border-border/30 bg-surface/20 p-4">
-              {/* Strengths */}
-              {insight.strengths.length > 0 && (
-                <div>
-                  <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-500">
-                    <span>✓</span> Strengths
-                  </p>
-                  <div className="space-y-2">
-                    {insight.strengths.map((s, i) => (
-                      <div key={i} className="rounded-lg border border-emerald-500/15 bg-emerald-500/5 p-3">
-                        <p className="text-sm font-medium text-foreground">{s.area}</p>
-                        <p className="mt-0.5 text-xs text-muted">{s.detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Weaknesses */}
-              {insight.weaknesses.length > 0 && (
-                <div>
-                  <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-red-500">
-                    <span>⚠</span> Areas to improve
-                  </p>
-                  <div className="space-y-2">
-                    {insight.weaknesses.map((w, i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          "rounded-lg border p-3",
-                          w.severity === "high"
-                            ? "border-red-500/20 bg-red-500/5"
-                            : w.severity === "medium"
-                              ? "border-amber-500/20 bg-amber-500/5"
-                              : "border-yellow-500/20 bg-yellow-500/5",
-                        )}
-                      >
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-foreground">{w.area}</p>
-                          <span
-                            className={cn(
-                              "rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase",
-                              w.severity === "high"
-                                ? "bg-red-500/15 text-red-500"
-                                : w.severity === "medium"
-                                  ? "bg-amber-500/15 text-amber-500"
-                                  : "bg-yellow-500/15 text-yellow-500",
-                            )}
-                          >
-                            {w.severity}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-xs text-muted">{w.detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Recommendations */}
-              {insight.recommendations.length > 0 && (
-                <div>
-                  <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent">
-                    <span>→</span> Recommendations
-                  </p>
-                  <ol className="space-y-1.5">
-                    {insight.recommendations.map((r, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[10px] font-bold text-accent">
-                          {i + 1}
-                        </span>
-                        <span className="text-muted">{r}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between border-t border-border/20 pt-3">
-                <p className="text-[10px] text-muted">
-                  Analyzed {new Date(insight.generatedAt).toLocaleDateString()}
-                </p>
-                <button
-                  type="button"
-                  onClick={onRefresh}
-                  className="text-xs font-medium text-accent hover:underline"
-                >
-                  Refresh analysis
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 function months(
   data: Array<{ date: string; count: number; level: number }>,
