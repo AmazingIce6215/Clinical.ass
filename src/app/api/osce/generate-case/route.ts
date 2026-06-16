@@ -20,6 +20,11 @@ export async function POST(request: Request) {
         "You are a medical educator generating OSCE cases. Return ONLY valid JSON. No markdown formatting. No code blocks.",
       temperature: 0.8,
       maxOutputTokens: 2048,
+      modelCandidates: [
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-2.0-flash-lite",
+      ],
     });
 
     const cleaned = result.text

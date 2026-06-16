@@ -1,5 +1,7 @@
 import type { OsceGradeResult } from "@/lib/osce/state";
 
+const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+
 function getApiKey(): string {
   return (process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "").trim();
 }
@@ -8,14 +10,20 @@ function normalizeModel(value: string): string {
   return value.trim().replace(/^models\//, "");
 }
 
-function getDefaultModelCandidates(): string[] {
+function getModelCandidates(): string[] {
   const envModel = process.env.GEMINI_TEXT_MODEL?.trim();
-  const candidates = [
+  // Try multiple model variants — they may have separate quota pools
+  const models = [
     envModel ? normalizeModel(envModel) : null,
     "gemini-2.0-flash",
+    "gemini-1.5-flash",
     "gemini-2.0-flash-lite",
   ].filter((v): v is string => Boolean(v));
-  return [...new Set(candidates)];
+  return [...new Set(models)];
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function callGemini(params: {
@@ -27,7 +35,7 @@ async function callGemini(params: {
   maxOutputTokens?: number;
 }) {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${params.model}:generateContent`,
+    `${API_BASE}/${params.model}:generateContent`,
     {
       method: "POST",
       headers: {
@@ -49,7 +57,7 @@ async function callGemini(params: {
   );
 
   const responseText = await response.text();
-  return { response, responseText };
+  return { response, responseText, model: params.model };
 }
 
 function extractText(responseText: string): string {
@@ -67,16 +75,26 @@ function extractText(responseText: string): string {
   }
 }
 
+function isQuotaError(message: string): boolean {
+  return /quota exceeded|rate limit|high demand|free_tier|limit: 0|please retry|billing details|resource has been exhausted/i.test(
+    message,
+  );
+}
+
+function isOverloaded(message: string): boolean {
+  return /overloaded|try again later|service busy|unavailable/i.test(message);
+}
+
 export async function generateOSCEResponse(params: {
   conversation: { role: "user" | "patient"; content: string }[];
   systemPrompt: string;
 }): Promise<string> {
   const apiKey = getApiKey();
   if (!apiKey) {
-    throw new Error("Gemini API key is not configured");
+    throw new Error("Gemini API key is not configured. Set GEMINI_API_KEY in your environment variables.");
   }
 
-  const models = getDefaultModelCandidates();
+  const models = getModelCandidates();
   let lastError = "";
 
   const contents = params.conversation.map((msg) => ({
@@ -85,29 +103,52 @@ export async function generateOSCEResponse(params: {
   }));
 
   for (const model of models) {
-    const { response, responseText } = await callGemini({
-      apiKey,
-      model,
-      contents,
-      systemPrompt: params.systemPrompt,
-      temperature: 0.7,
-      maxOutputTokens: 1024,
-    });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const { response, responseText } = await callGemini({
+        apiKey,
+        model,
+        contents,
+        systemPrompt: params.systemPrompt,
+        temperature: 0.7,
+        maxOutputTokens: 1024,
+      });
 
-    if (!response.ok) {
-      const parsed = safeParseError(responseText);
-      lastError = parsed || responseText;
-      if (response.status === 429 || isQuotaError(lastError) || /overloaded/i.test(lastError)) {
+      if (response.ok) {
+        const text = extractText(responseText);
+        if (text) return text;
         continue;
       }
-      continue;
-    }
 
-    const text = extractText(responseText);
-    if (text) return text;
+      const parsed = safeParseError(responseText);
+      lastError = parsed || responseText;
+
+      if (response.status === 429 || isQuotaError(lastError)) {
+        // Exponential backoff before retrying same model
+        if (attempt === 0) {
+          await sleep(2000);
+          continue;
+        }
+        // If still quota-limited after retry, move to next model
+        break;
+      }
+
+      if (isOverloaded(lastError)) {
+        if (attempt === 0) {
+          await sleep(1500);
+          continue;
+        }
+        break;
+      }
+
+      // Non-retryable error, try next model
+      break;
+    }
   }
 
-  throw new Error(lastError || "Gemini patient response failed");
+  throw new Error(
+    lastError ||
+      "Gemini API quota exceeded. The free tier has limited requests per minute. Please wait 30-60 seconds and try again, or upgrade your Gemini API plan.",
+  );
 }
 
 export async function generateOSCEGrade(params: {
@@ -117,10 +158,10 @@ export async function generateOSCEGrade(params: {
 }): Promise<OsceGradeResult> {
   const apiKey = getApiKey();
   if (!apiKey) {
-    throw new Error("Gemini API key is not configured");
+    throw new Error("Gemini API key is not configured. Set GEMINI_API_KEY in your environment variables.");
   }
 
-  const models = getDefaultModelCandidates();
+  const models = getModelCandidates();
   let lastError = "";
 
   const transcript = params.conversation
@@ -137,34 +178,54 @@ export async function generateOSCEGrade(params: {
   ];
 
   for (const model of models) {
-    const { response, responseText } = await callGemini({
-      apiKey,
-      model,
-      contents,
-      systemPrompt: params.systemPrompt,
-      temperature: 0.3,
-      maxOutputTokens: 4096,
-    });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const { response, responseText } = await callGemini({
+        apiKey,
+        model,
+        contents,
+        systemPrompt: params.systemPrompt,
+        temperature: 0.3,
+        maxOutputTokens: 4096,
+      });
 
-    if (!response.ok) {
+      if (response.ok) {
+        const text = extractText(responseText);
+        if (text) {
+          const parsed = parseGradeResponse(text);
+          if (parsed) return parsed;
+          lastError = "Failed to parse grade response";
+        }
+        // If we got a response but couldn't parse JSON, try next model
+        break;
+      }
+
       const parsed = safeParseError(responseText);
       lastError = parsed || responseText;
-      if (response.status === 429 || isQuotaError(lastError) || /overloaded/i.test(lastError)) {
-        continue;
-      }
-      continue;
-    }
 
-    const text = extractText(responseText);
-    if (text) {
-      const parsed = parseGradeResponse(text);
-      if (parsed) return parsed;
-      lastError = "Failed to parse grade response";
-      continue;
+      if (response.status === 429 || isQuotaError(lastError)) {
+        if (attempt === 0) {
+          await sleep(3000);
+          continue;
+        }
+        break;
+      }
+
+      if (isOverloaded(lastError)) {
+        if (attempt === 0) {
+          await sleep(2000);
+          continue;
+        }
+        break;
+      }
+
+      break;
     }
   }
 
-  throw new Error(lastError || "Gemini grading failed");
+  throw new Error(
+    lastError ||
+      "Gemini API quota exceeded. Please wait 30-60 seconds and try again.",
+  );
 }
 
 function parseGradeResponse(text: string): OsceGradeResult | null {
@@ -191,10 +252,4 @@ function safeParseError(responseText: string): string | null {
   } catch {
     return null;
   }
-}
-
-function isQuotaError(message: string): boolean {
-  return /quota exceeded|rate limit|high demand|free_tier|limit: 0|please retry|billing details/i.test(
-    message,
-  );
 }
