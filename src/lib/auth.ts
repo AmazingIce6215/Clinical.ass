@@ -1,16 +1,30 @@
+/**
+ * Device-bound profile.
+ *
+ * Threat model: this is NOT a real account system. There is no server.
+ * Everything (including any "PIN") lives in the same localStorage that
+ * powers the rest of the app. Anyone with DevTools can read, change,
+ * or impersonate any profile. The PIN is a soft UX gate, not a
+ * security boundary. Do not store real PII here.
+ *
+ * If real PII or cross-device sync is ever required, swap this for a
+ * proper backend (Supabase, Clerk, NextAuth, etc.).
+ */
+
 export interface AuthSession {
   userId: string;
   firstName: string;
+  createdAt: number;
 }
 
-interface StoredUser {
+interface StoredProfile {
   id: string;
   firstName: string;
-  passwordHash: string;
-  salt: string;
+  pinHash: string | null; // null = no PIN set
+  createdAt: number;
 }
 
-const USERS_KEY = "clincalass-users";
+const PROFILES_KEY = "clincalass-profiles";
 const SESSION_KEY = "clincalass-session";
 const LEGACY_USERS_KEY = "dxflow-users";
 const LEGACY_SESSION_KEY = "dxflow-session";
@@ -41,81 +55,23 @@ function capitalizeName(name: string): string {
     .join(" ");
 }
 
-async function hashPassword(password: string, salt: string): Promise<string> {
+function getProfiles(): StoredProfile[] {
+  return readJson<StoredProfile[]>(PROFILES_KEY, []);
+}
+
+function saveProfiles(profiles: StoredProfile[]) {
+  writeJson(PROFILES_KEY, profiles);
+}
+
+// SHA-256 of a 4-digit PIN. Deliberately fast — a 4-digit space has
+// only 10k possibilities, so a slow hash would be theatre. This is a
+// UX gate, not a security boundary.
+async function hashPin(pin: string): Promise<string> {
   const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
-  const bits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt: enc.encode(salt),
-      iterations: 100_000,
-      hash: "SHA-256",
-    },
-    key,
-    256,
-  );
-  return Array.from(new Uint8Array(bits))
+  const buf = await crypto.subtle.digest("SHA-256", enc.encode(`clincalass-pin:${pin}`));
+  return Array.from(new Uint8Array(buf))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-}
-
-function randomSalt(): string {
-  return crypto.randomUUID();
-}
-
-function getUsers(): StoredUser[] {
-  const users = readJson<StoredUser[]>(USERS_KEY, []);
-  if (users.length > 0) return users;
-
-  const legacy = readJson<StoredUser[]>(LEGACY_USERS_KEY, []);
-  if (legacy.length > 0) {
-    saveUsers(legacy);
-    if (typeof window !== "undefined") localStorage.removeItem(LEGACY_USERS_KEY);
-  }
-  return legacy;
-}
-
-function saveUsers(users: StoredUser[]) {
-  writeJson(USERS_KEY, users);
-}
-
-function migrateLegacyData(userId: string) {
-  const suffixes = [
-    "library",
-    "seen-diseases",
-    "seen-titles",
-    "seen-vignettes",
-    "favorites",
-    "seen-cases",
-  ];
-
-  for (const suffix of suffixes) {
-    const newKey = `clincalass-${suffix}`;
-    const scoped = `${newKey}-${userId}`;
-    if (localStorage.getItem(scoped)) continue;
-
-    for (const prefix of ["clincalass", "dxflow"]) {
-      const legacyScoped = localStorage.getItem(`${prefix}-${suffix}-${userId}`);
-      if (legacyScoped) {
-        localStorage.setItem(scoped, legacyScoped);
-        localStorage.removeItem(`${prefix}-${suffix}-${userId}`);
-        break;
-      }
-
-      const legacy = localStorage.getItem(`${prefix}-${suffix}`);
-      if (legacy) {
-        localStorage.setItem(scoped, legacy);
-        localStorage.removeItem(`${prefix}-${suffix}`);
-        break;
-      }
-    }
-  }
 }
 
 export function getSession(): AuthSession | null {
@@ -130,49 +86,57 @@ export function getSession(): AuthSession | null {
   return legacy;
 }
 
-export async function registerUser(
+export async function createProfile(
   firstName: string,
-  password: string,
+  pin?: string,
 ): Promise<{ session?: AuthSession; error?: string }> {
   const name = normalizeName(firstName);
-  if (name.length < 2) return { error: "Enter your first name." };
-  if (password.length < 4) return { error: "Password must be at least 4 characters." };
+  if (name.length < 2) return { error: "Enter your first name (at least 2 letters)." };
+  if (pin && !/^\d{4}$/.test(pin)) return { error: "PIN must be exactly 4 digits." };
 
-  const users = getUsers();
-  const exists = users.some((u) => u.firstName.toLowerCase() === name.toLowerCase());
-  if (exists) return { error: "That name is taken — try signing in instead." };
+  const profiles = getProfiles();
+  const exists = profiles.some((p) => p.firstName.toLowerCase() === name.toLowerCase());
+  if (exists) return { error: "That name is taken on this device. Switch profile instead." };
 
-  const salt = randomSalt();
-  const passwordHash = await hashPassword(password, salt);
-  const user: StoredUser = {
+  const profile: StoredProfile = {
     id: crypto.randomUUID(),
     firstName: capitalizeName(name),
-    passwordHash,
-    salt,
+    pinHash: pin ? await hashPin(pin) : null,
+    createdAt: Date.now(),
   };
-  saveUsers([...users, user]);
+  saveProfiles([...profiles, profile]);
 
-  const session: AuthSession = { userId: user.id, firstName: user.firstName };
+  const session: AuthSession = {
+    userId: profile.id,
+    firstName: profile.firstName,
+    createdAt: profile.createdAt,
+  };
   writeJson(SESSION_KEY, session);
-  migrateLegacyData(user.id);
   return { session };
 }
 
-export async function loginUser(
+export async function unlockProfile(
   firstName: string,
-  password: string,
-): Promise<{ session?: AuthSession; error?: string }> {
+  pin?: string,
+): Promise<{ session?: AuthSession; error?: string; needsPin?: boolean }> {
   const name = normalizeName(firstName);
-  const users = getUsers();
-  const user = users.find((u) => u.firstName.toLowerCase() === name.toLowerCase());
-  if (!user) return { error: "No account found — create one first." };
+  const profiles = getProfiles();
+  const profile = profiles.find((p) => p.firstName.toLowerCase() === name.toLowerCase());
+  if (!profile) return { error: "No profile with that name on this device." };
 
-  const passwordHash = await hashPassword(password, user.salt);
-  if (passwordHash !== user.passwordHash) return { error: "Wrong password." };
+  if (profile.pinHash) {
+    if (!pin) return { needsPin: true, error: "Enter your 4-digit PIN." };
+    if (!/^\d{4}$/.test(pin)) return { error: "PIN must be 4 digits." };
+    const candidate = await hashPin(pin);
+    if (candidate !== profile.pinHash) return { error: "Wrong PIN." };
+  }
 
-  const session: AuthSession = { userId: user.id, firstName: user.firstName };
+  const session: AuthSession = {
+    userId: profile.id,
+    firstName: profile.firstName,
+    createdAt: profile.createdAt,
+  };
   writeJson(SESSION_KEY, session);
-  migrateLegacyData(user.id);
   return { session };
 }
 
@@ -180,34 +144,30 @@ export function logoutUser() {
   if (typeof window !== "undefined") localStorage.removeItem(SESSION_KEY);
 }
 
+export function listProfiles() {
+  return getProfiles().map((p) => ({
+    id: p.id,
+    firstName: p.firstName,
+    hasPin: Boolean(p.pinHash),
+    createdAt: p.createdAt,
+  }));
+}
+
+export function deleteProfile(id: string) {
+  const remaining = getProfiles().filter((p) => p.id !== id);
+  saveProfiles(remaining);
+  const current = getSession();
+  if (current?.userId === id) logoutUser();
+}
+
 function randomItem<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-const nightGreetings = [
-  "hello night owl",
-  "hey night owl",
-  "late night?",
-  "moonlit study",
-];
-const morningGreetings = [
-  "good morning",
-  "morning early bird",
-  "rise and shine",
-  "morning",
-];
-const afternoonGreetings = [
-  "good afternoon",
-  "afternoon",
-  "hello there",
-  "nice afternoon",
-];
-const eveningGreetings = [
-  "good evening",
-  "evening",
-  "hey there",
-  "evening vibes",
-];
+const nightGreetings = ["hello night owl", "hey night owl", "late night?", "moonlit study"];
+const morningGreetings = ["good morning", "morning early bird", "rise and shine", "morning"];
+const afternoonGreetings = ["good afternoon", "afternoon", "hello there", "nice afternoon"];
+const eveningGreetings = ["good evening", "evening", "hey there", "evening vibes"];
 
 function selectGreeting(hour: number): string {
   if (hour >= 22 || hour < 5) return randomItem(nightGreetings);

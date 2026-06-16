@@ -42,7 +42,16 @@ const modes = [
     icon: "🖼️",
     accent: "from-emerald-500/20 to-teal-500/10",
   },
-] as const;
+  {
+    href: "/calculators",
+    title: "Clinical Calculators",
+    description:
+      "Evidence-based scoring tools: GCS, CURB-65, Wells, HEART, CHA₂DS₂-VASc, SOFA, and more.",
+    mobileDescription: "Instant offline clinical score calculations",
+    icon: "📊",
+    accent: "from-blue-500/20 to-indigo-500/10",
+  },
+];
 
 const GREETINGS = {
   MORNING: [

@@ -10,9 +10,9 @@ import {
 } from "react";
 import {
   getSession,
-  loginUser,
   logoutUser,
-  registerUser,
+  createProfile,
+  unlockProfile,
   type AuthSession,
 } from "@/lib/auth";
 import { setLibraryUserId } from "@/lib/case-library";
@@ -20,8 +20,8 @@ import { setLibraryUserId } from "@/lib/case-library";
 interface AuthContextValue {
   session: AuthSession | null;
   ready: boolean;
-  register: (firstName: string, password: string) => Promise<string | null>;
-  login: (firstName: string, password: string) => Promise<string | null>;
+  create: (firstName: string, pin?: string) => Promise<string | null>;
+  unlock: (firstName: string, pin?: string) => Promise<string | null>;
   logout: () => void;
 }
 
@@ -35,16 +35,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLibraryUserId(session?.userId ?? null);
   }, [session]);
 
-  const register = useCallback(async (firstName: string, password: string) => {
-    const result = await registerUser(firstName, password);
+  const create = useCallback(async (firstName: string, pin?: string) => {
+    const result = await createProfile(firstName, pin);
     if (result.error) return result.error;
     setSession(result.session!);
     setLibraryUserId(result.session!.userId);
     return null;
   }, []);
 
-  const login = useCallback(async (firstName: string, password: string) => {
-    const result = await loginUser(firstName, password);
+  const unlock = useCallback(async (firstName: string, pin?: string) => {
+    const result = await unlockProfile(firstName, pin);
     if (result.error) return result.error;
     setSession(result.session!);
     setLibraryUserId(result.session!.userId);
@@ -58,8 +58,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ session, ready, register, login, logout }),
-    [session, ready, register, login, logout],
+    () => ({ session, ready, create, unlock, logout }),
+    [session, ready, create, unlock, logout],
   );
 
   return (

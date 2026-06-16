@@ -5,11 +5,13 @@ import { useState } from "react";
 import { PrimaryButton } from "@/components/app-shell";
 import { useAuth } from "@/context/auth-context";
 
+type Mode = "create" | "unlock";
+
 export function SignInModal() {
-  const { register, login } = useAuth();
-  const [mode, setMode] = useState<"signin" | "register">("signin");
+  const { create, unlock } = useAuth();
+  const [mode, setMode] = useState<Mode>("create");
   const [firstName, setFirstName] = useState("");
-  const [password, setPassword] = useState("");
+  const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -18,9 +20,9 @@ export function SignInModal() {
     setError(null);
     setLoading(true);
     const err =
-      mode === "register"
-        ? await register(firstName, password)
-        : await login(firstName, password);
+      mode === "create"
+        ? await create(firstName, pin || undefined)
+        : await unlock(firstName, pin || undefined);
     if (err) setError(err);
     setLoading(false);
   };
@@ -36,9 +38,11 @@ export function SignInModal() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-accent-foreground shadow-glow">
             <span className="text-sm font-bold">Cl</span>
           </div>
-          <h2 className="mt-3 text-xl font-semibold">Welcome to Clincalass</h2>
+          <h2 className="mt-3 text-xl font-semibold">
+            {mode === "create" ? "Create a device profile" : "Unlock your profile"}
+          </h2>
           <p className="mt-2 text-sm text-muted">
-            Sign in with your first name and password to save cases.
+            Profiles live on this device only. They are not accounts and there is no password recovery.
           </p>
         </div>
 
@@ -55,15 +59,19 @@ export function SignInModal() {
             />
           </label>
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-muted">Password</span>
+            <span className="text-sm font-medium text-muted">
+              {mode === "create" ? "Optional 4-digit PIN" : "PIN"}
+            </span>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 4 characters"
-              className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-              autoComplete={mode === "register" ? "new-password" : "current-password"}
-              required
+              inputMode="numeric"
+              pattern="\d{4}"
+              maxLength={4}
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder={mode === "create" ? "Skip to leave it empty" : "4 digits"}
+              className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm tracking-[0.5em] outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+              autoComplete="off"
             />
           </label>
 
@@ -74,7 +82,11 @@ export function SignInModal() {
           )}
 
           <PrimaryButton type="submit" disabled={loading} className="w-full">
-            {loading ? "Please wait…" : mode === "register" ? "Create account" : "Sign in"}
+            {loading
+              ? "Please wait…"
+              : mode === "create"
+                ? "Create profile"
+                : "Unlock"}
           </PrimaryButton>
         </form>
 
@@ -82,14 +94,15 @@ export function SignInModal() {
           <button
             type="button"
             onClick={() => {
-              setMode(mode === "signin" ? "register" : "signin");
+              setMode(mode === "create" ? "unlock" : "create");
               setError(null);
+              setPin("");
             }}
             className="text-sm text-muted hover:text-accent"
           >
-            {mode === "signin"
-              ? "New here? Create an account"
-              : "Already have an account? Sign in"}
+            {mode === "create"
+              ? "Already have a profile on this device? Unlock"
+              : "New here? Create a profile"}
           </button>
         </div>
       </motion.div>
