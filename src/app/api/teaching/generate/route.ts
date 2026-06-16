@@ -12,6 +12,7 @@ export const maxDuration = 60;
 
 type TeachingGenerateBody = {
   subject: string;
+  difficulty?: "easy" | "medium" | "hard";
   avoidTitles?: string[];
   avoidDiseases?: string[];
   avoidVignettes?: string[];
@@ -80,6 +81,34 @@ function buildAvoidList(body: TeachingGenerateBody) {
     .join("\n\n");
 }
 
+function difficultyPrompt(difficulty: "easy" | "medium" | "hard"): string {
+  const instructions: Record<string, string> = {
+    easy: `DIFFICULTY: EASY
+- Classic, textbook clinical presentations with straightforward findings
+- Single best answer should be obvious to a prepared student
+- Distractors are clearly wrong or unrelated
+- Tests basic recall and recognition of common conditions
+- Use well-known, frequently tested diseases and presentations
+- Vignettes should include clear, unambiguous clues pointing to the correct answer`,
+    medium: `DIFFICULTY: MEDIUM
+- Moderately complex presentations requiring clinical reasoning
+- Some distractors are plausible and could be mistaken for the correct answer
+- Tests application of knowledge rather than just recall
+- Mix of common and moderately rare conditions
+- Vignettes should include some distractors in the history/findings
+- Requires the student to differentiate between similar conditions`,
+    hard: `DIFFICULTY: HARD
+- Atypical, complex, or nuanced clinical presentations
+- Distractors are very plausible and require careful differentiation
+- Tests higher-order thinking, synthesis, and clinical judgment
+- May involve rare conditions, complications, or atypical presentations of common diseases
+- Ambiguous or conflicting findings that must be weighed carefully
+- Requires multi-step reasoning to arrive at the correct answer
+- Designed to challenge even well-prepared students`,
+  };
+  return instructions[difficulty] ?? instructions.medium;
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as TeachingGenerateBody;
@@ -89,8 +118,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unknown subject" }, { status: 400 });
     }
 
+    const difficulty = body.difficulty ?? "medium";
+
     const userPrompt = `Create a unique ${subjectInfo.name} teaching session for a 4th year medical student.
 Topic area: ${subjectInfo.description}
+${difficultyPrompt(difficulty)}
 ${buildAvoidList(body)}
 Seed: ${Date.now()}-${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
 
@@ -115,7 +147,7 @@ Seed: ${Date.now()}-${Math.random().toString(36).slice(2)}${Math.random().toStri
         subject: body.subject,
         subjectName: subjectInfo.name,
         title: generated.data.title,
-        difficulty: generated.data.difficulty ?? "medium",
+        difficulty: generated.data.difficulty ?? difficulty,
         vignette: generated.data.vignette,
         questions: generated.data.questions.slice(0, 3).map((q, i) => ({
           ...q,

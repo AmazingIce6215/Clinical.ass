@@ -1,11 +1,12 @@
 "use client";
 
-import { use, useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useState } from "react";
 import { notFound } from "next/navigation";
 import { motion } from "framer-motion";
 import { AppShell, GlassCard, PrimaryButton } from "@/components/app-shell";
 import { CasePlayer } from "@/components/teaching/case-player";
 import { TeachingLoadingOverlay } from "@/components/teaching/teaching-loading-overlay";
+import { StaggerContainer, StaggerItem } from "@/components/motion";
 import {
   getSeenDiseases,
   getSeenTitles,
@@ -13,6 +14,39 @@ import {
 } from "@/lib/case-library";
 import { getSubject } from "@/lib/teaching-subjects";
 import type { GeneratedTeachingCase } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+type Difficulty = "easy" | "medium" | "hard";
+
+const difficultyMeta: {
+  key: Difficulty;
+  label: string;
+  description: string;
+  icon: string;
+  color: string;
+}[] = [
+  {
+    key: "easy",
+    label: "Easy",
+    description: "Classic textbook presentations. Tests basic recall and recognition of common conditions.",
+    icon: "🌱",
+    color: "from-emerald-500/20 to-emerald-600/10",
+  },
+  {
+    key: "medium",
+    label: "Medium",
+    description: "Moderately complex cases requiring clinical reasoning. Plausible distractors.",
+    icon: "🔥",
+    color: "from-amber-500/20 to-amber-600/10",
+  },
+  {
+    key: "hard",
+    label: "Hard",
+    description: "Atypical presentations with tricky distractors. Tests higher-order clinical judgment.",
+    icon: "💎",
+    color: "from-red-500/20 to-red-600/10",
+  },
+];
 
 export default function SubjectCasePage({
   params,
@@ -21,14 +55,14 @@ export default function SubjectCasePage({
 }) {
   const { subject: subjectId } = use(params);
   const subjectInfo = getSubject(subjectId);
+  const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [teachingCase, setTeachingCase] = useState<GeneratedTeachingCase | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInitRef = useRef(false);
-
-  const generateCase = useCallback(async () => {
+  const generateCase = useCallback(async (selectedDifficulty: Difficulty) => {
     if (!subjectInfo) return;
+    setDifficulty(selectedDifficulty);
     setLoading(true);
     setError(null);
     setTeachingCase(null);
@@ -39,6 +73,7 @@ export default function SubjectCasePage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           subject: subjectId,
+          difficulty: selectedDifficulty,
           avoidTitles: getSeenTitles(subjectId),
           avoidDiseases: getSeenDiseases(subjectId),
           avoidVignettes: getSeenVignettes(subjectId),
@@ -60,13 +95,68 @@ export default function SubjectCasePage({
     }
   }, [subjectId, subjectInfo]);
 
-  useEffect(() => {
-    if (!subjectInfo || fetchInitRef.current) return;
-    fetchInitRef.current = true;
-    generateCase();
-  }, [subjectInfo, generateCase]);
+  const handleReset = useCallback(() => {
+    setDifficulty(null);
+    setTeachingCase(null);
+    setError(null);
+  }, []);
 
   if (!subjectInfo) notFound();
+
+  if (!difficulty && !teachingCase) {
+    return (
+      <AppShell
+        backHref="/teaching"
+        title={subjectInfo.name}
+        subtitle={subjectInfo.description}
+      >
+        <div className="mx-auto max-w-2xl">
+          <div className="mb-8 text-center">
+            <span className="text-5xl">{subjectInfo.icon}</span>
+            <h2 className="mt-4 text-xl font-semibold">Choose difficulty</h2>
+            <p className="mt-2 text-sm text-muted">
+              Select the difficulty level for your teaching session. Each
+              session generates 3 unique patient cases with MCQs.
+            </p>
+          </div>
+          <StaggerContainer className="grid gap-4 sm:grid-cols-3">
+            {difficultyMeta.map((d) => (
+              <StaggerItem key={d.key}>
+                <motion.button
+                  type="button"
+                  onClick={() => generateCase(d.key)}
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="h-full w-full text-left"
+                >
+                  <GlassCard
+                    className={cn(
+                      "group h-full cursor-pointer border-transparent transition-all hover:border-accent/40",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br",
+                        d.color,
+                      )}
+                    >
+                      <span className="text-2xl">{d.icon}</span>
+                    </div>
+                    <h3 className="text-lg font-semibold group-hover:text-accent">
+                      {d.label}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted">
+                      {d.description}
+                    </p>
+                  </GlassCard>
+                </motion.button>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
+        </div>
+      </AppShell>
+    );
+  }
 
   if (loading) {
     return (
@@ -107,9 +197,14 @@ export default function SubjectCasePage({
                     unique set of questions for this session.
                   </p>
                 </div>
-                <PrimaryButton className="mt-2" onClick={generateCase}>
-                  Try again
-                </PrimaryButton>
+                <div className="mt-4 flex gap-3">
+                  <PrimaryButton onClick={() => difficulty && generateCase(difficulty)}>
+                    Try again
+                  </PrimaryButton>
+                  <PrimaryButton onClick={handleReset}>
+                    Change difficulty
+                  </PrimaryButton>
+                </div>
               </div>
             </GlassCard>
           </motion.div>
@@ -125,7 +220,7 @@ export default function SubjectCasePage({
       teachingCase={teachingCase}
       backHref="/teaching"
       showNewCase
-      onNewCase={generateCase}
+      onNewCase={handleReset}
     />
   );
 }
