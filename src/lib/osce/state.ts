@@ -31,6 +31,7 @@ export interface OsceGradeResult {
     investigations: number;
     management: number;
   };
+  clinicalReasoning: string;
   critical_mistakes: string[];
   missed_red_flags: string[];
   examiner_feedback: string[];
@@ -40,6 +41,14 @@ export interface OsceGradeResult {
     investigations: string[];
     management: string[];
   };
+}
+
+export interface IdealAnswer {
+  keyHistoryQuestions: string[];
+  redFlags: string[];
+  differentials: string[];
+  investigations: string[];
+  managementPlan: string[];
 }
 
 export interface OsceCase {

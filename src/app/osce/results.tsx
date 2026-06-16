@@ -66,6 +66,15 @@ export function OsceResults({
         ))}
       </div>
 
+      {grade.clinicalReasoning && (
+        <GlassCard>
+          <h3 className="mb-3 text-sm font-semibold text-accent">Clinical Reasoning Assessment</h3>
+          <div className="whitespace-pre-wrap text-sm leading-relaxed text-muted">
+            {grade.clinicalReasoning}
+          </div>
+        </GlassCard>
+      )}
+
       {grade.critical_mistakes.length > 0 && (
         <GlassCard>
           <h3 className="mb-3 text-sm font-semibold text-red-500">Critical Mistakes</h3>
