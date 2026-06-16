@@ -144,6 +144,11 @@ export interface QuestionAttempt {
   timeTaken: number;
   timestamp: number;
   topic?: string;
+  vignette: string;
+  prompt: string;
+  options: string[];
+  correctAnswerText: string;
+  userAnswerText: string;
 }
 
 export interface SubjectStat {
@@ -177,10 +182,19 @@ export interface ActivityDay {
   questionsAnswered: number;
 }
 
+export interface SubjectAiInsight {
+  strengths: Array<{ area: string; detail: string; topics: string[] }>;
+  weaknesses: Array<{ area: string; detail: string; topics: string[]; severity: "high" | "medium" | "low" }>;
+  recommendations: string[];
+  generatedAt: number;
+  attemptCount: number;
+}
+
 export interface UserStats {
   subjectStats: Record<string, SubjectStat>;
   weakTopics: Record<string, WeakTopic>;
   streak: StreakData;
   activityLog: ActivityDay[];
   recentAttempts: QuestionAttempt[];
+  subjectAiInsights: Record<string, SubjectAiInsight>;
 }

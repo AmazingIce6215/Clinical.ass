@@ -2,6 +2,7 @@
 
 import type {
   QuestionAttempt,
+  SubjectAiInsight,
   SubjectStat,
   UserStats,
   WeakTopic,
@@ -48,6 +49,7 @@ function emptyStats(): UserStats {
     streak: { current: 0, longest: 0, lastActiveDate: "" },
     activityLog: [],
     recentAttempts: [],
+    subjectAiInsights: {},
   };
 }
 
@@ -270,6 +272,7 @@ export function logAttempt(attempt: Omit<QuestionAttempt, "timestamp">): UserSta
     streak,
     activityLog,
     recentAttempts,
+    subjectAiInsights: stats.subjectAiInsights,
   };
 
   writeStats(updated);
@@ -392,4 +395,59 @@ export function getActivityHeatmapData(): Array<{
   }
 
   return result;
+}
+
+// ── AI Insights ──
+
+export function getSubjectAiInsight(subject: string): SubjectAiInsight | null {
+  const stats = readStats();
+  return stats.subjectAiInsights[subject] ?? null;
+}
+
+export function setSubjectAiInsight(subject: string, insight: SubjectAiInsight) {
+  const stats = readStats();
+  stats.subjectAiInsights[subject] = insight;
+  writeStats(stats);
+}
+
+export function needsAnalysis(subject: string): boolean {
+  const stats = readStats();
+  const subjectStat = stats.subjectStats[subject];
+  if (!subjectStat || subjectStat.attempted === 0) return false;
+
+  const cached = stats.subjectAiInsights[subject];
+  if (!cached) return true;
+
+  if (subjectStat.attempted > cached.attemptCount) return true;
+
+  const oneDay = 24 * 60 * 60 * 1000;
+  if (Date.now() - cached.generatedAt > oneDay) return true;
+
+  return false;
+}
+
+export function getSubjectAttemptsForAnalysis(subject: string): QuestionAttempt[] {
+  const stats = readStats();
+  return stats.recentAttempts
+    .filter((a) => a.subject === subject && a.vignette)
+    .slice(0, 30);
+}
+
+export function getSubjectStatsMap(): Record<
+  string,
+  { name: string; icon: string; attempted: number; correct: number; accuracy: number }
+> {
+  const stats = readStats();
+  const map: Record<string, { name: string; icon: string; attempted: number; correct: number; accuracy: number }> = {};
+  for (const s of teachingSubjects) {
+    const stat = stats.subjectStats[s.id];
+    map[s.id] = {
+      name: s.name,
+      icon: s.icon,
+      attempted: stat?.attempted ?? 0,
+      correct: stat?.correct ?? 0,
+      accuracy: stat?.accuracy ?? 0,
+    };
+  }
+  return map;
 }

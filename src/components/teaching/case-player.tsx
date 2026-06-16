@@ -76,6 +76,11 @@ export function CasePlayer({
       correctAnswer: question.correctIndex,
       correct,
       timeTaken,
+      vignette: question.vignette,
+      prompt: question.prompt,
+      options: question.options,
+      correctAnswerText: question.options[question.correctIndex],
+      userAnswerText: question.options[selected],
     });
     setRevealed(true);
   };
