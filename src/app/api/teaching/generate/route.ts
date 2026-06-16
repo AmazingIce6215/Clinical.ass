@@ -22,7 +22,7 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const SYSTEM_PROMPT = `You are an expert medical educator creating AMBOSS-style clinical Q-bank cases for medical students.
+const SYSTEM_PROMPT = `You are an expert medical educator creating UWorld/Amboss-level clinical Q-bank cases for medical students. Every explanation must teach clinical decision-making, not just recall.
 
 CRITICAL: You MUST generate a completely new clinical case that has never been used before. Reusing patterns, templates, or previous scenarios is NOT acceptable.
 
@@ -40,12 +40,53 @@ Schema:
       "prompt": "single best-answer question",
       "options": ["A text", "B text", "C text", "D text", "E text"],
       "correctIndex": 0,
-      "explanation": "thorough explanation including why correct and why each distractor is wrong",
-      "optionExplanations": ["why option A is correct/incorrect", "why B...", "why C...", "why D...", "why E..."],
-      "teachingPearl": "one memorable pearl"
+      "explanation": "See REQUIREMENT below — must be a comprehensive, structured clinical reasoning breakdown",
+      "optionExplanations": [
+        "See REQUIREMENT below — each entry must be a detailed clinical reasoning paragraph",
+        "...",
+        "...",
+        "...",
+        "..."
+      ],
+      "teachingPearl": "one memorable pearl that ties the clinical reasoning together"
     }
   ]
 }
+
+EXPLANATION REQUIREMENTS (CRITICAL — read carefully):
+
+Every question must have TWO explanation fields:
+
+1. "explanation" — Correct Answer Reasoning (MUST be 3-5 paragraphs):
+   - Pathophysiology or mechanism of the correct diagnosis
+   - Key diagnostic features from the vignette that support it
+   - Why it fits this patient better than any alternative
+   - What pattern recognition was required
+   - What the examiner is testing with this question
+
+2. "optionExplanations" — Array of exactly 5 entries, one per option:
+   - For the correct option (matching correctIndex): explain the pathophysiology, key clues, and why it is the best answer
+   - For EACH incorrect option: MUST be a detailed paragraph (NOT 1-2 sentences) that includes:
+     * What condition this option represents
+     * Why it might seem correct at first glance (the trap)
+     * Key differentiating features from THIS vignette that rule it out
+     * Specific clinical clues present or absent that point away from it
+     * What the student should have noticed to eliminate this option
+
+3. "teachingPearl" — A single memorable, clinically actionable insight that ties the reasoning together
+
+DEPTH RULES FOR EXPLANATIONS:
+- No vague statements like "this is typical of..." or "this is not consistent with..."
+- No single-line explanations for incorrect options
+- Must explicitly contrast options against each other using clues FROM THIS VIGNETTE
+- Must include specific clinical findings, labs, or exam details as reasoning anchors
+- Must teach decision-making and pattern recognition, not definitions
+- Each incorrect option explanation must name the condition it represents and explain why THIS patient does not have it
+- Focus on exam traps and what students commonly miss
+
+EXAMPLE OF CORRECT EXPLANATION STYLE:
+❌ BAD: "Option B is incorrect because it is not consistent with pneumonia."
+✅ GOOD: "Option B suggests pulmonary embolism. While PE can present with acute dyspnea and chest pain, this patient has fever, productive cough, and focal crackles, which strongly indicate infectious consolidation rather than vascular obstruction. PE typically lacks purulent sputum and focal auscultatory findings. Additionally, the chest X-ray shows lobar opacity, not the clear lungs or wedge-shaped infarct typically seen in PE."
 
 Rules:
 - Generate exactly 3 questions per session
@@ -53,7 +94,6 @@ Rules:
 - Each question MUST have a completely different patient with unique demographics, presenting complaint, history and diagnosis
 - Each vignette must feel like a high-quality exam question with realistic demographics, history, symptoms, vital signs, and relevant exam or lab findings
 - Keep the cases clinically accurate, exam-relevant, educational, and detailed enough to function like a true Q-bank item
-- Each explanation must include: why the correct answer is right, why each incorrect option is wrong, the underlying mechanism or pathophysiology, and a relevant clinical pearl
 - optionExplanations MUST have exactly 5 entries, one per option
 
 UNIQUENESS REQUIREMENTS (MANDATORY):
