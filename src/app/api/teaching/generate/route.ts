@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { geminiJsonCompletion } from "@/lib/gemini-text";
+import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
 import {
   addCaseFingerprints,
   checkSimilarity,
@@ -135,9 +135,9 @@ Seed: ${Date.now()}-${Math.random().toString(36).slice(2)}${Math.random().toStri
 
     while (attempts < maxAttempts) {
       attempts++;
-      const generated = await geminiJsonCompletion<
+      const generated = await aiJsonCompletion<
         Omit<GeneratedTeachingCase, "id" | "subject" | "subjectName" | "generatedAt">
-      >(SYSTEM_PROMPT, userPrompt, { temperature: 0.3, maxOutputTokens: 8192 });
+      >(AI_MODELS.smart, SYSTEM_PROMPT, userPrompt, { fallbackModel: AI_MODELS.fast });
 
       if (!generated.data?.questions || generated.data.questions.length < 3) {
         if (attempts < maxAttempts) {

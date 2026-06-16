@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { geminiJsonCompletion } from "@/lib/gemini-text";
+import { AI_MODELS, aiJsonCompletion } from "@/lib/groq";
 import { buildCaseGenerationPrompt } from "@/lib/osce/prompts";
 import type { OsceCase, Difficulty } from "@/lib/osce/state";
 
-export const maxDuration = 60;
+export const maxDuration = 30;
 
 export async function POST(request: Request) {
   try {
@@ -14,10 +14,11 @@ export async function POST(request: Request) {
 
     const prompt = buildCaseGenerationPrompt(difficulty);
 
-    const result = await geminiJsonCompletion<OsceCase>(
-      "You are a medical educator generating OSCE cases. Return ONLY valid JSON.",
+    const result = await aiJsonCompletion<OsceCase>(
+      AI_MODELS.smart,
+      "You are a medical educator generating OSCE cases. Return ONLY valid JSON. No markdown formatting. No code blocks.",
       prompt,
-      { temperature: 0.3, maxOutputTokens: 8192 },
+      { fallbackModel: AI_MODELS.fast },
     );
 
     if (result.error) {
