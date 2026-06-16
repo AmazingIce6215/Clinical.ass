@@ -8,7 +8,6 @@ import { CalculatorForm } from "@/components/calculators/calculator-form";
 import { CalculatorResultDisplay } from "@/components/calculators/calculator-result";
 import { getCalculator } from "@/lib/calculators/registry";
 import type { CalculatorResult } from "@/lib/calculators/types";
-import { cn } from "@/lib/utils";
 
 const defaultValues: Record<string, string | number | boolean | string[]> = {};
 
@@ -113,8 +112,8 @@ export default function CalculatorPage({
         </div>
 
         <div className="grid gap-6 lg:grid-cols-5">
-          <div className={cn("lg:col-span-2", hasCalculated && "lg:col-span-5 lg:grid lg:grid-cols-5 lg:gap-6")}>
-            <div className={hasCalculated ? "lg:col-span-2" : ""}>
+          <div className="lg:col-span-2">
+            <div>
               <GlassCard>
                 <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">
                   Inputs
