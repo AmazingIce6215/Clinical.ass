@@ -38,7 +38,11 @@ export interface AiResult<T> {
 export function formatAiError(message: string): string {
   const normalized = message.trim();
 
-  if (/rate_limit|rate limit reached|tokens per minute/i.test(normalized)) {
+  if (/tokens per day|TPD|rate_limit|rate limit reached|tokens per minute/i.test(normalized)) {
+    const timeMatch = normalized.match(/try again in ([\dms.]+)/i);
+    if (timeMatch) {
+      return `Groq rate limit reached. Try again in ${timeMatch[1]}.`;
+    }
     return "Groq rate limit reached — too many AI requests in a short window. Wait 30–60 seconds and try again.";
   }
 
@@ -166,10 +170,9 @@ export async function aiJsonCompletion<T>(
   const primary = await runCompletion<T>(model, system, user, runOptions);
   if (primary.data) return primary;
 
-  const isRateLimited = primary.error?.code === "rate_limit_exceeded";
   const fallbackModel = options?.fallbackModel;
 
-  if (!fallbackModel || fallbackModel === model || isRateLimited) {
+  if (!fallbackModel || fallbackModel === model) {
     return primary;
   }
 
