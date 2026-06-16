@@ -52,9 +52,9 @@ export default function StatsPage() {
 
   return (
     <AppShell backHref="/" title="Learning Stats" subtitle="Track your teaching mode performance">
-      <div className="mx-auto max-w-5xl space-y-8">
+      <div className="mx-auto max-w-5xl space-y-8 lg:grid lg:grid-cols-12 lg:gap-6 lg:space-y-0">
         {/* A. Overall Performance */}
-        <FadeSlide>
+        <FadeSlide className="lg:col-span-6">
           <GlassCard>
             <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Overall Performance
@@ -77,145 +77,8 @@ export default function StatsPage() {
           </GlassCard>
         </FadeSlide>
 
-        {/* B. Subject Breakdown */}
-        <FadeSlide delay={0.1}>
-          <GlassCard>
-            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              Subject Breakdown
-            </p>
-            {subjects.length === 0 ? (
-              <p className="text-sm text-muted">No subjects attempted yet. Start a teaching session!</p>
-            ) : (
-              <div className="space-y-4">
-                {subjects.map((s: { id: string; name: string; icon: string; attempted: number; accuracy: number }) => {
-                  const isWeakest = s.id === overall.weakest && subjects.length > 1;
-                  const isStrongest = s.id === overall.strongest && subjects.length > 1;
-                  return (
-                    <Link key={s.id} href={`/stats/${s.id}`} className="group block">
-                      <div className="mb-1.5 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{s.icon}</span>
-                          <span className="text-sm font-medium">{s.name}</span>
-                          {isWeakest && (
-                            <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-500">
-                              Weakest
-                            </span>
-                          )}
-                          {isStrongest && (
-                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500">
-                              Strongest
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-sm font-semibold tabular-nums">
-                          {s.accuracy}%
-                        </span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-border/60">
-                        <motion.div
-                          className={cn(
-                            "h-full rounded-full",
-                            s.accuracy >= 80
-                              ? "bg-emerald-500"
-                              : s.accuracy >= 60
-                                ? "bg-amber-500"
-                                : "bg-red-500",
-                          )}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${s.accuracy}%` }}
-                          transition={{ type: "spring", stiffness: 60, damping: 20 }}
-                        />
-                      </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <p className="text-[11px] text-muted">
-                          {s.attempted} question{s.attempted !== 1 ? "s" : ""}
-                        </p>
-                        <span className="text-[11px] font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
-                          View analysis →
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </GlassCard>
-        </FadeSlide>
-
-        {/* C. Weak Topics Panel */}
-        <FadeSlide delay={0.2}>
-          <GlassCard>
-            <p className="mb-1 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              Weak Topics
-            </p>
-            <p className="mb-6 text-xs text-muted">
-              Topics ranked by repeated incorrect answers
-            </p>
-            {weakTopics.length === 0 ? (
-              <p className="text-sm text-muted">
-                No weak topics detected. Keep answering to build your profile!
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {weakTopics.map((topic, i) => (
-                  <div
-                    key={topic.topic}
-                    className="flex items-center justify-between rounded-xl border border-border/40 bg-surface/40 p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          "flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold",
-                          i === 0
-                            ? "bg-red-500/20 text-red-500"
-                            : i === 1
-                              ? "bg-amber-500/20 text-amber-500"
-                              : "bg-surface text-muted",
-                        )}
-                      >
-                        {i + 1}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium capitalize">{topic.topic}</p>
-                        <p className="text-xs text-muted">
-                          {topic.incorrectCount} incorrect
-                          {topic.totalAttempts > 0
-                            ? ` · ${topic.accuracy}% accuracy`
-                            : ""}
-                        </p>
-                      </div>
-                    </div>
-                    <motion.div
-                      className="text-xs font-medium"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <span
-                        className={cn(
-                          "rounded-full px-2.5 py-1",
-                          topic.accuracy < 40
-                            ? "bg-red-500/10 text-red-500"
-                            : topic.accuracy < 70
-                              ? "bg-amber-500/10 text-amber-500"
-                              : "bg-emerald-500/10 text-emerald-500",
-                        )}
-                      >
-                        {topic.accuracy < 40
-                          ? "Needs work"
-                          : topic.accuracy < 70
-                            ? "Improving"
-                            : "Getting there"}
-                      </span>
-                    </motion.div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </GlassCard>
-        </FadeSlide>
-
         {/* D. Streak + Heatmap */}
-        <FadeSlide delay={0.3}>
+        <FadeSlide delay={0.1} className="lg:col-span-6">
           <GlassCard>
             <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Study Streak
@@ -287,8 +150,145 @@ export default function StatsPage() {
           </GlassCard>
         </FadeSlide>
 
+        {/* B. Subject Breakdown */}
+        <FadeSlide delay={0.2} className="lg:col-span-12">
+          <GlassCard>
+            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
+              Subject Breakdown
+            </p>
+            {subjects.length === 0 ? (
+              <p className="text-sm text-muted">No subjects attempted yet. Start a teaching session!</p>
+            ) : (
+              <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+                {subjects.map((s: { id: string; name: string; icon: string; attempted: number; accuracy: number }) => {
+                  const isWeakest = s.id === overall.weakest && subjects.length > 1;
+                  const isStrongest = s.id === overall.strongest && subjects.length > 1;
+                  return (
+                    <Link key={s.id} href={`/stats/${s.id}`} className="group block">
+                      <div className="mb-1.5 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{s.icon}</span>
+                          <span className="text-sm font-medium">{s.name}</span>
+                          {isWeakest && (
+                            <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-500">
+                              Weakest
+                            </span>
+                          )}
+                          {isStrongest && (
+                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500">
+                              Strongest
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm font-semibold tabular-nums">
+                          {s.accuracy}%
+                        </span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-border/60">
+                        <motion.div
+                          className={cn(
+                            "h-full rounded-full",
+                            s.accuracy >= 80
+                              ? "bg-emerald-500"
+                              : s.accuracy >= 60
+                                ? "bg-amber-500"
+                                : "bg-red-500",
+                          )}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${s.accuracy}%` }}
+                          transition={{ type: "spring", stiffness: 60, damping: 20 }}
+                        />
+                      </div>
+                      <div className="mt-1 flex items-center justify-between">
+                        <p className="text-[11px] text-muted">
+                          {s.attempted} question{s.attempted !== 1 ? "s" : ""}
+                        </p>
+                        <span className="text-[11px] font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
+                          View analysis →
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </GlassCard>
+        </FadeSlide>
+
+        {/* C. Weak Topics */}
+        <FadeSlide delay={0.3} className="lg:col-span-6">
+          <GlassCard>
+            <p className="mb-1 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
+              Weak Topics
+            </p>
+            <p className="mb-6 text-xs text-muted">
+              Topics ranked by repeated incorrect answers
+            </p>
+            {weakTopics.length === 0 ? (
+              <p className="text-sm text-muted">
+                No weak topics detected. Keep answering to build your profile!
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {weakTopics.map((topic, i) => (
+                  <div
+                    key={topic.topic}
+                    className="flex items-center justify-between rounded-xl border border-border/40 bg-surface/40 p-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          "flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold",
+                          i === 0
+                            ? "bg-red-500/20 text-red-500"
+                            : i === 1
+                              ? "bg-amber-500/20 text-amber-500"
+                              : "bg-surface text-muted",
+                        )}
+                      >
+                        {i + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium capitalize">{topic.topic}</p>
+                        <p className="text-xs text-muted">
+                          {topic.incorrectCount} incorrect
+                          {topic.totalAttempts > 0
+                            ? ` · ${topic.accuracy}% accuracy`
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <motion.div
+                      className="text-xs font-medium"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <span
+                        className={cn(
+                          "rounded-full px-2.5 py-1",
+                          topic.accuracy < 40
+                            ? "bg-red-500/10 text-red-500"
+                            : topic.accuracy < 70
+                              ? "bg-amber-500/10 text-amber-500"
+                              : "bg-emerald-500/10 text-emerald-500",
+                        )}
+                      >
+                        {topic.accuracy < 40
+                          ? "Needs work"
+                          : topic.accuracy < 70
+                            ? "Improving"
+                            : "Getting there"}
+                      </span>
+                    </motion.div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </GlassCard>
+        </FadeSlide>
+
         {/* E. Recent Activity */}
-        <FadeSlide delay={0.4}>
+        <FadeSlide delay={0.4} className="lg:col-span-6">
           <GlassCard>
             <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Recent Activity
