@@ -39,6 +39,12 @@ export const wellsPE: CalculatorDefinition = {
       interpretation: `Wells PE score ${score.toFixed(1)} — ${label}.`,
       clinicalSignificance:
         `<2: PE ~3.6% — D-dimer first. 2–6: ~14% — D-dimer; CTPA if positive. >6: ~50% — direct to CTPA.`,
+      recommendations:
+        score < 2
+          ? ["Order a high-sensitivity D-dimer (age-adjusted >50 years).", "D-dimer negative: PE ruled out — stop, look for alternative diagnosis.", "D-dimer positive: proceed to CTPA (or V/Q if contrast contraindicated)."]
+          : score <= 6
+            ? ["Order D-dimer first. If positive, proceed to CTPA.", "If D-dimer negative but clinical suspicion remains high, discuss with radiology.", "Start therapeutic LMWH if CTPA confirms PE and no contraindications."]
+            : ["Proceed directly to CTPA (high pre-test probability, D-dimer will not change management).", "Start empiric therapeutic LMWH while awaiting imaging.", "Assess severity — consider echo for right heart strain, troponin for risk stratification."],
       limitations:
         "'PE most likely' is subjective. Not validated in pregnancy. D-dimer is age-adjusted >50y.",
       details: [

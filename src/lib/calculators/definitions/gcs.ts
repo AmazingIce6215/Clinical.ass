@@ -67,6 +67,12 @@ export const gcs: CalculatorDefinition = {
       interpretation: `GCS ${score}/15 (E${eye} V${verbal} M${motor}) — ${label}.`,
       clinicalSignificance:
         "GCS ≤8: severe injury — assess airway, call neurosurgery. GCS 9–12: moderate injury — close monitoring. GCS 13–15: mild injury — serial observations.",
+      recommendations:
+        score <= 8
+          ? ["Assess airway — low threshold for intubation (GCS ≤8).", "Call neurosurgery and organise urgent CT head.", "Maintain spine precautions if trauma suspected, start ICP monitoring if indicated."]
+          : score <= 12
+            ? ["Admit to monitored bed (HDU/ICU) for close neurological observation.", "Repeat GCS hourly and report any drop of ≥2 points.", "CT head within 1 hour if not already done."]
+            : ["Admit for observation — neurology/neurosurgery review.", "Perform CT head if not already done, especially if anticoagulated.", "Serial GCS observations every 2–4 hours for 24 hours."],
       limitations:
         "Less reliable in intubated/sedated patients, orbital trauma, or language barriers. FOUR score preferred in ICU.",
       details: [

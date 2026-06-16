@@ -40,6 +40,12 @@ export const wellsDVT: CalculatorDefinition = {
       interpretation: `Wells DVT score ${score} — ${label}.`,
       clinicalSignificance:
         "≤0: DVT ~5% — D-dimer. 1–2: ~17% — D-dimer, ultrasound if positive. ≥3: ~53% — venous duplex ultrasound.",
+      recommendations:
+        score <= 0
+          ? ["Order D-dimer — if negative, DVT ruled out (negative predictive value ~99%).", "If D-dimer positive, arrange proximal venous duplex ultrasound.", "Look for alternative causes of leg symptoms (cellulitis, Baker's cyst, musculoskeletal)."]
+          : score <= 2
+            ? ["Favoured — D-dimer first. If positive, arrange venous duplex ultrasound.", "If D-dimer negative and score ≤1, DVT unlikely clinically.", "Start LMWH if ultrasound confirms DVT and no contraindications."]
+            : ["Arrange venous duplex ultrasound urgently (high probability).", "Start empiric therapeutic LMWH while awaiting ultrasound.", "Assess for proximal DVT — if confirmed, start anticoagulation and schedule follow-up."],
       limitations:
         "'Alternative diagnosis' is subjective. Less validated in hospitalised patients. Does not distinguish proximal vs distal DVT.",
       details: [

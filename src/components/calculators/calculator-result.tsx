@@ -47,6 +47,26 @@ export function CalculatorResultDisplay({ result, onReset }: CalculatorResultPro
         <div className="space-y-3">
           <Section title="Interpretation" content={result.interpretation} />
           <Section title="Clinical Significance" content={result.clinicalSignificance} />
+
+          {result.recommendations && result.recommendations.length > 0 && (
+            <div>
+              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">
+                What Should I Do Now?
+              </p>
+              <ul className="space-y-1">
+                {result.recommendations.map((rec, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-2.5 rounded-lg border border-border/50 bg-surface/50 px-3 py-2.5 text-sm leading-relaxed text-foreground/90"
+                  >
+                    <span className="mt-0.5 shrink-0 text-accent">→</span>
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <Section title="Limitations" content={result.limitations} />
 
           {result.details && result.details.length > 0 && (

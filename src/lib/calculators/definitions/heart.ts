@@ -84,6 +84,12 @@ export const heart: CalculatorDefinition = {
       interpretation: `HEART score ${score}/10 — ${label}.`,
       clinicalSignificance:
         "0–3: 6-week MACE risk ~1.7% — consider early discharge. 4–6: ~20% — admit for observation and serial troponins. 7–10: ~50–65% — early invasive management indicated.",
+      recommendations:
+        score <= 3
+          ? ["Consider early discharge with outpatient cardiology follow-up.", "Reassure patient — 6-week MACE risk ~1.7%.", "Advise to return if chest pain recurs or worsens."]
+          : score <= 6
+            ? ["Admit for observation and serial troponin measurements (0 and 3 hours).", "Obtain ECG on arrival and before each troponin draw.", "Consider non-invasive cardiac testing (CTCA or stress echo) before discharge."]
+            : ["Admit to cardiology or CCU for early invasive management (angiogram).", "Start dual antiplatelet therapy, anticoagulation, and monitor for arrhythmias.", "Discuss with interventional cardiology same day."],
       limitations:
         "Validated primarily in ED chest pain. Requires serial troponin. The 'history' component is subjective. May not apply to STEMI patients.",
       details: [

@@ -35,6 +35,12 @@ export const curb65: CalculatorDefinition = {
       interpretation: `CURB-65 ${score}/5 — ${label}.`,
       clinicalSignificance:
         "0–1: mortality <3%, outpatient. 2: mortality ~9%, short-stay. 3+: mortality 15–40%, urgent admission.",
+      recommendations:
+        score <= 1
+          ? ["Manage as outpatient with oral antibiotics (e.g., amoxicillin or doxycycline).", "Arrange follow-up in 48 hours to reassess symptoms.", "Advise return if worsening dyspnoea, fever, or confusion."]
+          : score === 2
+            ? ["Admit to short-stay unit or ward for IV antibiotics and monitoring.", "Check baseline bloods: FBC, U&E, CRP, blood cultures.", "Review CURB-65 daily for escalation if deteriorating."]
+            : ["Urgent hospital admission — manage as severe pneumonia.", "Start empiric IV antibiotics (e.g., co-amoxiclav + clarithromycin) per local guidelines.", "Monitor for sepsis, consider ICU step-up if vasopressors or respiratory support needed."],
       limitations:
         "Does not account for comorbidities, hypoxia, or social factors. May underestimate severity in young adults. Not for HAP or immunocompromised.",
       details: [

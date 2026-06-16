@@ -39,6 +39,12 @@ export const cha2ds2Vasc: CalculatorDefinition = {
       interpretation: `CHA₂DS₂-VASc score ${score}/9 — ${label}.`,
       clinicalSignificance:
         `${score <= 1 ? `${score === 0 ? "CHA₂DS₂-VASc 0: consider no antithrombotic therapy." : "CHA₂DS₂-VASc 1: consider OAC in women only if other risk factors present."}` : `Score ≥2 (men) / ≥3 (women): oral anticoagulation recommended (DOAC or warfarin). Adjusted stroke rate: ${["0.2%", "0.6%", "2.2%", "3.2%", "4.0%", "5.7%", "7.8%", "9.6%", "10.8%", "12.2%"][Math.min(score, 9)]} per year.`}`,
+      recommendations:
+        score === 0
+          ? ["Consider no antithrombotic therapy — annual stroke risk ~0.2%.", "Reassess risk annually and whenever new risk factors develop."]
+          : score === 1
+            ? ["Consider OAC (DOAC preferred) for men with one risk factor.", "For women, OAC only if additional risk factors beyond female sex.", "Discuss shared decision-making with patient."]
+            : ["Start oral anticoagulation — DOAC (apixaban, rivaroxaban, edoxaban, dabigatran) preferred over warfarin.", "Assess bleeding risk with HAS-BLED score before initiating.", "Schedule follow-up in 4 weeks to check adherence, side effects, and renal function."],
       limitations:
         "Does not include bleeding risk — always balance with HAS-BLED score. Does not capture time in AF or other stroke risk factors (e.g., renal impairment, cancer).",
       details: [

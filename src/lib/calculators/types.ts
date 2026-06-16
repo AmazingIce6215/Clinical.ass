@@ -30,6 +30,7 @@ export interface CalculatorResult {
   clinicalSignificance: string;
   limitations: string;
   details?: { label: string; value: string }[];
+  recommendations?: string[];
 }
 
 export interface CalculatorDefinition {

@@ -82,6 +82,12 @@ export const childPugh: CalculatorDefinition = {
       interpretation: `Child-Pugh score ${score}/15 — ${label}. ${survival} survival.`,
       clinicalSignificance:
         "Class A (5–6): well-compensated; surgical risk low. Class B (7–9): significant functional impairment; consider pre-op optimisation. Class C (10–15): decompensated; avoid elective surgery. Assess MELD-Na for transplant listing.",
+      recommendations:
+        score <= 6
+          ? ["Manage as compensated cirrhosis — no elective surgery contraindicated.", "Screen for varices (OGD) and start surveillance every 1–2 years.", "Monitor bloods (LFT, INR, creatinine) at least every 6 months."]
+          : score <= 9
+            ? ["Pre-operative optimisation before any elective procedure.", "Assess for decompensation — check for ascites, encephalopathy, jaundice.", "Refer to hepatology — consider MELD-Na for transplant listing if deteriorating."]
+            : ["Avoid elective surgery — risk of decompensation and mortality is high.", "Urgent hepatology referral — active transplant workup if candidate.", "Manage complications: diuretics for ascites, lactulose/rifaximin for encephalopathy."],
       limitations:
         "Subjective assessment of ascites and encephalopathy. Does not account for portal hypertension complications (variceal bleeding, SBP). MELD/MELD-Na preferred for transplant allocation.",
       details: [

@@ -40,6 +40,10 @@ export const hasBled: CalculatorDefinition = {
       interpretation: `HAS-BLED score ${score}/9 — ${label}.`,
       clinicalSignificance:
         "Score 0–2: low risk (bleeds/100 patient-years: 1–4). Score ≥3: high risk (6–15 bleeds/100 patient-years); address modifiable risk factors and consider closer monitoring. A high score alone should not preclude OAC — balance with CHA₂DS₂-VASc.",
+      recommendations:
+        score < 3
+          ? ["Bleeding risk is low — OAC is safe if CHA₂DS₂-VASc indicates benefit.", "Monitor renal function and blood pressure at follow-up visits.", "Review medication list for interacting drugs (NSAIDs, antiplatelets)."]
+          : ["Address modifiable risk factors: uncontrolled HTN, NSAID use, alcohol excess, labile INR.", "If on warfarin, improve TTR — consider switching to DOAC if consistently labile.", "A high HAS-BLED is not a contraindication to OAC — assess net clinical benefit with CHA₂DS₂-VASc.", "Schedule closer monitoring — 1-month follow-up after OAC initiation."],
       limitations:
         "Moderate predictive value (c-statistic ~0.65). Not validated outside AF. 'Labile INR' criterion may not apply to DOACs. Does not capture fall risk or frailty.",
       details: [

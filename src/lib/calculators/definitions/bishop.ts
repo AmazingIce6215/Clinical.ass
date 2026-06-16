@@ -88,6 +88,12 @@ export const bishop: CalculatorDefinition = {
           : score >= 5
             ? "Intermediate. Ripening with prostaglandins may improve Bishop score. Reassess after induction."
             : "Unfavourable cervix. Cervical ripening recommended (PGE2 gel, balloon catheter, or misoprostol). Lower success rate for IOL; higher risk of Caesarean.",
+      recommendations:
+        score >= 8
+          ? ["Proceed with induction of labour as planned.", "High likelihood of successful vaginal delivery — counsel and monitor progress.", "Consider amniotomy ± oxytocin if spontaneous labour does not ensue."]
+          : score >= 5
+            ? ["Consider cervical ripening with prostaglandins (PGE2 gel, misoprostol) or mechanical methods.", "Reassess Bishop score in 6–12 hours after ripening agent.", "Counsel patient — moderate probability of successful vaginal delivery."]
+            : ["Start cervical ripening — prostaglandin (PGE2, misoprostol) or mechanical (balloon catheter).", "Reassess after ripening course — low Bishop score is associated with higher Caesarean risk.", "Discuss alternative options with obstetric consultant if repeat Bishop remains low."],
       limitations:
         "Subjective scoring with inter-observer variability. Does not account for parity, gestational age, or other obstetric factors. Modified Bishop score is also used in some centres.",
       details: [

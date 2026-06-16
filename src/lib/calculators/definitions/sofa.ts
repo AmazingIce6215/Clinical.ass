@@ -105,6 +105,14 @@ export const sofa: CalculatorDefinition = {
       interpretation: `SOFA score ${score}/24 — ${label}.`,
       clinicalSignificance:
         "0: normal. ΔSOFA ≥2 = sepsis. Predicts ICU mortality: 0 (<10%), 2–5 (~20%), 6–9 (~40%), 10–14 (~60%), >15 (>80%). Trends matter more than single values.",
+      recommendations:
+        score < 2
+          ? ["Continue monitoring — organ function is near normal.", "Reassess SOFA daily; any ΔSOFA ≥2 meets Sepsis-3 criteria.", "Address underlying condition and maintain standard ICU care."]
+          : score <= 5
+            ? ["Escalate monitoring — consider HDU/ICU if not already admitted.", "Identify and treat the underlying sepsis source (cultures, imaging, antibiotics).", "Reassess SOFA in 24–48 hours to track trajectory."]
+            : score <= 9
+              ? ["ICU-level care — start or escalate organ support (ventilation, vasopressors, RRT).", "Daily SOFA trending to guide therapeutic response and prognosis.", "Discuss with multidisciplinary ICU team — involve critical care consultant."]
+              : ["Prepare for prolonged ICU stay — very high mortality (60–80%).", "Consider palliative discussion if goals of care not yet established.", "Escalate to maximum organ support — ventilate, vasopressors, consider ECMO if eligible."],
       limitations:
         "Requires labs and GCS — not a quick bedside tool. Does not account for pre-existing organ dysfunction. Initiation of vasopressors and sedation affect scoring.",
       details: [
