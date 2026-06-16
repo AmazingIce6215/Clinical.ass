@@ -198,3 +198,56 @@ export interface UserStats {
   recentAttempts: QuestionAttempt[];
   subjectAiInsights: Record<string, SubjectAiInsight>;
 }
+
+// ── OSCE Mode Stats ──
+
+export interface OsceSessionRecord {
+  id: string;
+  score: number;
+  breakdown: {
+    history: number;
+    differential: number;
+    investigations: number;
+    management: number;
+  };
+  difficulty: "easy" | "medium" | "hard";
+  passed: boolean;
+  missedRedFlags: number;
+  missedKeyQuestions: number;
+  anchoringErrors: number;
+  timestamp: number;
+}
+
+export interface OsceDomainStat {
+  key: "history" | "differential" | "investigations" | "management";
+  label: string;
+  average: number;
+  max: number;
+}
+
+export interface OsceTrendPoint {
+  sessionIndex: number;
+  score: number;
+  timestamp: number;
+  difficulty: "easy" | "medium" | "hard";
+}
+
+export interface OsceWeakness {
+  type: "domain" | "pattern";
+  label: string;
+  severity: "high" | "medium" | "low";
+  frequency: number;
+  description: string;
+}
+
+export interface OsceDifficultyStats {
+  easy: { sessions: number; averageScore: number };
+  medium: { sessions: number; averageScore: number };
+  hard: { sessions: number; averageScore: number };
+}
+
+export interface OsceStats {
+  sessions: OsceSessionRecord[];
+  streak: StreakData;
+  weeklyLog: ActivityDay[];
+}

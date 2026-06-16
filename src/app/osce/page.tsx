@@ -7,6 +7,7 @@ import Link from "next/link";
 import { SegmentedControl } from "@/components/ui/inputs";
 import { OsceSession } from "@/app/osce/session";
 import { OsceResults } from "@/app/osce/results";
+import { logOsceSession } from "@/lib/osce-stats";
 import type {
   OsceSessionState,
   OsceGradeResult,
@@ -131,6 +132,20 @@ export default function OscePage() {
       const result = (await res.json()) as OsceGradeResult;
       setGrade(result);
       setView("results");
+
+      logOsceSession({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        score: result.score,
+        breakdown: result.breakdown,
+        difficulty: session.difficulty,
+        passed: result.score >= 70,
+        missedRedFlags: result.missed_red_flags.length,
+        missedKeyQuestions: result.critical_mistakes.length,
+        anchoringErrors: result.critical_mistakes.filter(
+          (m) => m.toLowerCase().includes("anchor") || m.toLowerCase().includes("premature closure"),
+        ).length,
+        timestamp: Date.now(),
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to grade session";
       setError(message);
@@ -190,10 +205,16 @@ export default function OscePage() {
           >
             ←
           </Link>
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-medium">OSCE Examiner Mode</p>
             <p className="text-xs text-muted">Real clinical exam simulation</p>
           </div>
+          <Link
+            href="/osce/stats"
+            className="rounded-full border border-border/60 bg-surface/70 px-3 py-1.5 text-[11px] font-medium text-muted backdrop-blur-md transition hover:border-accent/40 hover:text-accent"
+          >
+            Stats
+          </Link>
         </header>
 
         <div className="flex flex-1 items-start justify-center pt-12">
