@@ -64,6 +64,10 @@ UNIQUENESS REQUIREMENTS (MANDATORY):
 - Every session must include: new patient demographics, new presenting complaint, new history details, new diagnosis, new distractors in MCQs, new clinical reasoning pathway
 - The 3 patients must have different ages, different sexes, different chief complaints, and different diagnoses`;
 
+function sanitizeOption(text: string): string {
+  return text.replace(/^[A-Ea-e][\)\.\}\]\-]\s*/, "");
+}
+
 function buildAvoidList(body: TeachingGenerateBody) {
   const { avoidTitles = [], avoidDiseases = [], avoidVignettes = [] } = body;
   return [
@@ -149,19 +153,23 @@ Seed: ${Date.now()}-${Math.random().toString(36).slice(2)}${Math.random().toStri
         title: generated.data.title,
         difficulty: generated.data.difficulty ?? difficulty,
         vignette: generated.data.vignette,
-        questions: generated.data.questions.slice(0, 3).map((q, i) => ({
-          ...q,
-          id: q.id ?? `q${i + 1}`,
-          vignette: q.vignette || generated.data!.vignette,
-          optionExplanations:
-            q.optionExplanations?.length === q.options.length
-              ? q.optionExplanations
-              : q.options.map((opt, j) =>
-                  j === q.correctIndex
-                    ? `Correct: ${q.explanation}`
-                    : `Incorrect: ${opt} is not the best answer for this clinical scenario.`,
-                ),
-        })),
+        questions: generated.data.questions.slice(0, 3).map((q, i) => {
+          const sanitizedOptions = q.options.map(sanitizeOption);
+          return {
+            ...q,
+            id: q.id ?? `q${i + 1}`,
+            vignette: q.vignette || generated.data!.vignette,
+            options: sanitizedOptions,
+            optionExplanations:
+              q.optionExplanations?.length === q.options.length
+                ? q.optionExplanations
+                : sanitizedOptions.map((opt, j) =>
+                    j === q.correctIndex
+                      ? `Correct: ${q.explanation}`
+                      : `Incorrect: ${opt} is not the best answer for this clinical scenario.`,
+                  ),
+          };
+        }),
         generatedAt: Date.now(),
       };
 
