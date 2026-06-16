@@ -106,18 +106,24 @@ async function runCompletion<T>(
   }
 
   let lastError = "AI request failed";
+  let useJsonMode = true;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const completion = await groq.chat.completions.create({
+      const body: Record<string, unknown> = {
         model,
         temperature: 0.3,
-        response_format: { type: "json_object" },
         messages: [
           { role: "system", content: system },
           { role: "user", content: user },
         ],
-      });
+      };
+
+      if (useJsonMode) {
+        body.response_format = { type: "json_object" };
+      }
+
+      const completion = await groq.chat.completions.create(body as any);
 
       const raw = completion.choices[0]?.message?.content;
       if (!raw) return { data: null, error: { message: "Empty AI response" } };
@@ -127,6 +133,11 @@ async function runCompletion<T>(
     } catch (err) {
       lastError = extractErrorMessage(err);
       const retryDelay = parseRateLimitDelayMs(lastError);
+
+      if (/failed to generate json/i.test(lastError) && useJsonMode) {
+        useJsonMode = false;
+        continue;
+      }
 
       if (retryDelay && attempt < maxRetries - 1) {
         await sleep(Math.max(retryDelay * (attempt + 1), baseRetryDelayMs * 1000));
