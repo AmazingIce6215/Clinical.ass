@@ -1,0 +1,134 @@
+import { useCallback, useRef, useState } from "react";
+import type { PatientCase, StepRecord, ClinicalStepResponse, DiagnosisResult, ClassicPresentation, ClinicalAiInsight, CoPilotInsight, Sex } from "@/lib/types";
+import { buildFallbackPresentation } from "@/lib/step-utils";
+import { diagnosisToInsight } from "@/lib/clinical-ai";
+import { getLocalClinicalInsight } from "@/lib/clinical-fallback";
+import { formatAiError } from "@/lib/ai";
+
+interface UseCaseStateReturn {
+  // State variables
+  patientCase: PatientCase;
+  setPatientCase: React.Dispatch<React.SetStateAction<PatientCase>>;
+  stepStack: StepRecord[];
+  setStepStack: React.Dispatch<React.SetStateAction<StepRecord[]>>;
+  currentStep: ClinicalStepResponse | null;
+  setCurrentStep: React.Dispatch<React.SetStateAction<ClinicalStepResponse | null>>;
+  stepAnswer: string[];
+  setStepAnswer: React.Dispatch<React.SetStateAction<string[]>>;
+  textAnswer: string;
+  setTextAnswer: React.Dispatch<React.SetStateAction<string>>;
+  customDetail: string;
+  setCustomDetail: React.Dispatch<React.SetStateAction<string>>;
+  diagnosis: DiagnosisResult | null;
+  setDiagnosis: React.Dispatch<React.SetStateAction<DiagnosisResult | null>>;
+  diagnosisAiPowered: boolean | null;
+  setDiagnosisAiPowered: React.Dispatch<React.SetStateAction<boolean | null>>;
+  presentation: ClassicPresentation | null;
+  setPresentation: React.Dispatch<React.SetStateAction<ClassicPresentation | null>>;
+  presentationAiPowered: boolean | null;
+  setPresentationAiPowered: React.Dispatch<React.SetStateAction<boolean | null>>;
+  customComplaint: string;
+  setCustomComplaint: React.Dispatch<React.SetStateAction<string>>;
+  saved: boolean;
+  setSaved: React.Dispatch<React.SetStateAction<boolean>>;
+  aiInsight: ClinicalAiInsight | null;
+  setAiInsight: React.Dispatch<React.SetStateAction<ClinicalAiInsight | null>>;
+  aiInsightIsLocal: boolean;
+  setAiInsightIsLocal: React.Dispatch<React.SetStateAction<boolean>>;
+  aiError: string | null;
+  setAiError: React.Dispatch<React.SetStateAction<string | null>>;
+  coPilotInsight: CoPilotInsight | null;
+  setCoPilotInsight: React.Dispatch<React.SetStateAction<CoPilotInsight | null>>;
+  coPilotLoading: boolean;
+  setCoPilotLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  coPilotError: string | null;
+  setCoPilotError: React.Dispatch<React.SetStateAction<string | null>>;
+  coPilotStale: boolean;
+  setCoPilotStale: React.Dispatch<React.SetStateAction<boolean>>;
+  aiAbortRef: React.MutableRefObject<AbortController | null>;
+
+  // Helper functions
+  buildFallbackPresentation: (patientCase: PatientCase) => string;
+}
+
+export function useCaseState() {
+  const [patientCase, setPatientCase] = useState<PatientCase>({
+    name: "", sex: "male", age: null, chiefComplaints: [],
+    history: {}, exam: {}, investigations: [],
+  });
+  const [stepStack, setStepStack] = useState<StepRecord[]>([]);
+  const [currentStep, setCurrentStep] = useState<ClinicalStepResponse | null>(null);
+  const [stepAnswer, setStepAnswer] = useState<string[]>([]);
+  const [textAnswer, setTextAnswer] = useState("");
+  const [customDetail, setCustomDetail] = useState("");
+  const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
+  const [diagnosisAiPowered, setDiagnosisAiPowered] = useState<boolean | null>(null);
+  const [presentation, setPresentation] = useState<ClassicPresentation | null>(null);
+  const [presentationAiPowered, setPresentationAiPowered] = useState<boolean | null>(null);
+  const [customComplaint, setCustomComplaint] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [aiInsight, setAiInsight] = useState<ClinicalAiInsight | null>(null);
+  const [aiInsightIsLocal, setAiInsightIsLocal] = useState(true);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [coPilotInsight, setCoPilotInsight] = useState<CoPilotInsight | null>(null);
+  const [coPilotLoading, setCoPilotLoading] = useState(false);
+  const [coPilotError, setCoPilotError] = useState<string | null>(null);
+  const [coPilotStale, setCoPilotStale] = useState(false);
+  const aiAbortRef = useRef<AbortController | null>(null);
+
+  const buildFallbackPresentation = (patientCase: PatientCase): string => {
+    const lines = [
+      `This is ${patientCase.name || "the patient"}, a ${patientCase.age ?? "unknown"}-year-old ${patientCase.sex} presenting with ${patientCase.chiefComplaints.join(", ") || "symptoms"}.`,
+    ];
+    if (Object.keys(patientCase.history).length) {
+      lines.push(`History: ${JSON.stringify(patientCase.history)}`);
+    }
+    if (Object.keys(patientCase.exam).length) {
+      lines.push(`Examination: ${JSON.stringify(patientCase.exam)}`);
+    }
+    return lines.join("\n\n");
+  };
+
+  return {
+    patientCase,
+    setPatientCase,
+    stepStack,
+    setStepStack,
+    currentStep,
+    setCurrentStep,
+    stepAnswer,
+    setStepAnswer,
+    textAnswer,
+    setTextAnswer,
+    customDetail,
+    setCustomDetail,
+    diagnosis,
+    setDiagnosis,
+    diagnosisAiPowered,
+    setDiagnosisAiPowered,
+    presentation,
+    setPresentation,
+    presentationAiPowered,
+    setPresentationAiPowered,
+    customComplaint,
+    setCustomComplaint,
+    saved,
+    setSaved,
+    aiInsight,
+    setAiInsight,
+    aiInsightIsLocal,
+    setAiInsightIsLocal,
+    aiError,
+    setAiError,
+    coPilotInsight,
+    setCoPilotInsight,
+    coPilotLoading,
+    setCoPilotLoading,
+    coPilotError,
+    setCoPilotError,
+    coPilotStale,
+    setCoPilotStale,
+    aiAbortRef,
+    buildFallbackPresentation
+  };
+}
