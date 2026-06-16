@@ -80,22 +80,25 @@ export function OsceSession({
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border/60 bg-surface/50 px-4 py-3 backdrop-blur-md sm:px-6">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-2 rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-xs font-medium text-muted transition hover:border-accent/40"
-        >
-          ← Exit OSCE
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-2 rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-xs font-medium text-muted transition hover:border-accent/40"
+          >
+            ← Exit OSCE
+          </button>
+          <span className="hidden rounded-full border border-border/60 px-2 py-0.5 text-[11px] font-semibold uppercase text-accent sm:inline">
+            {session.difficulty}
+          </span>
+        </div>
 
         <div className={`flex items-center gap-2 font-mono text-xl font-bold tracking-wider ${timerColor}`}>
           <span className="h-2.5 w-2.5 rounded-full bg-current animate-pulse" />
           {formatTime(timeLeft)}
         </div>
 
-        <span className="rounded-full border border-border/60 px-2.5 py-1 text-[11px] font-semibold uppercase text-accent">
-          {session.difficulty}
-        </span>
+        <div />
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
