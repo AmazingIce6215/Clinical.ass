@@ -16,6 +16,7 @@ import {
   type AuthSession,
 } from "@/lib/auth";
 import { setLibraryUserId } from "@/lib/case-library";
+import { setStatsUserId } from "@/lib/teaching-stats";
 
 interface AuthContextValue {
   session: AuthSession | null;
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setLibraryUserId(session?.userId ?? null);
+    setStatsUserId(session?.userId ?? null);
   }, [session]);
 
   const create = useCallback(async (firstName: string, pin?: string) => {
@@ -40,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (result.error) return result.error;
     setSession(result.session!);
     setLibraryUserId(result.session!.userId);
+    setStatsUserId(result.session!.userId);
     return null;
   }, []);
 
@@ -48,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (result.error) return result.error;
     setSession(result.session!);
     setLibraryUserId(result.session!.userId);
+    setStatsUserId(result.session!.userId);
     return null;
   }, []);
 
@@ -55,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logoutUser();
     setSession(null);
     setLibraryUserId(null);
+    setStatsUserId(null);
   }, []);
 
   const value = useMemo(

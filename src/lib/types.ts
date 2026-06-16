@@ -131,3 +131,56 @@ export interface ReasoningTreeData {
   tree: ReasoningNode;
   viewModes?: ("simple" | "deep")[];
 }
+
+// ── Teaching Mode Stats ──
+
+export interface QuestionAttempt {
+  questionId: string;
+  subject: string;
+  difficulty: "easy" | "medium" | "hard";
+  userAnswer: number;
+  correctAnswer: number;
+  correct: boolean;
+  timeTaken: number;
+  timestamp: number;
+  topic?: string;
+}
+
+export interface SubjectStat {
+  attempted: number;
+  correct: number;
+  accuracy: number;
+  history: Array<{
+    timestamp: number;
+    correct: boolean;
+    difficulty: string;
+    timeTaken: number;
+  }>;
+}
+
+export interface WeakTopic {
+  topic: string;
+  incorrectCount: number;
+  lastSeen: number;
+  totalAttempts: number;
+  accuracy: number;
+}
+
+export interface StreakData {
+  current: number;
+  longest: number;
+  lastActiveDate: string;
+}
+
+export interface ActivityDay {
+  date: string;
+  questionsAnswered: number;
+}
+
+export interface UserStats {
+  subjectStats: Record<string, SubjectStat>;
+  weakTopics: Record<string, WeakTopic>;
+  streak: StreakData;
+  activityLog: ActivityDay[];
+  recentAttempts: QuestionAttempt[];
+}

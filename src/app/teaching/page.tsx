@@ -6,10 +6,15 @@ import { AppShell, GlassCard } from "@/components/app-shell";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { searchLibrary } from "@/lib/case-library";
 import { teachingSubjects } from "@/lib/teaching-subjects";
+import { getUserStats } from "@/lib/teaching-stats";
 
 
 export default function TeachingPage() {
   const saved = useMemo(() => searchLibrary("", "teaching"), []);
+  const totalAttempted = useMemo(() => {
+    const stats = getUserStats();
+    return Object.values(stats.subjectStats).reduce((s, v) => s + v.attempted, 0);
+  }, []);
 
   return (
     <AppShell
@@ -17,6 +22,24 @@ export default function TeachingPage() {
       title="Teaching Mode"
       subtitle="3 unique patients per session — MCQs with explanations"
     >
+      {totalAttempted > 0 && (
+        <section className="mb-6">
+          <Link href="/stats">
+            <GlassCard hover className="cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-accent">View Your Learning Stats →</p>
+                  <p className="mt-1 text-xs text-muted">
+                    {totalAttempted} question{totalAttempted !== 1 ? "s" : ""} answered
+                  </p>
+                </div>
+                <span className="text-2xl">📊</span>
+              </div>
+            </GlassCard>
+          </Link>
+        </section>
+      )}
+
       {saved.length > 0 && (
         <section className="mb-10">
           <div className="mb-4 flex items-center justify-between">

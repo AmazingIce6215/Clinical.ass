@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AppShell,
   ButtonLink,
@@ -19,6 +19,7 @@ import {
   removeFromLibrary,
   saveTeachingToLibrary,
 } from "@/lib/case-library";
+import { logAttempt } from "@/lib/teaching-stats";
 import type { GeneratedTeachingCase } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +44,16 @@ export function CasePlayer({
   const [finished, setFinished] = useState(false);
   const [favorited, setFavorited] = useState(() => isInLibrary(teachingCase.id));
 
+  const questionStartTimeRef = useRef(0);
+
+  useEffect(() => {
+    questionStartTimeRef.current = Date.now();
+  }, []);
+
+  useEffect(() => {
+    questionStartTimeRef.current = Date.now();
+  }, [questionIndex]);
+
   const question = teachingCase.questions[questionIndex];
   const progress = finished
     ? 100
@@ -52,9 +63,20 @@ export function CasePlayer({
 
   const submit = () => {
     if (selected === null) return;
-    if (selected === question.correctIndex) {
+    const timeTaken = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
+    const correct = selected === question.correctIndex;
+    if (correct) {
       setScore((s) => s + 1);
     }
+    logAttempt({
+      questionId: question.id,
+      subject: teachingCase.subject,
+      difficulty: teachingCase.difficulty,
+      userAnswer: selected,
+      correctAnswer: question.correctIndex,
+      correct,
+      timeTaken,
+    });
     setRevealed(true);
   };
 
@@ -90,6 +112,7 @@ export function CasePlayer({
     setRevealed(false);
     setScore(0);
     setFinished(false);
+    questionStartTimeRef.current = Date.now();
   };
 
   return (

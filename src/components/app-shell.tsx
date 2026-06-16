@@ -70,6 +70,14 @@ export function AppShell({
                 Library
               </Link>
             )}
+            {session && pathname !== "/stats" && (
+              <Link
+                href="/stats"
+                className="rounded-full border border-border/60 bg-surface/70 px-3 py-1.5 text-[11px] font-medium text-muted backdrop-blur-md transition hover:border-accent/40 hover:text-accent"
+              >
+                Stats
+              </Link>
+            )}
             {session && (
               <button
                 type="button"
