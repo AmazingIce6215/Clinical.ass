@@ -52,9 +52,10 @@ export default function StatsPage() {
 
   return (
     <AppShell backHref="/" title="Learning Stats" subtitle="Track your teaching mode performance">
-      <div className="mx-auto max-w-5xl space-y-8 lg:grid lg:grid-cols-12 lg:gap-6 lg:space-y-0">
+      <div className="mx-auto max-w-5xl space-y-8 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0">
+        <div className="space-y-8 lg:col-span-2">
         {/* A. Overall Performance */}
-        <FadeSlide className="lg:col-span-6">
+        <FadeSlide>
           <GlassCard>
             <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Overall Performance
@@ -77,81 +78,8 @@ export default function StatsPage() {
           </GlassCard>
         </FadeSlide>
 
-        {/* D. Streak + Heatmap */}
-        <FadeSlide delay={0.1} className="lg:col-span-6">
-          <GlassCard>
-            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              Study Streak
-            </p>
-            <div className="mb-8 grid gap-4 sm:grid-cols-3">
-              <StatCard
-                label="Current Streak"
-                value={`${streak.current} day${streak.current !== 1 ? "s" : ""}`}
-                accent={streakActive}
-              />
-              <StatCard
-                label="Best Streak"
-                value={`${streak.longest} day${streak.longest !== 1 ? "s" : ""}`}
-              />
-              <StatCard
-                label="Last Active"
-                value={
-                  streak.lastActiveDate
-                    ? new Date(streak.lastActiveDate + "T00:00:00").toLocaleDateString(
-                        "en-US",
-                        { month: "short", day: "numeric" },
-                      )
-                    : "Never"
-                }
-              />
-            </div>
-
-            {/* Activity Heatmap */}
-            <p className="mb-4 text-sm font-medium text-muted">
-              Activity — last 12 months
-            </p>
-            <div className="overflow-x-auto pb-2">
-              <div className="flex gap-0.5">
-                {months(heatmapYear).map((month, mi) => (
-                  <div key={mi} className="flex flex-col gap-0.5">
-                    <p className="mb-1 text-[9px] font-medium text-muted">{month.label}</p>
-                    <div className="grid grid-flow-row gap-0.5" style={{ gridTemplateRows: `repeat(${month.rows}, 1fr)` }}>
-                      {month.days.map((day, di) => (
-                        <motion.div
-                          key={`${mi}-${di}`}
-                          initial={{ opacity: 0, scale: 0 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: (mi * month.days.length + di) * 0.001 }}
-                          className={cn(
-                            "h-2.5 w-2.5 rounded-[3px] sm:h-3 sm:w-3",
-                            day.level === 0 && "bg-border/20",
-                            day.level === 1 && "bg-accent/20",
-                            day.level === 2 && "bg-accent/40",
-                            day.level === 3 && "bg-accent/65",
-                            day.level === 4 && "bg-accent",
-                          )}
-                          title={`${day.date}: ${day.count} questions`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-3 flex items-center gap-2 text-[11px] text-muted">
-              <span>Less</span>
-              <div className="h-2.5 w-2.5 rounded-[3px] bg-border/20" />
-              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent/20" />
-              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent/40" />
-              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent/65" />
-              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent" />
-              <span>More</span>
-            </div>
-          </GlassCard>
-        </FadeSlide>
-
         {/* B. Subject Breakdown */}
-        <FadeSlide delay={0.2} className="lg:col-span-12">
+        <FadeSlide delay={0.1}>
           <GlassCard>
             <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Subject Breakdown
@@ -216,7 +144,7 @@ export default function StatsPage() {
         </FadeSlide>
 
         {/* C. Weak Topics */}
-        <FadeSlide delay={0.3} className="lg:col-span-6">
+        <FadeSlide delay={0.2}>
           <GlassCard>
             <p className="mb-1 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Weak Topics
@@ -288,7 +216,7 @@ export default function StatsPage() {
         </FadeSlide>
 
         {/* E. Recent Activity */}
-        <FadeSlide delay={0.4} className="lg:col-span-6">
+        <FadeSlide delay={0.3}>
           <GlassCard>
             <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Recent Activity
@@ -344,6 +272,82 @@ export default function StatsPage() {
             )}
           </GlassCard>
         </FadeSlide>
+      </div>
+
+      <div className="space-y-8 lg:col-span-1">
+        {/* D. Streak + Heatmap */}
+        <FadeSlide delay={0.1}>
+          <GlassCard>
+            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
+              Study Streak
+            </p>
+            <div className="mb-8 grid gap-4 sm:grid-cols-3">
+              <StatCard
+                label="Current Streak"
+                value={`${streak.current} day${streak.current !== 1 ? "s" : ""}`}
+                accent={streakActive}
+              />
+              <StatCard
+                label="Best Streak"
+                value={`${streak.longest} day${streak.longest !== 1 ? "s" : ""}`}
+              />
+              <StatCard
+                label="Last Active"
+                value={
+                  streak.lastActiveDate
+                    ? new Date(streak.lastActiveDate + "T00:00:00").toLocaleDateString(
+                        "en-US",
+                        { month: "short", day: "numeric" },
+                      )
+                    : "Never"
+                }
+              />
+            </div>
+
+            {/* Activity Heatmap */}
+            <p className="mb-4 text-sm font-medium text-muted">
+              Activity — last 12 months
+            </p>
+            <div className="overflow-x-auto pb-2">
+              <div className="flex gap-0.5">
+                {months(heatmapYear).map((month, mi) => (
+                  <div key={mi} className="flex flex-col gap-0.5">
+                    <p className="mb-1 text-[9px] font-medium text-muted">{month.label}</p>
+                    <div className="grid grid-flow-row gap-0.5" style={{ gridTemplateRows: `repeat(${month.rows}, 1fr)` }}>
+                      {month.days.map((day, di) => (
+                        <motion.div
+                          key={`${mi}-${di}`}
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: (mi * month.days.length + di) * 0.001 }}
+                          className={cn(
+                            "h-2.5 w-2.5 rounded-[3px] sm:h-3 sm:w-3",
+                            day.level === 0 && "bg-border/20",
+                            day.level === 1 && "bg-accent/20",
+                            day.level === 2 && "bg-accent/40",
+                            day.level === 3 && "bg-accent/65",
+                            day.level === 4 && "bg-accent",
+                          )}
+                          title={`${day.date}: ${day.count} questions`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-2 text-[11px] text-muted">
+              <span>Less</span>
+              <div className="h-2.5 w-2.5 rounded-[3px] bg-border/20" />
+              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent/20" />
+              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent/40" />
+              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent/65" />
+              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent" />
+              <span>More</span>
+            </div>
+          </GlassCard>
+        </FadeSlide>
+      </div>
       </div>
     </AppShell>
   );
