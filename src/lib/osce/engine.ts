@@ -1,4 +1,4 @@
-import { getGroqClient, AI_MODELS, aiJsonCompletion } from "@/lib/groq";
+import { geminiTextCompletion, geminiJsonCompletion } from "@/lib/gemini-text";
 import { buildPatientSystemPrompt, buildGraderSystemPrompt } from "@/lib/osce/prompts";
 import type { OsceSessionState, OsceGradeResult } from "@/lib/osce/state";
 
@@ -6,35 +6,25 @@ export async function getPatientResponse(
   session: OsceSessionState,
   userInput: string,
 ): Promise<string> {
-  const systemPrompt = buildPatientSystemPrompt(session.caseFullDetails, session.difficulty);
+  const system = buildPatientSystemPrompt(session.caseFullDetails, session.difficulty);
 
-  const groq = getGroqClient();
-  if (!groq) {
-    throw new Error("GROQ_API_KEY is not configured");
-  }
+  const messages = session.conversation.map((msg) => ({
+    role: (msg.role === "patient" ? "assistant" : "user") as "user" | "assistant",
+    content: msg.content,
+  }));
+  messages.push({ role: "user" as const, content: userInput });
 
-  const messages = [
-    { role: "system" as const, content: systemPrompt },
-    ...session.conversation.map((msg) => ({
-      role: (msg.role === "patient" ? "assistant" : "user") as "assistant" | "user",
-      content: msg.content,
-    })),
-    { role: "user" as const, content: userInput },
-  ];
-
-  const completion = await groq.chat.completions.create({
-    model: AI_MODELS.smart,
-    temperature: 0.7,
-    max_tokens: 1024,
+  const result = await geminiTextCompletion(
+    system,
     messages,
-  });
+    { temperature: 0.7, maxOutputTokens: 1024 },
+  );
 
-  const response = completion.choices[0]?.message?.content;
-  if (!response) {
-    throw new Error("Empty patient response from AI");
+  if (result.error || !result.data) {
+    throw new Error(result.error?.message ?? "Empty patient response from AI");
   }
 
-  return response;
+  return result.data;
 }
 
 export async function gradeSession(
@@ -48,16 +38,15 @@ export async function gradeSession(
 
   const userPrompt = `## CASE DETAILS\n${session.caseFullDetails}\n\n## TRANSCRIPT\n${transcript}\n\n## EVALUATION\nEvaluate the student's performance strictly based on the above transcript and case.`;
 
-  const result = await aiJsonCompletion<OsceGradeResult>(
-    AI_MODELS.smart,
+  const result = await geminiJsonCompletion<OsceGradeResult>(
     systemPrompt,
     userPrompt,
-    { fallbackModel: AI_MODELS.fast },
+    { temperature: 0.3, maxOutputTokens: 4096 },
   );
 
-  if (result.error) {
-    throw new Error(result.error.message);
+  if (result.error || !result.data) {
+    throw new Error(result.error?.message ?? "Failed to grade session");
   }
 
-  return result.data!;
+  return result.data;
 }
