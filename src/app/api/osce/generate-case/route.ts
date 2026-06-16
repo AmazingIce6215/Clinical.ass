@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateGeminiText } from "@/lib/gemini-text";
+import { AI_MODELS, aiJsonCompletion } from "@/lib/groq";
 import { buildCaseGenerationPrompt } from "@/lib/osce/prompts";
 import type { OsceCase, Difficulty } from "@/lib/osce/state";
 
@@ -14,34 +14,18 @@ export async function POST(request: Request) {
 
     const prompt = buildCaseGenerationPrompt(difficulty);
 
-    const result = await generateGeminiText({
+    const result = await aiJsonCompletion<OsceCase>(
+      AI_MODELS.smart,
+      "You are a medical educator generating OSCE cases. Return ONLY valid JSON. No markdown formatting. No code blocks.",
       prompt,
-      systemPrompt:
-        "You are a medical educator generating OSCE cases. Return ONLY valid JSON. No markdown formatting. No code blocks.",
-      temperature: 0.8,
-      maxOutputTokens: 2048,
-      modelCandidates: [
-        "gemini-2.0-flash",
-        "gemini-1.5-flash",
-        "gemini-2.0-flash-lite",
-      ],
-    });
+      { fallbackModel: AI_MODELS.fast },
+    );
 
-    const cleaned = result.text
-      .replace(/```json\s*/gi, "")
-      .replace(/```\s*/g, "")
-      .trim();
-
-    const firstBrace = cleaned.indexOf("{");
-    const lastBrace = cleaned.lastIndexOf("}");
-    if (firstBrace === -1 || lastBrace === -1) {
-      return NextResponse.json(
-        { error: "Failed to parse generated case" },
-        { status: 500 },
-      );
+    if (result.error) {
+      return NextResponse.json({ error: result.error.message }, { status: 500 });
     }
 
-    const caseData = JSON.parse(cleaned.slice(firstBrace, lastBrace + 1)) as OsceCase;
+    const caseData = result.data!;
     caseData.difficulty = difficulty;
 
     return NextResponse.json(caseData);
