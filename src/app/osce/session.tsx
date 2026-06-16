@@ -87,18 +87,15 @@ export function OsceSession({
         >
           ← Exit OSCE
         </button>
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-2 text-xs font-medium text-muted">
-            <span className="hidden sm:inline">Difficulty:</span>
-            <span className="rounded-full border border-border/60 px-2 py-0.5 text-[11px] font-semibold uppercase text-accent">
-              {session.difficulty}
-            </span>
-          </span>
-          <div className={`flex items-center gap-2 font-mono text-lg font-bold ${timerColor}`}>
-            <span className="h-2 w-2 rounded-full bg-current animate-pulse" />
-            {formatTime(timeLeft)}
-          </div>
+
+        <div className={`flex items-center gap-2 font-mono text-xl font-bold tracking-wider ${timerColor}`}>
+          <span className="h-2.5 w-2.5 rounded-full bg-current animate-pulse" />
+          {formatTime(timeLeft)}
         </div>
+
+        <span className="rounded-full border border-border/60 px-2.5 py-1 text-[11px] font-semibold uppercase text-accent">
+          {session.difficulty}
+        </span>
       </header>
 
       <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
