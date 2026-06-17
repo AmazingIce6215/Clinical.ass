@@ -244,7 +244,7 @@ export default function HomePage() {
             initial={shouldAnimate ? { opacity: 0 } : false}
             animate={shouldAnimate ? { opacity: 1 } : false}
             transition={{ duration: 0.5, delay: shouldAnimate ? 3 : 0 }}
-            className="grid grid-cols-1 gap-6 px-4 sm:grid-cols-3 sm:px-0"
+            className="grid grid-cols-1 gap-3 px-4 sm:grid-cols-3 sm:gap-4 sm:px-0"
           >
             {categories.map((cat, i) => (
               <motion.div
@@ -258,32 +258,22 @@ export default function HomePage() {
                 }}
               >
                 <GlassCard
-                  className={`flex h-full flex-col overflow-hidden bg-gradient-to-br ${cat.accent} p-5`}
+                  className={`bg-gradient-to-br ${cat.accent} p-4`}
                 >
-                  <div className="mb-4 flex items-center gap-3">
-                    <span className="text-2xl">{cat.icon}</span>
-                    <div>
-                      <h2 className="text-lg font-semibold leading-tight">{cat.title}</h2>
-                      <p className="text-xs text-muted">{cat.description}</p>
-                    </div>
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <span className="text-xl">{cat.icon}</span>
+                    <h2 className="text-base font-semibold">{cat.title}</h2>
                   </div>
-                  <div className="mt-auto space-y-2">
+                  <div className="space-y-1.5">
                     {cat.modes.map((mode) => (
                       <Link
                         key={mode.href}
                         href={mode.href}
-                        className="group flex items-center gap-3 rounded-xl border border-border/40 bg-surface/50 px-3.5 py-3 text-sm transition hover:border-accent/30 hover:bg-accent/5"
+                        className="flex items-center gap-2 rounded-lg border border-border/30 bg-surface/60 px-3 py-2 text-xs transition hover:border-accent/30 hover:bg-accent/5"
                       >
-                        <span className="text-lg">{mode.icon}</span>
-                        <div className="flex-1">
-                          <p className="font-medium text-foreground transition group-hover:text-accent">
-                            {mode.title}
-                          </p>
-                          <p className="text-xs text-muted">{mode.desc}</p>
-                        </div>
-                        <span className="text-muted transition group-hover:text-accent group-hover:translate-x-0.5">
-                          →
-                        </span>
+                        <span>{mode.icon}</span>
+                        <span className="font-medium text-foreground">{mode.title}</span>
+                        <span className="ml-auto text-muted">→</span>
                       </Link>
                     ))}
                   </div>
