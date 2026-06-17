@@ -6,6 +6,7 @@ export interface Database {
           id: string;
           first_name: string;
           pin_hash: string | null;
+          device_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -13,6 +14,7 @@ export interface Database {
           id: string;
           first_name: string;
           pin_hash?: string | null;
+          device_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };

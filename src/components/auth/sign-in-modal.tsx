@@ -26,7 +26,8 @@ function ErrorBox({ message }: { message: string | null }) {
 
 export function SignInModal() {
   const { create, unlock } = useAuth();
-  const [step, setStep] = useState<"name" | "pin">("name");
+  const [step, setStep] = useState<"role" | "name" | "pin">("role");
+  const [isNew, setIsNew] = useState(true);
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -40,10 +41,18 @@ export function SignInModal() {
       return;
     }
     setError(null);
-    setLoading(true);
-    await checkProfile(trimmed);
+
+    if (!isNew) {
+      setLoading(true);
+      const profile = await checkProfile(trimmed);
+      setLoading(false);
+      if (!profile.exists) {
+        setError("No profile found with that username.");
+        return;
+      }
+    }
+
     setStep("pin");
-    setLoading(false);
   };
 
   const submitPin = async (e: React.FormEvent) => {
@@ -55,10 +64,7 @@ export function SignInModal() {
     setError(null);
     setLoading(true);
 
-    const exists = (await checkProfile(name)).exists;
-    const err = exists
-      ? await unlock(name, pin)
-      : await create(name, pin);
+    const err = isNew ? await create(name, pin) : await unlock(name, pin);
 
     if (err) setError(err);
     setLoading(false);
@@ -66,6 +72,13 @@ export function SignInModal() {
 
   const goBack = () => {
     setStep("name");
+    setPin("");
+    setError(null);
+  };
+
+  const goToRole = () => {
+    setStep("role");
+    setName("");
     setPin("");
     setError(null);
   };
@@ -79,7 +92,50 @@ export function SignInModal() {
         className="w-full max-w-sm rounded-2xl border border-border/70 bg-surface/95 p-6 shadow-soft"
       >
         <AnimatePresence mode="wait">
-          {step === "name" ? (
+          {step === "role" ? (
+            <motion.div
+              key="role"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="space-y-5"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.35 }}
+                className="space-y-1"
+              >
+                <h2 className="text-xl font-semibold">Welcome to Clinical.ass</h2>
+                <p className="text-sm text-muted">Are you new here or returning?</p>
+              </motion.div>
+              <div className="flex flex-col gap-3">
+                <motion.button
+                  type="button"
+                  onClick={() => { setIsNew(true); setStep("name"); }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.35 }}
+                  className="group w-full rounded-xl border border-border/60 bg-surface/60 px-5 py-4 text-left transition hover:border-accent/40 hover:bg-accent/5"
+                >
+                  <span className="text-sm font-medium">{"✨"} I&apos;m new here</span>
+                  <p className="mt-0.5 text-xs text-muted">Create a new account</p>
+                </motion.button>
+                <motion.button
+                  type="button"
+                  onClick={() => { setIsNew(false); setStep("name"); }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25, duration: 0.35 }}
+                  className="group w-full rounded-xl border border-border/60 bg-surface/60 px-5 py-4 text-left transition hover:border-accent/40 hover:bg-accent/5"
+                >
+                  <span className="text-sm font-medium">{"↩️"} I&apos;m back</span>
+                  <p className="mt-0.5 text-xs text-muted">Sign in to your account</p>
+                </motion.button>
+              </div>
+            </motion.div>
+          ) : step === "name" ? (
             <motion.form
               key="name"
               onSubmit={submitName}
@@ -93,10 +149,25 @@ export function SignInModal() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.35 }}
-                className="space-y-1"
+                className="flex items-center gap-2"
               >
-                <p className="text-sm text-muted">Before we begin,&nbsp;tell&nbsp;us</p>
-                <h2 className="text-xl font-semibold">What&apos;s your username?</h2>
+                <button
+                  type="button"
+                  onClick={goToRole}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-surface/80 hover:text-foreground"
+                >
+                  ←
+                </button>
+                <div className="space-y-0.5">
+                  {isNew ? (
+                    <>
+                      <p className="text-sm text-muted">Before we begin,&nbsp;give us</p>
+                      <h2 className="text-xl font-semibold">What&apos;s your username?</h2>
+                    </>
+                  ) : (
+                    <h2 className="text-xl font-semibold">Enter your username</h2>
+                  )}
+                </div>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
@@ -141,7 +212,7 @@ export function SignInModal() {
                   ←
                 </button>
                 <div>
-                  <p className="text-sm text-muted">Enter your PIN</p>
+                  <p className="text-sm text-muted">{isNew ? "Create a new PIN" : "Enter your PIN"}</p>
                   <p className="text-xs text-muted/60">{name}</p>
                 </div>
               </motion.div>

@@ -20,6 +20,7 @@ interface StoredProfile {
 
 const PROFILES_KEY = "clincalass-profiles";
 const SESSION_KEY = "clincalass-session";
+const DEVICE_ID_KEY = "clinicalass_device_id";
 const LEGACY_USERS_KEY = "dxflow-users";
 const LEGACY_SESSION_KEY = "dxflow-session";
 
@@ -63,6 +64,16 @@ function getProfiles(): StoredProfile[] {
 
 function saveProfiles(profiles: StoredProfile[]) {
   writeJson(PROFILES_KEY, profiles);
+}
+
+function getDeviceId(): string {
+  if (typeof window === "undefined") return "server";
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
 }
 
 async function hashPin(pin: string): Promise<string> {
@@ -154,6 +165,15 @@ export async function createProfile(
       return { error: `"${capitalized}" already has a profile. Switch to unlock below.` };
     }
 
+    const deviceId = getDeviceId();
+    const { data: limitCheck } = await supabase.rpc("check_device_limit", {
+      p_device_id: deviceId,
+    });
+
+    if (limitCheck && !(limitCheck as { allowed: boolean }).allowed) {
+      return { error: "Only 3 accounts can be created per device." };
+    }
+
     const id = crypto.randomUUID();
     const pinHash = pin ? await hashPin(pin) : null;
 
@@ -161,6 +181,7 @@ export async function createProfile(
       id,
       first_name: capitalized,
       pin_hash: pinHash,
+      device_id: deviceId,
     });
 
     if (error) {
