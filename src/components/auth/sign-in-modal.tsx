@@ -215,20 +215,20 @@ export function SignInModal() {
               <h2 className="text-xl font-semibold">Stay anonymous</h2>
             </div>
             <div className="mt-5 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-muted">
-              <p className="mb-2 font-medium text-foreground">Your data lives on this device</p>
+              <p className="mb-2 font-medium text-foreground">Local only — no cloud sync</p>
               <p>
-                Everything you do — your name, saved cases, stats, and preferences — is stored{" "}
-                <strong>only in your browser&apos;s local storage</strong>. Nothing is sent to any
-                server, and there are no accounts or passwords to lose.
+                Staying anonymous means everything stays{" "}
+                <strong>on this device</strong> — your cases, stats, and activity live in
+                your browser&apos;s local storage and never leave.
               </p>
               <p className="mt-3">
-                If you clear your browser data or use a different device, your history won&apos;t
-                carry over.
+                If you want your data synced so it follows you across devices, go back and
+                create a username with a PIN instead.
               </p>
             </div>
             <div className="mt-5 space-y-3">
               <PrimaryButton type="button" onClick={goAnonymous} className="w-full">
-                I understand, let me in
+                Stay local
               </PrimaryButton>
             </div>
           </motion.div>
