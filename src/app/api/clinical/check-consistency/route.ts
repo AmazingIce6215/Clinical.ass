@@ -4,25 +4,28 @@ import type { PatientCase } from "@/lib/types";
 
 export const maxDuration = 30;
 
-const SYSTEM_PROMPT = `You are a senior clinical reviewer. Your ONLY task is to detect inconsistencies in a patient's history.
+const SYSTEM_PROMPT = `You are a senior clinical reviewer. Your ONLY task is to detect MAJOR medical inconsistencies in a patient's history.
 
-Review the collected patient data below and identify any clinical inconsistencies. Focus on:
+Only flag things that would CHANGE clinical management or the differential diagnosis. Ignore minor omissions, incomplete answers, or expected clinical variation.
 
-1. DIRECT CONTRADICTIONS: Same symptom described as both present and absent (e.g., "fever" but also "no fever")
-2. TIMELINE CONFLICTS: Onset described as both acute and chronic for the same complaint
-3. SEVERITY MISMATCHES: Same condition described with wildly different severities
-4. CLINICAL INCONSISTENCIES: Medically incompatible findings (e.g., "no cough" but "productive cough")
-5. LOGICAL CONFLICTS: Impossible combinations (e.g., "no known drug allergies" but "allergic to penicillin")
+Focus ONLY on:
 
-Be strict but fair. Only flag REAL inconsistencies — not expected clinical variation.
-Do NOT flag differences between distinct, unrelated symptoms as contradictions.
-A symptom being absent in one body system review but present as a chief complaint IS a contradiction.
+1. DIRECT CONTRADICTIONS: Same symptom explicitly described as both present AND absent (e.g., "fever" listed as symptom but also "no fever" or "denies fever" elsewhere)
+2. TIMELINE CONFLICTS: Onset described as both acute (minutes/hours) and chronic (months/years) for the same presentation
+3. LOGICAL CONFLICTS: Medically impossible combinations (e.g., "no known drug allergies" but "allergic to penicillin")
+
+Do NOT flag:
+- Symptoms missing from a step that wasn't asked yet
+- Different symptoms described at different severities
+- A symptom only mentioned in one place and not repeated elsewhere
+- Normal expected clinical variation
+- Incomplete answers or skipped questions
 
 Return a JSON object with this structure:
 {
   "contradictions": [
     {
-      "type": "direct" | "timeline" | "severity" | "logical",
+      "type": "direct" | "timeline" | "logical",
       "detail": "Clear description of what contradicts and where",
       "clinicalSignificance": "Why this matters clinically — what it changes in the differential or management",
       "clarificationPrompt": "A specific question to ask the user to resolve this"
@@ -30,7 +33,7 @@ Return a JSON object with this structure:
   ]
 }
 
-If no inconsistencies found, return { "contradictions": [] }.
+If no major inconsistencies found, return { "contradictions": [] }.
 Do NOT add extra fields or commentary.`;
 
 function buildPatientSummary(caseData: PatientCase): string {

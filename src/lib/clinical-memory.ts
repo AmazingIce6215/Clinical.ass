@@ -7,12 +7,6 @@ const DENIAL_PREFIXES = [
   "no history of", "never", "does not have",
 ];
 
-const SEVERITY_LEVELS = [
-  ["mild", "minimal", "slight", "minor"],
-  ["moderate", "intermediate"],
-  ["severe", "severe / debilitating", "intense", "extreme", "excruciating"],
-];
-
 const TIMELINE_ACUTE = [
   "sudden", "acute", "minutes", "hours", "abrupt", "immediate",
 ];
@@ -90,14 +84,6 @@ function isDenial(text: string): { denied: boolean; symptom: string } {
   return { denied: false, symptom: lower };
 }
 
-function isSeverityTerm(term: string): number | null {
-  const lower = normalize(term);
-  for (let level = 0; level < SEVERITY_LEVELS.length; level++) {
-    if (SEVERITY_LEVELS[level].includes(lower)) return level;
-  }
-  return null;
-}
-
 function isTimelineTerm(term: string): "acute" | "chronic" | null {
   const lower = normalize(term);
   if (TIMELINE_ACUTE.includes(lower)) return "acute";
@@ -165,15 +151,6 @@ function extractEntries(
     }
   }
 
-  if (allDenied && !anyDenied) {
-    entries.push({
-      symptom: fieldKey,
-      present: false,
-      source: fieldKey,
-      rawValue: "denied",
-    });
-  }
-
   return entries;
 }
 
@@ -190,11 +167,7 @@ function detectDirectContradictions(
       const normalizedOld = normalizeSymptom(oldEntry.symptom);
       const normalizedNew = normalizeSymptom(newEntry.symptom);
 
-      const sameSymptom =
-        normalizedOld === normalizedNew ||
-        normalizedNew.includes(normalizedOld) ||
-        normalizedOld.includes(normalizedNew) ||
-        (normalizedOld.split(/\s+/).some((w: string) => w.length > 3 && normalizedNew.includes(w)));
+      const sameSymptom = normalizedOld === normalizedNew;
 
       if (sameSymptom && oldEntry.present !== newEntry.present) {
         const symptomDisplay = oldEntry.symptom.length > 2 ? oldEntry.symptom : "this symptom";
@@ -249,70 +222,6 @@ function detectTimelineContradictions(
   return results;
 }
 
-function detectSeverityContradictions(
-  existing: ClinicalMemoryEntry[],
-  incoming: ClinicalMemoryEntry[],
-): ClinicalContradiction[] {
-  const results: ClinicalContradiction[] = [];
-  const allEntries = [...existing, ...incoming];
-
-  const symptomLevels: Map<string, { level: number; source: string; rawValue: string }[]> = new Map();
-
-  for (const entry of allEntries) {
-    const level = isSeverityTerm(entry.symptom);
-    if (level !== null) {
-      const cluster = findSymptomCluster(entry.source, allEntries);
-      for (const symptom of cluster) {
-        const existing = symptomLevels.get(symptom) ?? [];
-        existing.push({ level, source: entry.source, rawValue: entry.rawValue });
-        symptomLevels.set(symptom, existing);
-      }
-    }
-  }
-
-  for (const [, entries] of symptomLevels) {
-    if (entries.length < 2) continue;
-    const levels = entries.map((e) => e.level);
-    const min = Math.min(...levels);
-    const max = Math.max(...levels);
-    if (max - min >= 2) {
-      const high = entries.find((e) => e.level === max)!;
-      const low = entries.find((e) => e.level === min)!;
-      results.push({
-        type: "severity",
-        symptom: high.source === low.source ? high.rawValue : `${high.rawValue} vs ${low.rawValue}`,
-        detail: `Severity mismatch: "${high.rawValue}" in ${high.source} vs "${low.rawValue}" in ${low.source} for the same clinical concern.`,
-        clinicalSignificance: `Severity guides urgency and investigation intensity. Mild and severe presentations of the same condition require different diagnostic approaches and management pathways.`,
-        clarificationPrompt: `Can you clarify the true severity? Is there a specific reason the severity varies (e.g., symptoms that come and go, or different times of day)?`,
-        previousEntry: {
-          symptom: severityLabel(min),
-          present: true,
-          source: low.source,
-          rawValue: low.rawValue,
-        },
-        newEntry: {
-          symptom: severityLabel(max),
-          present: true,
-          source: high.source,
-          rawValue: high.rawValue,
-        },
-        severity: "medium",
-      });
-    }
-  }
-
-  return results;
-}
-
-function findSymptomCluster(source: string, entries: ClinicalMemoryEntry[]): string[] {
-  const sourceEntries = entries.filter((e) => e.source === source);
-  return [...new Set(sourceEntries.map((e) => e.symptom).filter((s) => s.length > 2))];
-}
-
-function severityLabel(level: number): string {
-  return ["mild", "moderate", "severe"][level] ?? "unknown";
-}
-
 export function detectContradictions(
   patientCase: PatientCase,
   fieldKey: string,
@@ -323,9 +232,8 @@ export function detectContradictions(
 
   const direct = detectDirectContradictions(existing, incoming);
   const timeline = detectTimelineContradictions(existing, incoming);
-  const severity = detectSeverityContradictions(existing, incoming);
 
-  return [...direct, ...timeline, ...severity];
+  return [...direct, ...timeline];
 }
 
 export async function aiDetectContradictions(

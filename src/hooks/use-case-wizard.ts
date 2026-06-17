@@ -81,9 +81,8 @@ export function useCaseWizard(mode: Mode) {
   const [coPilotLoading, setCoPilotLoading] = useState(false);
   const [coPilotError, setCoPilotError] = useState<string | null>(null);
   const [coPilotStale, setCoPilotStale] = useState(false);
-  const [contradiction, setContradiction] = useState<ClinicalContradiction | null>(null);
-  const [contradictionClarification, setContradictionClarification] = useState("");
-  const pendingContradiction = useRef<{ updated: PatientCase; newStack: StepRecord[] } | null>(null);
+  const [activeContradictions, setActiveContradictions] = useState<ClinicalContradiction[]>([]);
+  const [expandedContradictionIdx, setExpandedContradictionIdx] = useState<number | null>(null);
   const aiCheckVersion = useRef(0);
   const aiAbortRef = useRef<AbortController | null>(null);
 
@@ -312,53 +311,31 @@ export function useCaseWizard(mode: Mode) {
     const updated = applyAnswer(patientCase, currentStep, value);
     const newStack = [...stepStack, { fieldKey: currentStep.fieldKey, category: currentStep.category }];
 
+    // Non-blocking: add contradictions to list, always advance
     const detected = detectContradictions(updated, currentStep.fieldKey, value);
     if (detected.length > 0) {
-      setContradiction(detected[0]);
-      setContradictionClarification("");
-      pendingContradiction.current = { updated, newStack };
-      return;
+      setActiveContradictions((prev) => [...prev, ...detected]);
     }
 
-    // Rule-based check passed — fire AI deep scan asynchronously
+    // Fire AI deep scan asynchronously (non-blocking)
     const version = ++aiCheckVersion.current;
     aiDetectContradictions(updated).then((aiDetected) => {
       if (aiDetected.length > 0 && version === aiCheckVersion.current) {
-        setContradiction(aiDetected[0]);
-        setContradictionClarification("");
-        pendingContradiction.current = { updated, newStack };
+        setActiveContradictions((prev) => [...prev, ...aiDetected]);
       }
     });
 
     await advanceStep(updated, newStack);
   };
 
-  const resolveContradiction = async () => {
-    if (!pendingContradiction.current || !currentStep) return;
-    const { updated, newStack } = pendingContradiction.current;
-
-    if (contradictionClarification.trim()) {
-      const existing = updated.history[currentStep.fieldKey];
-      const clarification = `[CLARIFIED: ${contradictionClarification.trim()}]`;
-      if (Array.isArray(existing)) {
-        updated.history = { ...updated.history, [currentStep.fieldKey]: [...existing, clarification] };
-      } else if (typeof existing === "string") {
-        updated.history = { ...updated.history, [currentStep.fieldKey]: `${existing} ${clarification}` };
-      } else {
-        updated.history = { ...updated.history, [`${currentStep.fieldKey}_clarification`]: clarification };
-      }
-    }
-
-    setContradiction(null);
-    setContradictionClarification("");
-    pendingContradiction.current = null;
-    await advanceStep(updated, newStack);
+  const resolveContradiction = (idx: number, clarification: string) => {
+    setActiveContradictions((prev) => prev.filter((_, i) => i !== idx));
+    setExpandedContradictionIdx((prev) => (prev === idx ? null : prev));
   };
 
-  const dismissContradiction = () => {
-    setContradiction(null);
-    setContradictionClarification("");
-    pendingContradiction.current = null;
+  const dismissContradiction = (idx: number) => {
+    setActiveContradictions((prev) => prev.filter((_, i) => i !== idx));
+    setExpandedContradictionIdx((prev) => (prev === idx ? null : prev));
   };
 
   const skipStep = async () => {
@@ -370,10 +347,6 @@ export function useCaseWizard(mode: Mode) {
   };
 
   const goBack = async () => {
-    if (contradiction) {
-      dismissContradiction();
-      return;
-    }
     if (phase === "complaints") {
       setPhase("demographics");
       return;
@@ -501,9 +474,9 @@ export function useCaseWizard(mode: Mode) {
     coPilotError,
     coPilotStale,
     analyzeCoPilot,
-    contradiction,
-    contradictionClarification,
-    setContradictionClarification,
+    activeContradictions,
+    expandedContradictionIdx,
+    setExpandedContradictionIdx,
     resolveContradiction,
     dismissContradiction,
     goToComplaints,
