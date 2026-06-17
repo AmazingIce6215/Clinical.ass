@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
+import { OnboardingGuide } from "@/components/onboarding-guide";
 
 const getStoredUserName = () => {
   if (typeof window === "undefined") return "";
@@ -14,6 +15,7 @@ const getStoredUserName = () => {
 export function AvatarButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const storedName = useSyncExternalStore(
     (notify) => {
       if (typeof window === "undefined") return () => {};
@@ -138,6 +140,14 @@ export function AvatarButton() {
                   <span>{"📚"} Library</span>
                   <span className="text-muted">{"→"}</span>
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => { setIsOpen(false); setShowGuide(true); }}
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/10 hover:text-accent"
+                >
+                  <span>{"📖"} Guide</span>
+                  <span className="text-muted">{"→"}</span>
+                </button>
                 <Link
                   href="/settings"
                   className="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/10 hover:text-accent"
@@ -200,6 +210,11 @@ export function AvatarButton() {
           )}
         </AnimatePresence>
       </div>
+      <OnboardingGuide
+        open={showGuide}
+        userName={userName}
+        onClose={() => setShowGuide(false)}
+      />
     </motion.div>
   );
 }
