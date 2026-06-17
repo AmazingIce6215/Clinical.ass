@@ -1,18 +1,8 @@
-/**
- * Device-bound profile.
- *
- * Threat model: this is NOT a real account system. There is no server.
- * Everything (including any "PIN") lives in the same localStorage that
- * powers the rest of the app. Anyone with DevTools can read, change,
- * or impersonate any profile. The PIN is a soft UX gate, not a
- * security boundary. Do not store real PII here.
- *
- * If real PII or cross-device sync is ever required, swap this for a
- * proper backend (Supabase, Clerk, NextAuth, etc.).
- */
+import { createClient } from "@/lib/supabase/client";
 
 export interface AuthSession {
   userId: string;
+  email: string | null;
   firstName: string;
   createdAt: number;
 }
@@ -20,7 +10,7 @@ export interface AuthSession {
 interface StoredProfile {
   id: string;
   firstName: string;
-  pinHash: string | null; // null = no PIN set
+  pinHash: string | null;
   createdAt: number;
 }
 
@@ -28,6 +18,14 @@ const PROFILES_KEY = "clincalass-profiles";
 const SESSION_KEY = "clincalass-session";
 const LEGACY_USERS_KEY = "dxflow-users";
 const LEGACY_SESSION_KEY = "dxflow-session";
+
+function isSupabaseConfigured(): boolean {
+  if (typeof window === "undefined") return false;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return false;
+  return !url.includes("your-project-id");
+}
 
 function readJson<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -63,9 +61,6 @@ function saveProfiles(profiles: StoredProfile[]) {
   writeJson(PROFILES_KEY, profiles);
 }
 
-// SHA-256 of a 4-digit PIN. Deliberately fast — a 4-digit space has
-// only 10k possibilities, so a slow hash would be theatre. This is a
-// UX gate, not a security boundary.
 async function hashPin(pin: string): Promise<string> {
   const enc = new TextEncoder();
   const buf = await crypto.subtle.digest("SHA-256", enc.encode(`clincalass-pin:${pin}`));
@@ -74,7 +69,21 @@ async function hashPin(pin: string): Promise<string> {
     .join("");
 }
 
-export function getSession(): AuthSession | null {
+export async function getSession(): Promise<AuthSession | null> {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.user) {
+      const user = data.session.user;
+      return {
+        userId: user.id,
+        email: user.email ?? null,
+        firstName: (user.user_metadata?.first_name as string) ?? user.email?.split("@")[0] ?? "User",
+        createdAt: new Date(user.created_at).getTime(),
+      };
+    }
+  }
+
   const session = readJson<AuthSession | null>(SESSION_KEY, null);
   if (session) return session;
 
@@ -94,6 +103,27 @@ export async function createProfile(
   if (name.length < 2) return { error: "Enter your first name (at least 2 letters)." };
   if (pin && !/^\d{4}$/.test(pin)) return { error: "PIN must be exactly 4 digits." };
 
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signUp({
+      email: `${name.toLowerCase().replace(/\s+/g, ".")}@clincalass.local`,
+      password: pin ?? `${name}${Date.now()}`,
+      options: {
+        data: { first_name: capitalizeName(name) },
+      },
+    });
+    if (error) return { error: error.message };
+    if (!data.user) return { error: "Failed to create account." };
+    return {
+      session: {
+        userId: data.user.id,
+        email: data.user.email ?? null,
+        firstName: capitalizeName(name),
+        createdAt: Date.now(),
+      },
+    };
+  }
+
   const profiles = getProfiles();
   const exists = profiles.some((p) => p.firstName.toLowerCase() === name.toLowerCase());
   if (exists) return { error: "That name is taken on this device. Switch profile instead." };
@@ -108,6 +138,7 @@ export async function createProfile(
 
   const session: AuthSession = {
     userId: profile.id,
+    email: null,
     firstName: profile.firstName,
     createdAt: profile.createdAt,
   };
@@ -120,6 +151,25 @@ export async function unlockProfile(
   pin?: string,
 ): Promise<{ session?: AuthSession; error?: string; needsPin?: boolean }> {
   const name = normalizeName(firstName);
+
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: `${name.toLowerCase().replace(/\s+/g, ".")}@clincalass.local`,
+      password: pin ?? `${name}${Date.now()}`,
+    });
+    if (error) return { error: error.message };
+    if (!data.user) return { error: "No profile found." };
+    return {
+      session: {
+        userId: data.user.id,
+        email: data.user.email ?? null,
+        firstName: (data.user.user_metadata?.first_name as string) ?? capitalizeName(name),
+        createdAt: Date.now(),
+      },
+    };
+  }
+
   const profiles = getProfiles();
   const profile = profiles.find((p) => p.firstName.toLowerCase() === name.toLowerCase());
   if (!profile) return { error: "No profile with that name on this device." };
@@ -133,6 +183,7 @@ export async function unlockProfile(
 
   const session: AuthSession = {
     userId: profile.id,
+    email: null,
     firstName: profile.firstName,
     createdAt: profile.createdAt,
   };
@@ -140,7 +191,11 @@ export async function unlockProfile(
   return { session };
 }
 
-export function logoutUser() {
+export async function logoutUser() {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+  }
   if (typeof window !== "undefined") localStorage.removeItem(SESSION_KEY);
 }
 
@@ -156,7 +211,7 @@ export function listProfiles() {
 export function deleteProfile(id: string) {
   const remaining = getProfiles().filter((p) => p.id !== id);
   saveProfiles(remaining);
-  const current = getSession();
+  const current = readJson<AuthSession | null>(SESSION_KEY, null);
   if (current?.userId === id) logoutUser();
 }
 

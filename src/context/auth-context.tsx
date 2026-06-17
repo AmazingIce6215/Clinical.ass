@@ -15,6 +15,7 @@ import {
   unlockProfile,
   type AuthSession,
 } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/client";
 import { setLibraryUserId } from "@/lib/case-library";
 import { setStatsUserId } from "@/lib/teaching-stats";
 
@@ -23,14 +24,38 @@ interface AuthContextValue {
   ready: boolean;
   create: (firstName: string, pin?: string) => Promise<string | null>;
   unlock: (firstName: string, pin?: string) => Promise<string | null>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<AuthSession | null>(() => getSession());
-  const [ready] = useState(true);
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    getSession().then((s) => {
+      setSession(s);
+      setReady(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setSession({
+          userId: session.user.id,
+          email: session.user.email ?? null,
+          firstName: (session.user.user_metadata?.first_name as string) ?? session.user.email?.split("@")[0] ?? "User",
+          createdAt: new Date(session.user.created_at).getTime(),
+        });
+      } else {
+        setSession(null);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     setLibraryUserId(session?.userId ?? null);
@@ -55,8 +80,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return null;
   }, []);
 
-  const logout = useCallback(() => {
-    logoutUser();
+  const logout = useCallback(async () => {
+    await logoutUser();
     setSession(null);
     setLibraryUserId(null);
     setStatsUserId(null);

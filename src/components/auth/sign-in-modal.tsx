@@ -39,10 +39,10 @@ export function SignInModal() {
             <span className="text-sm font-bold">Cl</span>
           </div>
           <h2 className="mt-3 text-xl font-semibold">
-            {mode === "create" ? "Create a device profile" : "Unlock your profile"}
+            {mode === "create" ? "Create a profile" : "Unlock your profile"}
           </h2>
           <p className="mt-2 text-sm text-muted">
-            Profiles live on this device only. They are not accounts and there is no password recovery.
+            Enter your first name to get started.
           </p>
         </div>
 
@@ -83,7 +83,7 @@ export function SignInModal() {
 
           <PrimaryButton type="submit" disabled={loading} className="w-full">
             {loading
-              ? "Please wait…"
+              ? "Please wait\u2026"
               : mode === "create"
                 ? "Create profile"
                 : "Unlock"}
@@ -101,7 +101,7 @@ export function SignInModal() {
             className="text-sm text-muted hover:text-accent"
           >
             {mode === "create"
-              ? "Already have a profile on this device? Unlock"
+              ? "Already have a profile? Unlock"
               : "New here? Create a profile"}
           </button>
         </div>
