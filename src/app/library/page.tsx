@@ -114,21 +114,21 @@ function LibraryContent() {
 
   return (
     <AppShell backHref="/" title="Case Library" subtitle="Your saved cases">
-      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by title, complaint, subject..."
           className="flex-1 rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm outline-none focus:border-accent/50"
         />
-        <div className="flex flex-wrap gap-1.5 sm:gap-2">
+        <div className="flex flex-wrap gap-2">
           {(["all", "clinical", "classic", "teaching"] as const).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setFilter(m)}
               className={cn(
-                "rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition sm:px-3 sm:text-xs",
+                "rounded-lg px-3 py-1.5 text-xs font-medium transition",
                 filter === m ? "bg-accent text-accent-foreground" : "border border-border/60 bg-surface",
               )}
             >
@@ -138,9 +138,9 @@ function LibraryContent() {
           {items.length > 0 && (
             <SecondaryButton
               onClick={handleClearAll}
-              className="px-2.5 py-1.5 text-[11px] text-red-600 dark:text-red-400 sm:px-3 sm:text-xs"
+              className="px-3 py-1.5 text-xs text-red-600 dark:text-red-400"
             >
-              Clear
+              Clear all saves
             </SecondaryButton>
           )}
         </div>
@@ -154,9 +154,9 @@ function LibraryContent() {
           </p>
         </GlassCard>
       ) : (
-        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((c) => (
-            <GlassCard key={c.id} className="flex flex-col max-sm:p-3">
+            <GlassCard key={c.id} className="flex flex-col">
               <div className="flex items-start justify-between gap-2">
                 <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-accent">
                   {MODE_LABELS[c.mode]}

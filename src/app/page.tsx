@@ -255,7 +255,7 @@ export default function HomePage() {
                 <Link href={mode.href} className="block h-full">
                   <GlassCard
                     hover
-                    className={`group relative flex h-full flex-col overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg max-sm:min-h-0 max-sm:p-3`}
+                    className={`group relative flex h-full flex-col overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg`}
                   >
                     <div className="relative z-10 flex h-full flex-col">
                       <span className="text-3xl">{mode.icon}</span>

@@ -108,7 +108,7 @@ export function GlassCard({
   return (
     <Comp
       className={cn(
-        "rounded-2xl border border-border/70 bg-surface/80 p-6 shadow-soft backdrop-blur-xl",
+        "glass-card rounded-2xl border border-border/70 bg-surface/80 p-6 shadow-soft backdrop-blur-xl",
         className,
       )}
       {...motionProps}

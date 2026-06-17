@@ -52,15 +52,15 @@ export default function StatsPage() {
 
   return (
     <AppShell backHref="/" title="Learning Stats" subtitle="Track your teaching mode performance">
-      <div className="mx-auto max-w-5xl space-y-4 sm:space-y-8 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0">
-        <div className="space-y-4 sm:space-y-8 lg:col-span-2">
+      <div className="mx-auto max-w-5xl space-y-8 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0">
+        <div className="space-y-8 lg:col-span-2">
         {/* A. Overall Performance */}
         <FadeSlide>
-          <GlassCard className="max-sm:p-4">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-accent/90 sm:mb-6 sm:text-sm">
+          <GlassCard>
+            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Overall Performance
             </p>
-            <div className="grid gap-3 sm:gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-3">
               <StatCard
                 label="Questions Attempted"
                 value={overall.totalAttempted.toString()}
@@ -80,8 +80,8 @@ export default function StatsPage() {
 
         {/* B. Subject Breakdown */}
         <FadeSlide delay={0.1}>
-          <GlassCard className="max-sm:p-4">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-accent/90 sm:mb-6 sm:text-sm">
+          <GlassCard>
+            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Subject Breakdown
             </p>
             {subjects.length === 0 ? (
@@ -145,11 +145,11 @@ export default function StatsPage() {
 
         {/* C. Weak Topics */}
         <FadeSlide delay={0.2}>
-          <GlassCard className="max-sm:p-4">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.32em] text-accent/90 sm:text-sm">
+          <GlassCard>
+            <p className="mb-1 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Weak Topics
             </p>
-            <p className="mb-4 text-[11px] text-muted sm:mb-6 sm:text-xs">
+            <p className="mb-6 text-xs text-muted">
               Topics ranked by repeated incorrect answers
             </p>
             {weakTopics.length === 0 ? (
@@ -217,8 +217,8 @@ export default function StatsPage() {
 
         {/* E. Recent Activity */}
         <FadeSlide delay={0.3}>
-          <GlassCard className="max-sm:p-4">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-accent/90 sm:mb-6 sm:text-sm">
+          <GlassCard>
+            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Recent Activity
             </p>
             {recent.length === 0 ? (
@@ -274,14 +274,14 @@ export default function StatsPage() {
         </FadeSlide>
       </div>
 
-      <div className="space-y-4 sm:space-y-8 lg:col-span-1">
+      <div className="space-y-8 lg:col-span-1">
         {/* D. Streak + Heatmap */}
         <FadeSlide delay={0.1}>
-          <GlassCard className="max-sm:p-4">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-accent/90 sm:mb-6 sm:text-sm">
+          <GlassCard>
+            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
               Study Streak
             </p>
-            <div className="mb-6 grid gap-3 sm:mb-8 sm:gap-4 sm:grid-cols-3">
+            <div className="mb-8 grid gap-4 sm:grid-cols-3">
               <StatCard
                 label="Current Streak"
                 value={`${streak.current} day${streak.current !== 1 ? "s" : ""}`}

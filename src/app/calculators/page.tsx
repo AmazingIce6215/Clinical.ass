@@ -72,12 +72,12 @@ export default function CalculatorsPage() {
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative flex-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted sm:left-3.5 sm:text-sm">🔍</span>
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search calculators..."
-                className="w-full rounded-xl border border-border/80 bg-surface/60 py-2.5 pl-9 pr-3 text-sm outline-none transition placeholder:text-muted/50 focus:border-accent/50 focus:ring-2 focus:ring-accent/20 sm:py-3 sm:pl-10 sm:pr-4"
-              />
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search calculators..."
+        className="mb-6 w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-2.5 text-sm outline-none focus:border-accent/50"
+      />
             </div>
             <button
               type="button"

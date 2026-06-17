@@ -278,7 +278,7 @@ function WizardCard({
   children: React.ReactNode;
 }) {
   return (
-    <GlassCard className="max-w-2xl max-sm:p-4">
+    <GlassCard className="max-w-2xl">
       <div className="mb-4 flex items-start gap-3 sm:mb-6 sm:gap-4">
         <motion.div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-xs font-bold text-accent sm:h-10 sm:w-10 sm:text-sm">
           {step}
