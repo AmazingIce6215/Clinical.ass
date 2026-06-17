@@ -48,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const create = useCallback(async (firstName: string, pin: string) => {
     const result = await createProfile(firstName, pin);
     if (result.error) return result.error;
+    localStorage.removeItem("clinicalass_onboarded");
     setSession(result.session!);
     setLibraryUserId(result.session!.userId);
     setStatsUserId(result.session!.userId);
