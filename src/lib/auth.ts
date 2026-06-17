@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/client";
 
+export interface ProfileCheck {
+  exists: boolean;
+  hasPin: boolean;
+}
+
 export interface AuthSession {
   userId: string;
   firstName: string;
@@ -66,6 +71,34 @@ async function hashPin(pin: string): Promise<string> {
   return Array.from(new Uint8Array(buf))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+export async function checkProfile(firstName: string): Promise<ProfileCheck> {
+  const name = normalizeName(firstName);
+
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("profiles")
+      .select("pin_hash, first_name");
+
+    const profile = data?.find(
+      (p: { first_name: string; pin_hash: string | null }) =>
+        p.first_name.toLowerCase() === name.toLowerCase(),
+    );
+
+    if (profile) {
+      return { exists: true, hasPin: profile.pin_hash !== null };
+    }
+    return { exists: false, hasPin: false };
+  }
+
+  const profiles = getProfiles();
+  const profile = profiles.find((p) => p.firstName.toLowerCase() === name.toLowerCase());
+  if (profile) {
+    return { exists: true, hasPin: Boolean(profile.pinHash) };
+  }
+  return { exists: false, hasPin: false };
 }
 
 export async function getSession(): Promise<AuthSession | null> {
@@ -186,13 +219,13 @@ export async function unlockProfile(
       (p) => p.first_name.toLowerCase() === name.toLowerCase(),
     );
 
-    if (!profile) return { error: "No profile with that name." };
+    if (!profile) return { error: "Incorrect username or PIN." };
 
     if (profile.pin_hash) {
-      if (!pin) return { needsPin: true, error: "Enter your 4-digit PIN." };
+      if (!pin) return { needsPin: true, error: "Enter your PIN." };
       if (!/^\d{4}$/.test(pin)) return { error: "PIN must be 4 digits." };
       const candidate = await hashPin(pin);
-      if (candidate !== profile.pin_hash) return { error: "Wrong PIN." };
+      if (candidate !== profile.pin_hash) return { error: "Incorrect username or PIN." };
     }
 
     writeJson(SESSION_KEY, profile.id);
@@ -207,13 +240,13 @@ export async function unlockProfile(
 
   const profiles = getProfiles();
   const profile = profiles.find((p) => p.firstName.toLowerCase() === name.toLowerCase());
-  if (!profile) return { error: "No profile with that name on this device." };
+  if (!profile) return { error: "Incorrect username or PIN." };
 
   if (profile.pinHash) {
-    if (!pin) return { needsPin: true, error: "Enter your 4-digit PIN." };
+    if (!pin) return { needsPin: true, error: "Enter your PIN." };
     if (!/^\d{4}$/.test(pin)) return { error: "PIN must be 4 digits." };
     const candidate = await hashPin(pin);
-    if (candidate !== profile.pinHash) return { error: "Wrong PIN." };
+    if (candidate !== profile.pinHash) return { error: "Incorrect username or PIN." };
   }
 
   const session: AuthSession = {
