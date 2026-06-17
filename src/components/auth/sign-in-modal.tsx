@@ -9,153 +9,112 @@ import { checkProfile } from "@/lib/auth";
 export function SignInModal() {
   const { create, unlock } = useAuth();
   const [step, setStep] = useState<"name" | "pin">("name");
-  const [firstName, setFirstName] = useState("");
+  const [name, setName] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [existing, setExisting] = useState(false);
 
   const submitName = async (e: React.FormEvent) => {
     e.preventDefault();
-    const name = firstName.trim();
-    if (name.length < 2) {
-      setError("Enter your name (at least 2 letters).");
+    const trimmed = name.trim();
+    if (trimmed.length < 2) {
+      setError("Username must be at least 2 characters.");
       return;
     }
     setError(null);
     setLoading(true);
-
-    const profile = await checkProfile(name);
-    setExisting(profile.exists);
+    await checkProfile(trimmed);
     setStep("pin");
-
     setLoading(false);
   };
 
   const submitPin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pin || !/^\d{4}$/.test(pin)) {
-      setError("PIN must be exactly 4 digits.");
+    if (!/^\d{4}$/.test(pin)) {
+      setError("PIN must be 4 digits.");
       return;
     }
     setError(null);
     setLoading(true);
 
-    const err = existing
-      ? await unlock(firstName, pin)
-      : await create(firstName, pin);
+    const exists = (await checkProfile(name)).exists;
+    const err = exists
+      ? await unlock(name, pin)
+      : await create(name, pin);
 
     if (err) setError(err);
     setLoading(false);
   };
 
-  const reset = () => {
+  const goBack = () => {
     setStep("name");
     setPin("");
     setError(null);
-    setExisting(false);
   };
+
+  if (step === "name") {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-sm rounded-2xl border border-border/70 bg-surface/95 p-6 shadow-soft"
+        >
+          <form onSubmit={submitName} className="space-y-4">
+              <h2 className="text-lg font-semibold">Hey, tell us your username</h2>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Username"
+              className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+              autoFocus
+              required
+            />
+            {error && (
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            )}
+            <PrimaryButton type="submit" disabled={loading} className="w-full">
+              {loading ? "..." : "Continue"}
+            </PrimaryButton>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-md rounded-2xl border border-border/70 bg-surface/95 p-8 shadow-soft backdrop-blur-xl"
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-sm rounded-2xl border border-border/70 bg-surface/95 p-6 shadow-soft"
       >
-        <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-accent-foreground shadow-glow">
-            <span className="text-lg font-bold">Cl</span>
+        <form onSubmit={submitPin} className="space-y-4">
+          <div className="flex items-center gap-2 text-sm text-muted">
+            <span>{name}</span>
+            <button type="button" onClick={goBack} className="text-accent hover:underline">
+              Change
+            </button>
           </div>
-
-          {step === "name" ? (
-            <>
-              <h2 className="mt-3 text-xl font-semibold">Hey, what should we call you?</h2>
-              <p className="mt-2 text-sm text-muted">
-                Enter your name to get started.
-              </p>
-            </>
-          ) : (
-            <>
-              <h2 className="mt-3 text-xl font-semibold">
-                {existing ? "Welcome back" : "Nice to meet you"}
-              </h2>
-              <p className="mt-2 text-sm text-muted">
-                {existing
-                  ? "Enter your PIN to unlock."
-                  : "Create a 4-digit PIN to secure your profile."}
-              </p>
-            </>
+          <h2 className="text-lg font-semibold">Enter your PIN</h2>
+          <input
+            type="password"
+            inputMode="numeric"
+            maxLength={4}
+            value={pin}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+            placeholder="4-digit PIN"
+            className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm tracking-[0.5em] outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+            autoFocus
+            required
+          />
+          {error && (
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           )}
-        </div>
-
-        {step === "name" ? (
-          <form onSubmit={submitName} className="space-y-4">
-            <label className="block space-y-2">
-              <span className="text-sm font-medium text-muted">Your name</span>
-              <input
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="e.g. Rivindu"
-                className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-                autoComplete="given-name"
-                autoFocus
-                required
-              />
-            </label>
-
-            {error && (
-              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            )}
-
-            <PrimaryButton type="submit" disabled={loading} className="w-full">
-              {loading ? "Checking\u2026" : "Continue"}
-            </PrimaryButton>
-          </form>
-        ) : (
-          <form onSubmit={submitPin} className="space-y-4">
-            <div className="rounded-xl border border-border/50 bg-surface/50 px-4 py-3 text-sm">
-              <span className="text-muted">Name: </span>
-              <span className="font-medium">{firstName}</span>
-              <button
-                type="button"
-                onClick={reset}
-                className="ml-2 text-accent hover:underline"
-              >
-                Change
-              </button>
-            </div>
-
-            <label className="block space-y-2">
-              <span className="text-sm font-medium text-muted">4-digit PIN</span>
-              <input
-                type="password"
-                inputMode="numeric"
-                pattern="\d{4}"
-                maxLength={4}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                placeholder={existing ? "Enter your PIN" : "Choose a PIN"}
-                className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm tracking-[0.5em] outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-                autoComplete="off"
-                autoFocus
-                required
-              />
-            </label>
-
-            {error && (
-              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            )}
-
-            <PrimaryButton type="submit" disabled={loading} className="w-full">
-              {loading ? "Please wait\u2026" : existing ? "Unlock" : "Create profile"}
-            </PrimaryButton>
-          </form>
-        )}
+          <PrimaryButton type="submit" disabled={loading} className="w-full">
+            {loading ? "..." : "Go"}
+          </PrimaryButton>
+        </form>
       </motion.div>
     </div>
   );
