@@ -12,7 +12,7 @@ import type {
   SavedCase,
   Sex,
 } from "@/lib/types";
-import { detectContradictions } from "@/lib/clinical-memory";
+import { detectContradictions, aiDetectContradictions } from "@/lib/clinical-memory";
 import { formatAiError } from "@/lib/ai";
 import { diagnosisToInsight } from "@/lib/clinical-ai";
 import { getLocalClinicalInsight } from "@/lib/clinical-fallback";
@@ -84,6 +84,7 @@ export function useCaseWizard(mode: Mode) {
   const [contradiction, setContradiction] = useState<ClinicalContradiction | null>(null);
   const [contradictionClarification, setContradictionClarification] = useState("");
   const pendingContradiction = useRef<{ updated: PatientCase; newStack: StepRecord[] } | null>(null);
+  const aiCheckVersion = useRef(0);
   const aiAbortRef = useRef<AbortController | null>(null);
 
   const apiBase = mode === "classic" ? "/api/classic" : "/api/clinical";
@@ -318,6 +319,16 @@ export function useCaseWizard(mode: Mode) {
       pendingContradiction.current = { updated, newStack };
       return;
     }
+
+    // Rule-based check passed — fire AI deep scan asynchronously
+    const version = ++aiCheckVersion.current;
+    aiDetectContradictions(updated).then((aiDetected) => {
+      if (aiDetected.length > 0 && version === aiCheckVersion.current) {
+        setContradiction(aiDetected[0]);
+        setContradictionClarification("");
+        pendingContradiction.current = { updated, newStack };
+      }
+    });
 
     await advanceStep(updated, newStack);
   };

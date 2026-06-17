@@ -22,8 +22,61 @@ const TIMELINE_CHRONIC = [
   "progressive", "long-standing",
 ];
 
+const SYMPTOM_SYNONYMS: Record<string, string[]> = {
+  "shortness of breath": ["dyspnea", "sob", "difficulty breathing", "breathless", "breathlessness", "can't breathe", "hard to breathe", "struggling to breathe", "fighting for air", "short of breath", "out of breath", "cannot catch breath"],
+  "chest pain": ["chest discomfort", "chest tightness", "angina", "crushing chest", "substernal pressure", "chest pressure", "retrosternal pain", "stabbing chest", "chest burning"],
+  "fever": ["pyrexia", "febrile", "high temperature", "hot", "temperature", "feeling feverish", "rigors"],
+  "cough": ["coughing", "hacking", "productive cough", "dry cough", "nonproductive cough", "barking cough"],
+  "nausea": ["feeling sick", "queasy", "sick to stomach", "bilious"],
+  "vomiting": ["throwing up", "being sick", "emesis", "regurgitation", "puking"],
+  "diarrhea": ["loose stools", "watery stools", "frequent stools", "runs", "gastroenteritis"],
+  "headache": ["cephalgia", "head pain", "migraine", "splitting headache", "throbbing head"],
+  "abdominal pain": ["stomach ache", "belly pain", "abdominal discomfort", "stomach pain", "tummy ache", "abdominal cramps", "gastric pain", "colicky pain"],
+  "dizziness": ["vertigo", "lightheadedness", "feeling faint", "presyncope", "woozy", "off balance", "spinning"],
+  "fatigue": ["tiredness", "exhaustion", "lethargy", "weakness", "lack of energy", "worn out", "drained"],
+  "weight loss": ["unintentional weight loss", "losing weight", "cachexia", "wasting"],
+  "palpitations": ["heart racing", "skipping beats", "irregular heartbeat", "pounding heart", "fluttering"],
+  "syncope": ["fainting", "passed out", "blacked out", "loss of consciousness", "collapse", "unconscious"],
+  "edema": ["swelling", "fluid retention", "puffy", "dependent edema", "pedal edema", "ankle swelling"],
+  "rash": ["skin eruption", "hives", "urticaria", "breakout", "spots", "lesion", "erythema"],
+  "jaundice": ["yellowing", "icterus", "yellow skin", "yellow eyes"],
+  "anxiety": ["nervousness", "panic", "worry", "restlessness", "agitation", "stress"],
+  "depression": ["low mood", "sadness", "hopeless", "despair", "down", "melancholy"],
+  "insomnia": ["difficulty sleeping", "sleepless", "can't sleep", "poor sleep", "waking up"],
+  "back pain": ["spinal pain", "lumbago", "low back pain", "sciatica", "backache"],
+  "sore throat": ["pharyngitis", "throat pain", "scratchy throat", "throat irritation", "pain swallowing"],
+  "constipation": ["difficulty passing stool", "hard stools", "infrequent bowel", "obstipation"],
+  "seizure": ["convulsion", "fit", "epileptic episode", "spasms"],
+  "hemoptysis": ["coughing up blood", "blood in sputum", "blood-tinged sputum"],
+  "hematemesis": ["vomiting blood", "blood in vomit", "coffee ground emesis"],
+  "melena": ["black stools", "blood in stool", "dark tarry stools", "gastrointestinal bleed"],
+  "hematuria": ["blood in urine", "bloody urine", "red urine", "pink urine"],
+  "dysuria": ["painful urination", "burning urination", "stinging urine"],
+  "urinary frequency": ["frequent urination", "urinating often", "polyuria"],
+  "urinary urgency": ["urgent urination", "can't hold urine", "sudden urge"],
+  "weight gain": ["fluid overload", "increased weight", "bloated"],
+  "confusion": ["disorientation", "delirium", "altered mental state", "acute confusion", "not themselves", "agitation"],
+  "head injury": ["head trauma", "concussion", "knocked out", "blow to head"],
+  "numbness": ["tingling", "paresthesia", "loss of sensation", "pins and needles"],
+  "paralysis": ["weakness", "hemiparesis", "hemiplegia", "loss of movement", "cannot move", "monoparesis"],
+  "visual disturbance": ["blurred vision", "double vision", "diplopia", "vision loss", "blurry vision"],
+  "hearing loss": ["deafness", "difficulty hearing", "reduced hearing"],
+  "tinnitus": ["ringing in ears", "buzzing ears", "ear noise"],
+};
+
 function normalize(s: string): string {
   return s.toLowerCase().trim();
+}
+
+function normalizeSymptom(raw: string): string {
+  const lower = normalize(raw);
+  for (const [canonical, alternatives] of Object.entries(SYMPTOM_SYNONYMS)) {
+    if (lower === canonical || alternatives.includes(lower)) return canonical;
+    for (const alt of alternatives) {
+      if (lower.includes(alt) || alt.includes(lower)) return canonical;
+    }
+  }
+  return lower;
 }
 
 function isDenial(text: string): { denied: boolean; symptom: string } {
@@ -77,7 +130,7 @@ function extractEntries(
     if (denied) {
       anyDenied = true;
       entries.push({
-        symptom: symptom || fieldKey,
+        symptom: normalizeSymptom(symptom || fieldKey),
         present: false,
         source: fieldKey,
         rawValue: v,
@@ -87,7 +140,7 @@ function extractEntries(
       const syn = normalize(v);
       if (syn !== "skip" && syn !== "not applicable" && syn !== "") {
         entries.push({
-          symptom: syn,
+          symptom: normalizeSymptom(syn),
           present: true,
           source: fieldKey,
           rawValue: v,
@@ -134,10 +187,14 @@ function detectDirectContradictions(
     for (const oldEntry of existing) {
       if (oldEntry.source === newEntry.source) continue;
 
+      const normalizedOld = normalizeSymptom(oldEntry.symptom);
+      const normalizedNew = normalizeSymptom(newEntry.symptom);
+
       const sameSymptom =
-        oldEntry.symptom === newEntry.symptom ||
-        newEntry.symptom.includes(oldEntry.symptom) ||
-        oldEntry.symptom.includes(newEntry.symptom);
+        normalizedOld === normalizedNew ||
+        normalizedNew.includes(normalizedOld) ||
+        normalizedOld.includes(normalizedNew) ||
+        (normalizedOld.split(/\s+/).some((w: string) => w.length > 3 && normalizedNew.includes(w)));
 
       if (sameSymptom && oldEntry.present !== newEntry.present) {
         const symptomDisplay = oldEntry.symptom.length > 2 ? oldEntry.symptom : "this symptom";
@@ -271,6 +328,46 @@ export function detectContradictions(
   return [...direct, ...timeline, ...severity];
 }
 
+export async function aiDetectContradictions(
+  patientCase: PatientCase,
+): Promise<ClinicalContradiction[]> {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const res = await fetch("/api/clinical/check-consistency", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ patientCase }),
+    });
+
+    if (!res.ok) return [];
+
+    const data = await res.json() as {
+      contradictions?: Array<{
+        type: "direct" | "timeline" | "severity" | "logical";
+        detail: string;
+        clinicalSignificance: string;
+        clarificationPrompt: string;
+      }>;
+    };
+
+    if (!data.contradictions?.length) return [];
+
+    return data.contradictions.map((c) => ({
+      type: c.type,
+      symptom: c.detail.split(" ").slice(0, 3).join(" "),
+      detail: c.detail,
+      clinicalSignificance: c.clinicalSignificance,
+      clarificationPrompt: c.clarificationPrompt,
+      previousEntry: { symptom: "", present: false, source: "ai", rawValue: "" },
+      newEntry: { symptom: "", present: false, source: "ai", rawValue: "" },
+      severity: c.type === "direct" ? "high" : "medium",
+    }));
+  } catch {
+    return [];
+  }
+}
+
 function buildMemory(patientCase: PatientCase, skipField?: string): ClinicalMemoryEntry[] {
   const entries: ClinicalMemoryEntry[] = [];
 
@@ -287,7 +384,7 @@ function buildMemory(patientCase: PatientCase, skipField?: string): ClinicalMemo
 
   for (const complaint of patientCase.chiefComplaints) {
     entries.push({
-      symptom: normalize(complaint),
+      symptom: normalizeSymptom(complaint),
       present: true,
       source: "chief_complaint",
       rawValue: complaint,
