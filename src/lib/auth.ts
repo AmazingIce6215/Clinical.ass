@@ -134,11 +134,11 @@ export async function getSession(): Promise<AuthSession | null> {
 
 export async function createProfile(
   firstName: string,
-  pin?: string,
+  pin: string,
 ): Promise<{ session?: AuthSession; error?: string }> {
   const name = normalizeName(firstName);
   if (name.length < 2) return { error: "Enter your first name (at least 2 letters)." };
-  if (pin && !/^\d{4}$/.test(pin)) return { error: "PIN must be exactly 4 digits." };
+  if (!pin || !/^\d{4}$/.test(pin)) return { error: "PIN must be exactly 4 digits." };
 
   const capitalized = capitalizeName(name);
 

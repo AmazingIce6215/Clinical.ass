@@ -27,24 +27,23 @@ export function SignInModal() {
 
     const profile = await checkProfile(name);
     setExisting(profile.exists);
+    setStep("pin");
 
-    if (profile.exists && !profile.hasPin) {
-      const err = await unlock(name);
-      if (err) setError(err);
-    } else {
-      setStep("pin");
-    }
     setLoading(false);
   };
 
   const submitPin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!pin || !/^\d{4}$/.test(pin)) {
+      setError("PIN must be exactly 4 digits.");
+      return;
+    }
     setError(null);
     setLoading(true);
 
     const err = existing
-      ? await unlock(firstName, pin || undefined)
-      : await create(firstName, pin || undefined);
+      ? await unlock(firstName, pin)
+      : await create(firstName, pin);
 
     if (err) setError(err);
     setLoading(false);
@@ -73,7 +72,7 @@ export function SignInModal() {
             <>
               <h2 className="mt-3 text-xl font-semibold">Hey, what should we call you?</h2>
               <p className="mt-2 text-sm text-muted">
-                Your name is used for your profile and personalized greetings.
+                Enter your name to get started.
               </p>
             </>
           ) : (
@@ -84,7 +83,7 @@ export function SignInModal() {
               <p className="mt-2 text-sm text-muted">
                 {existing
                   ? "Enter your PIN to unlock."
-                  : "Add a 4-digit PIN or skip to leave it open."}
+                  : "Create a 4-digit PIN to secure your profile."}
               </p>
             </>
           )}
@@ -130,9 +129,7 @@ export function SignInModal() {
             </div>
 
             <label className="block space-y-2">
-              <span className="text-sm font-medium text-muted">
-                {existing ? "PIN" : "Optional 4-digit PIN"}
-              </span>
+              <span className="text-sm font-medium text-muted">4-digit PIN</span>
               <input
                 type="password"
                 inputMode="numeric"
@@ -140,10 +137,11 @@ export function SignInModal() {
                 maxLength={4}
                 value={pin}
                 onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                placeholder={existing ? "Enter your PIN" : "4 digits or leave blank"}
+                placeholder={existing ? "Enter your PIN" : "Choose a PIN"}
                 className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm tracking-[0.5em] outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
                 autoComplete="off"
                 autoFocus
+                required
               />
             </label>
 

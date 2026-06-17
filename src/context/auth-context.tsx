@@ -21,7 +21,7 @@ import { setStatsUserId } from "@/lib/teaching-stats";
 interface AuthContextValue {
   session: AuthSession | null;
   ready: boolean;
-  create: (firstName: string, pin?: string) => Promise<string | null>;
+  create: (firstName: string, pin: string) => Promise<string | null>;
   unlock: (firstName: string, pin?: string) => Promise<string | null>;
   logout: () => Promise<void>;
 }
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatsUserId(session?.userId ?? null);
   }, [session]);
 
-  const create = useCallback(async (firstName: string, pin?: string) => {
+  const create = useCallback(async (firstName: string, pin: string) => {
     const result = await createProfile(firstName, pin);
     if (result.error) return result.error;
     setSession(result.session!);
