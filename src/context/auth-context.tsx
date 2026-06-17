@@ -13,6 +13,7 @@ import {
   logoutUser,
   createProfile,
   unlockProfile,
+  resetPin as resetPinFn,
   type AuthSession,
 } from "@/lib/auth";
 import { setLibraryUserId } from "@/lib/case-library";
@@ -23,6 +24,7 @@ interface AuthContextValue {
   ready: boolean;
   create: (firstName: string, pin: string) => Promise<string | null>;
   unlock: (firstName: string, pin?: string) => Promise<string | null>;
+  resetPin: (firstName: string, newPin: string) => Promise<string | null>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -78,9 +80,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatsUserId(s?.userId ?? null);
   }, []);
 
+  const resetPin = useCallback(async (firstName: string, newPin: string) => {
+    const result = await resetPinFn(firstName, newPin);
+    if (result.error) return result.error;
+    setSession(result.session!);
+    setLibraryUserId(result.session!.userId);
+    setStatsUserId(result.session!.userId);
+    return null;
+  }, []);
+
   const value = useMemo(
-    () => ({ session, ready, create, unlock, logout, refresh }),
-    [session, ready, create, unlock, logout, refresh],
+    () => ({ session, ready, create, unlock, resetPin, logout, refresh }),
+    [session, ready, create, unlock, resetPin, logout, refresh],
   );
 
   return (

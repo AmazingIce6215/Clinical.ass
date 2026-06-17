@@ -78,7 +78,12 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      reset_pin_by_name: {
+        Args: { p_first_name: string; p_pin_hash: string };
+        Returns: { success: boolean; error?: string };
+      };
+    };
     Enums: Record<string, never>;
   };
 }

@@ -340,6 +340,65 @@ export async function updateProfile(data: {
   return {};
 }
 
+export async function getProfileCreatedAt(
+  firstName: string,
+): Promise<string | null> {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("profiles")
+      .select("created_at")
+      .ilike("first_name", firstName.trim());
+
+    if (data && data.length > 0) {
+      return (data[0] as { created_at: string }).created_at;
+    }
+  }
+  return null;
+}
+
+export async function resetPin(
+  firstName: string,
+  newPin: string,
+): Promise<{ session?: AuthSession; error?: string }> {
+  const name = capitalizeName(normalizeName(firstName));
+  if (!/^\d{4}$/.test(newPin)) return { error: "PIN must be 4 digits." };
+
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    const pinHash = await hashPin(newPin);
+
+    const { data, error } = await supabase.rpc("reset_pin_by_name", {
+      p_first_name: name,
+      p_pin_hash: pinHash,
+    });
+
+    if (error) return { error: error.message };
+    if (!(data as { success: boolean }).success) {
+      return { error: (data as { error?: string }).error || "Failed to reset PIN." };
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, first_name, created_at")
+      .eq("first_name", name)
+      .single();
+
+    if (!profile) return { error: "Profile not found after reset." };
+
+    writeJson(SESSION_KEY, (profile as { id: string }).id);
+    return {
+      session: {
+        userId: (profile as { id: string }).id,
+        firstName: (profile as { first_name: string }).first_name,
+        createdAt: new Date((profile as { created_at: string }).created_at).getTime(),
+      },
+    };
+  }
+
+  return { error: "Supabase not configured." };
+}
+
 export async function logoutUser() {
   if (typeof window !== "undefined") localStorage.removeItem(SESSION_KEY);
 }

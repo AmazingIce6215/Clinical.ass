@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { PrimaryButton } from "@/components/app-shell";
 import { useAuth } from "@/context/auth-context";
-import { checkProfile } from "@/lib/auth";
+import { checkProfile, getProfileCreatedAt } from "@/lib/auth";
 
 function ErrorBox({ message }: { message: string | null }) {
   return (
@@ -25,13 +25,15 @@ function ErrorBox({ message }: { message: string | null }) {
 }
 
 export function SignInModal() {
-  const { create, unlock } = useAuth();
-  const [step, setStep] = useState<"role" | "name" | "pin">("role");
+  const { create, unlock, resetPin } = useAuth();
+  const [step, setStep] = useState<"role" | "name" | "pin" | "forgot" | "reset-pin">("role");
   const [isNew, setIsNew] = useState(true);
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [forgotAttempts, setForgotAttempts] = useState(0);
+  const [forgotDate, setForgotDate] = useState("");
 
   const submitName = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,9 +72,60 @@ export function SignInModal() {
     setLoading(false);
   };
 
+  const submitForgotDate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotDate) {
+      setError("Please enter a date.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+
+    const createdAt = await getProfileCreatedAt(name);
+    setLoading(false);
+
+    if (!createdAt) {
+      setError("Could not verify account. Try again later.");
+      return;
+    }
+
+    const expected = createdAt.slice(0, 10);
+    if (forgotDate !== expected) {
+      setForgotAttempts((p) => p + 1);
+      setError("That doesn\u2019t match our records.");
+      return;
+    }
+
+    setStep("reset-pin");
+    setForgotDate("");
+  };
+
+  const submitNewPin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{4}$/.test(pin)) {
+      setError("PIN must be 4 digits.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+
+    const err = await resetPin(name, pin);
+
+    if (err) setError(err);
+    setLoading(false);
+  };
+
   const goBack = () => {
     setStep("name");
     setPin("");
+    setForgotDate("");
+    setError(null);
+  };
+
+  const goToPin = () => {
+    setStep("pin");
+    setPin("");
+    setForgotDate("");
     setError(null);
   };
 
@@ -80,6 +133,7 @@ export function SignInModal() {
     setStep("role");
     setName("");
     setPin("");
+    setForgotDate("");
     setError(null);
   };
 
@@ -119,7 +173,7 @@ export function SignInModal() {
                   transition={{ delay: 0.2, duration: 0.35 }}
                   className="group w-full rounded-xl border border-border/60 bg-surface/60 px-5 py-4 text-left transition hover:border-accent/40 hover:bg-accent/5"
                 >
-                  <span className="text-sm font-medium">{"✨"} I&apos;m new here</span>
+                  <span className="text-sm font-medium">{"\u2728"} I&apos;m new here</span>
                   <p className="mt-0.5 text-xs text-muted">Create a new account</p>
                 </motion.button>
                 <motion.button
@@ -130,7 +184,7 @@ export function SignInModal() {
                   transition={{ delay: 0.25, duration: 0.35 }}
                   className="group w-full rounded-xl border border-border/60 bg-surface/60 px-5 py-4 text-left transition hover:border-accent/40 hover:bg-accent/5"
                 >
-                  <span className="text-sm font-medium">{"↩️"} I&apos;m back</span>
+                  <span className="text-sm font-medium">{"\u21A9\uFE0F"} I&apos;m back</span>
                   <p className="mt-0.5 text-xs text-muted">Sign in to your account</p>
                 </motion.button>
               </div>
@@ -156,7 +210,7 @@ export function SignInModal() {
                   onClick={goToRole}
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-surface/80 hover:text-foreground"
                 >
-                  ←
+                  {"\u2190"}
                 </button>
                 <div className="space-y-0.5">
                   {isNew ? (
@@ -188,7 +242,7 @@ export function SignInModal() {
                 {loading ? "..." : "Continue"}
               </PrimaryButton>
             </motion.form>
-          ) : (
+          ) : step === "pin" ? (
             <motion.form
               key="pin"
               onSubmit={submitPin}
@@ -209,7 +263,7 @@ export function SignInModal() {
                   onClick={goBack}
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-surface/80 hover:text-foreground"
                 >
-                  ←
+                  {"\u2190"}
                 </button>
                 <div>
                   <p className="text-sm text-muted">{isNew ? "Create a new PIN" : "Enter your PIN"}</p>
@@ -234,8 +288,125 @@ export function SignInModal() {
                 />
               </motion.div>
               <ErrorBox message={error} />
+              <div className="space-y-3">
+                <PrimaryButton type="submit" disabled={loading} className="w-full">
+                  {loading ? "..." : "Go"}
+                </PrimaryButton>
+                {!isNew && forgotAttempts < 3 && (
+                  <motion.button
+                    type="button"
+                    onClick={() => setStep("forgot")}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="w-full text-center text-xs text-muted underline underline-offset-2 transition hover:text-foreground"
+                  >
+                    Forgot PIN?
+                  </motion.button>
+                )}
+              </div>
+            </motion.form>
+          ) : step === "forgot" ? (
+            <motion.form
+              key="forgot"
+              onSubmit={submitForgotDate}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="space-y-5"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.35 }}
+                className="flex items-center gap-2"
+              >
+                <button
+                  type="button"
+                  onClick={goToPin}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-surface/80 hover:text-foreground"
+                >
+                  {"\u2190"}
+                </button>
+                <div className="space-y-0.5">
+                  <p className="text-sm text-muted">Account recovery</p>
+                  <h2 className="text-xl font-semibold">When was it created?</h2>
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.35 }}
+                className="space-y-2"
+              >
+                <p className="text-xs text-muted">
+                  What date was this account created? Think back to when you first joined.
+                </p>
+                <input
+                  type="date"
+                  value={forgotDate}
+                  onChange={(e) => setForgotDate(e.target.value)}
+                  className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm outline-none transition focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+                  autoFocus
+                  required
+                />
+              </motion.div>
+              <ErrorBox message={error} />
               <PrimaryButton type="submit" disabled={loading} className="w-full">
-                {loading ? "..." : "Go"}
+                {loading ? "..." : "Verify"}
+              </PrimaryButton>
+            </motion.form>
+          ) : (
+            <motion.form
+              key="reset-pin"
+              onSubmit={submitNewPin}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="space-y-5"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.35 }}
+                className="flex items-center gap-2"
+              >
+                <button
+                  type="button"
+                  onClick={goToPin}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-surface/80 hover:text-foreground"
+                >
+                  {"\u2190"}
+                </button>
+                <div>
+                  <p className="text-sm text-muted">Account recovery</p>
+                  <p className="text-xs text-muted/60">{name}</p>
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.35 }}
+                className="space-y-1"
+              >
+                <h2 className="text-lg font-semibold">Create a new PIN</h2>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  placeholder="4-digit PIN"
+                  className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-center text-lg tracking-[0.5em] outline-none transition placeholder:text-muted/30 placeholder:text-sm focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+                  autoFocus
+                  required
+                />
+              </motion.div>
+              <ErrorBox message={error} />
+              <PrimaryButton type="submit" disabled={loading} className="w-full">
+                {loading ? "..." : "Set PIN"}
               </PrimaryButton>
             </motion.form>
           )}
