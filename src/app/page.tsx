@@ -5,7 +5,6 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
 import { useAuth } from "@/context/auth-context";
-import { OnboardingGuide } from "@/components/onboarding-guide";
 
 const modes = [
   {
@@ -151,10 +150,6 @@ export default function HomePage() {
     return !localStorage.getItem("clinicalass_onboarded");
   });
   const [heroStage, setHeroStage] = useState<"greeting" | "tagline">("greeting");
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !localStorage.getItem("clinicalass_onboarded");
-  });
   const [hasAnimated] = useState(() => {
     if (typeof window === "undefined") return false;
     return sessionStorage.getItem("homepageAnimated") === "true";
@@ -177,15 +172,14 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (showOnboarding) return;
     const timer = window.setTimeout(() => {
       setHeroStage("tagline");
       sessionStorage.setItem("homepageAnimated", "true");
     }, 2000);
     return () => window.clearTimeout(timer);
-  }, [showOnboarding]);
+  }, []);
 
-  const shouldAnimate = !hasAnimated && !prefersReducedMotion && !showOnboarding;
+  const shouldAnimate = !hasAnimated && !prefersReducedMotion;
 
   return (
     <AppShell>
@@ -196,15 +190,6 @@ export default function HomePage() {
           <span className="homepage-orb homepage-orb--three" />
           <span className="homepage-orb homepage-orb--four" />
         </div>
-
-        <OnboardingGuide
-          open={showOnboarding}
-          userName={userName}
-          onClose={() => {
-            localStorage.setItem("clinicalass_onboarded", "true");
-            setShowOnboarding(false);
-          }}
-        />
 
         <motion.section
           key="homepage"
