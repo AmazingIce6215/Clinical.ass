@@ -123,7 +123,7 @@ export function AvatarButton() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="absolute right-0 mt-2 w-[220px] overflow-hidden rounded-2xl border border-border/60 bg-surface/80 backdrop-blur-xl shadow-2xl max-sm:fixed max-sm:right-3 max-sm:w-[200px]"
+              className="absolute right-0 mt-2 w-[220px] overflow-hidden rounded-2xl border border-border/60 bg-surface/80 backdrop-blur-xl shadow-2xl max-sm:w-[200px]"
             >
               <div className="p-3">
                 <p className="text-xs text-muted">

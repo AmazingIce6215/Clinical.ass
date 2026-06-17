@@ -278,8 +278,8 @@ function WizardCard({
   children: React.ReactNode;
 }) {
   return (
-    <GlassCard className="max-w-2xl">
-      <div className="mb-6 flex items-start gap-3 sm:gap-4">
+    <GlassCard className="max-w-2xl max-sm:p-4">
+      <div className="mb-4 flex items-start gap-3 sm:mb-6 sm:gap-4">
         <motion.div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-xs font-bold text-accent sm:h-10 sm:w-10 sm:text-sm">
           {step}
         </motion.div>
@@ -307,15 +307,17 @@ function NavRow({
   nextLabel?: string;
 }) {
   return (
-    <div className="mt-8 flex items-center justify-between gap-3">
-      {onBack ? <SecondaryButton onClick={onBack}>Back</SecondaryButton> : <div />}
-      <div className="flex gap-2">
+    <div className="mt-6 flex flex-col items-stretch gap-2 sm:mt-8 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+      <div className="order-2 sm:order-1">
+        {onBack ? <SecondaryButton onClick={onBack} className="w-full sm:w-auto">Back</SecondaryButton> : null}
+      </div>
+      <div className="order-1 flex gap-2 sm:order-2">
         {onSkip && (
-          <SecondaryButton onClick={onSkip} className="text-muted">
+          <SecondaryButton onClick={onSkip} className="flex-1 text-muted sm:flex-initial sm:w-auto">
             Skip
           </SecondaryButton>
         )}
-        <PrimaryButton onClick={onNext} disabled={nextDisabled}>
+        <PrimaryButton onClick={onNext} disabled={nextDisabled} className="flex-1 sm:flex-initial">
           {nextLabel}
         </PrimaryButton>
       </div>

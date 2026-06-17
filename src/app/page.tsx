@@ -183,7 +183,7 @@ export default function HomePage() {
 
   return (
     <AppShell>
-      <div className="relative min-h-[calc(100dvh-6rem)] overflow-hidden">
+      <div className="relative min-h-0 overflow-hidden sm:min-h-[calc(100dvh-6rem)]">
         <div className="homepage-orbs" aria-hidden="true">
           <span className="homepage-orb homepage-orb--one" />
           <span className="homepage-orb homepage-orb--two" />
@@ -198,12 +198,12 @@ export default function HomePage() {
           transition={{ duration: 0.3 }}
           className="mx-auto flex max-w-4xl flex-1 flex-col justify-center py-8"
         >
-          <div className="mb-12 text-center">
+          <div className="mb-6 text-center sm:mb-12">
             <motion.div
               initial={shouldAnimate ? { opacity: 0, scale: 0.8 } : false}
               animate={shouldAnimate ? { opacity: 1, scale: 1 } : false}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted/10 text-5xl shadow-inner text-muted"
+              className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-muted/10 text-3xl shadow-inner text-muted sm:mb-6 sm:h-20 sm:w-20 sm:text-5xl"
             >
               <span>🩺</span>
             </motion.div>
@@ -255,7 +255,7 @@ export default function HomePage() {
                 <Link href={mode.href} className="block h-full">
                   <GlassCard
                     hover
-                    className={`group relative flex h-full min-h-[17rem] flex-col overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg max-sm:min-h-[13rem] max-sm:p-3`}
+                    className={`group relative flex h-full flex-col overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg max-sm:min-h-0 max-sm:p-3`}
                   >
                     <div className="relative z-10 flex h-full flex-col">
                       <span className="text-3xl">{mode.icon}</span>

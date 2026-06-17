@@ -68,15 +68,15 @@ export default function CalculatorsPage() {
       subtitle="Evidence-based scoring tools for clinical decision support"
     >
       <div className="mx-auto w-full max-w-5xl">
-        <div className="mb-6 space-y-4">
-          <div className="flex items-center gap-3">
+        <div className="mb-4 space-y-3 sm:mb-6 sm:space-y-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative flex-1">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-muted">🔍</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted sm:left-3.5 sm:text-sm">🔍</span>
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search calculators..."
-                className="w-full rounded-xl border border-border/80 bg-surface/60 py-3 pl-10 pr-4 text-sm outline-none transition placeholder:text-muted/50 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+                className="w-full rounded-xl border border-border/80 bg-surface/60 py-2.5 pl-9 pr-3 text-sm outline-none transition placeholder:text-muted/50 focus:border-accent/50 focus:ring-2 focus:ring-accent/20 sm:py-3 sm:pl-10 sm:pr-4"
               />
             </div>
             <button
@@ -86,7 +86,7 @@ export default function CalculatorsPage() {
                 setActiveCategory("all");
               }}
               className={cn(
-                "shrink-0 rounded-xl border px-4 py-3 text-sm font-medium transition",
+                "shrink-0 rounded-xl border px-3 py-2.5 text-xs font-medium transition sm:px-4 sm:py-3 sm:text-sm",
                 showFavoritesOnly
                   ? "border-accent bg-accent/10 text-accent"
                   : "border-border/80 bg-surface/60 text-muted hover:border-accent/30 hover:text-accent",
@@ -94,12 +94,12 @@ export default function CalculatorsPage() {
             >
               {showFavoritesOnly ? "★ Favorites" : "☆ Favorites"}
               {favorites.length > 0 && (
-                <span className="ml-1.5 text-xs text-muted">({favorites.length})</span>
+                <span className="ml-1 text-xs text-muted sm:ml-1.5">({favorites.length})</span>
               )}
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {categories.map((cat) => (
               <button
                 key={cat.id}
@@ -109,7 +109,7 @@ export default function CalculatorsPage() {
                   setShowFavoritesOnly(false);
                 }}
                 className={cn(
-                  "rounded-full border px-3.5 py-1.5 text-xs font-medium transition",
+                  "rounded-full border px-2.5 py-1 text-[11px] font-medium transition sm:px-3.5 sm:py-1.5 sm:text-xs",
                   activeCategory === cat.id
                     ? "border-accent bg-accent/10 text-accent"
                     : "border-border/60 bg-surface/50 text-muted hover:border-accent/30 hover:text-foreground",
@@ -145,7 +145,7 @@ export default function CalculatorsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3"
             >
               {filtered.map((calc) => (
                 <CalculatorCard
