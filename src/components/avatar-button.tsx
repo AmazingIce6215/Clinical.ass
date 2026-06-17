@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
 import { OnboardingGuide } from "@/components/onboarding-guide";
@@ -14,7 +13,6 @@ const getStoredUserName = () => {
 
 export function AvatarButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const [visible, setVisible] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const storedName = useSyncExternalStore(
     (notify) => {
@@ -27,35 +25,7 @@ export function AvatarButton() {
   );
   const { session, logout } = useAuth();
   const userName = storedName || session?.firstName || "";
-  const pathname = usePathname();
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // On the homepage, delay appearance until all animations finish (~4.5s)
-  useEffect(() => {
-    if (pathname === "/") {
-      if (userName) {
-        const timer = setTimeout(() => setVisible(true), 4500);
-        return () => clearTimeout(timer);
-      }
-    } else {
-      setVisible(true);
-    }
-  }, [pathname, userName]);
-
-  // Listen for onboarding completion to reset timer on first visit
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "clinicalass_onboarded" && e.newValue === "true" && pathname === "/" && userName) {
-        // Onboarding just completed, reset the timer
-        setVisible(false);
-        const timer = setTimeout(() => setVisible(true), 3500);
-        return () => clearTimeout(timer);
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [pathname, userName]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -79,12 +49,10 @@ export function AvatarButton() {
     };
   }, []);
 
-  // Hide button on the homepage name-prompt overlay during first visit
-  if (!userName && pathname === "/" && !session) return null;
+  // Hide button during the sign-in modal (no session yet)
+  if (!session) return null;
 
   const initial = userName ? userName.charAt(0).toUpperCase() : "\u{1F464}";
-
-  if (!visible) return null;
 
   return (
     <motion.div
