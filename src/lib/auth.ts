@@ -19,6 +19,10 @@ const SESSION_KEY = "clincalass-session";
 const LEGACY_USERS_KEY = "dxflow-users";
 const LEGACY_SESSION_KEY = "dxflow-session";
 
+function supabasePassword(pin: string | undefined, name: string): string {
+  return pin ? `cl${pin}x` : `cl${name.toLowerCase().replace(/\s+/g, "")}x`;
+}
+
 function isSupabaseConfigured(): boolean {
   if (typeof window === "undefined") return false;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -107,7 +111,7 @@ export async function createProfile(
     const supabase = createClient();
     const { data, error } = await supabase.auth.signUp({
       email: `${name.toLowerCase().replace(/\s+/g, ".")}@clincalass.local`,
-      password: pin ?? `${name}${Date.now()}`,
+      password: supabasePassword(pin, name),
       options: {
         data: { first_name: capitalizeName(name) },
       },
@@ -156,7 +160,7 @@ export async function unlockProfile(
     const supabase = createClient();
     const { data, error } = await supabase.auth.signInWithPassword({
       email: `${name.toLowerCase().replace(/\s+/g, ".")}@clincalass.local`,
-      password: pin ?? `${name}${Date.now()}`,
+      password: supabasePassword(pin, name),
     });
     if (error) return { error: error.message };
     if (!data.user) return { error: "No profile found." };
