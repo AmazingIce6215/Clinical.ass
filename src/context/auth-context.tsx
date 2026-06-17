@@ -15,7 +15,6 @@ import {
   unlockProfile,
   type AuthSession,
 } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/client";
 import { setLibraryUserId } from "@/lib/case-library";
 import { setStatsUserId } from "@/lib/teaching-stats";
 
@@ -38,23 +37,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(s);
       setReady(true);
     });
-  }, []);
-
-  useEffect(() => {
-    const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setSession({
-          userId: session.user.id,
-          email: session.user.email ?? null,
-          firstName: (session.user.user_metadata?.first_name as string) ?? session.user.email?.split("@")[0] ?? "User",
-          createdAt: new Date(session.user.created_at).getTime(),
-        });
-      } else {
-        setSession(null);
-      }
-    });
-    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {

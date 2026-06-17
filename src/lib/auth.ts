@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/client";
 
 export interface AuthSession {
   userId: string;
-  email: string | null;
   firstName: string;
   createdAt: number;
 }
@@ -18,10 +17,6 @@ const PROFILES_KEY = "clincalass-profiles";
 const SESSION_KEY = "clincalass-session";
 const LEGACY_USERS_KEY = "dxflow-users";
 const LEGACY_SESSION_KEY = "dxflow-session";
-
-function supabasePassword(pin: string | undefined, name: string): string {
-  return pin ? `cl${pin}x` : `cl${name.toLowerCase().replace(/\s+/g, "")}x`;
-}
 
 function isSupabaseConfigured(): boolean {
   if (typeof window === "undefined") return false;
@@ -75,16 +70,21 @@ async function hashPin(pin: string): Promise<string> {
 
 export async function getSession(): Promise<AuthSession | null> {
   if (isSupabaseConfigured()) {
-    const supabase = createClient();
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.user) {
-      const user = data.session.user;
-      return {
-        userId: user.id,
-        email: user.email ?? null,
-        firstName: (user.user_metadata?.first_name as string) ?? user.email?.split("@")[0] ?? "User",
-        createdAt: new Date(user.created_at).getTime(),
-      };
+    const sessionId = readJson<string | null>(SESSION_KEY, null);
+    if (sessionId) {
+      const supabase = createClient();
+      const result = await supabase
+        .from("profiles")
+        .select("id, first_name, created_at")
+        .eq("id", sessionId);
+      if (result.data && result.data.length > 0) {
+        const profile = result.data[0] as { id: string; first_name: string; created_at: string };
+        return {
+          userId: profile.id,
+          firstName: profile.first_name,
+          createdAt: new Date(profile.created_at).getTime(),
+        };
+      }
     }
   }
 
@@ -109,19 +109,21 @@ export async function createProfile(
 
   if (isSupabaseConfigured()) {
     const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({
-      email: `${name.toLowerCase().replace(/\s+/g, ".")}@clincalass.local`,
-      password: supabasePassword(pin, name),
-      options: {
-        data: { first_name: capitalizeName(name) },
-      },
+    const id = crypto.randomUUID();
+    const pinHash = pin ? await hashPin(pin) : null;
+
+    const { error } = await supabase.from("profiles").insert({
+      id,
+      first_name: capitalizeName(name),
+      pin_hash: pinHash,
     });
+
     if (error) return { error: error.message };
-    if (!data.user) return { error: "Failed to create account." };
+
+    writeJson(SESSION_KEY, id);
     return {
       session: {
-        userId: data.user.id,
-        email: data.user.email ?? null,
+        userId: id,
         firstName: capitalizeName(name),
         createdAt: Date.now(),
       },
@@ -142,7 +144,6 @@ export async function createProfile(
 
   const session: AuthSession = {
     userId: profile.id,
-    email: null,
     firstName: profile.firstName,
     createdAt: profile.createdAt,
   };
@@ -158,18 +159,31 @@ export async function unlockProfile(
 
   if (isSupabaseConfigured()) {
     const supabase = createClient();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: `${name.toLowerCase().replace(/\s+/g, ".")}@clincalass.local`,
-      password: supabasePassword(pin, name),
-    });
+    const { data: profiles, error } = await supabase
+      .from("profiles")
+      .select("id, first_name, pin_hash, created_at");
+
     if (error) return { error: error.message };
-    if (!data.user) return { error: "No profile found." };
+
+    const profile = profiles.find(
+      (p) => p.first_name.toLowerCase() === name.toLowerCase(),
+    );
+
+    if (!profile) return { error: "No profile with that name." };
+
+    if (profile.pin_hash) {
+      if (!pin) return { needsPin: true, error: "Enter your 4-digit PIN." };
+      if (!/^\d{4}$/.test(pin)) return { error: "PIN must be 4 digits." };
+      const candidate = await hashPin(pin);
+      if (candidate !== profile.pin_hash) return { error: "Wrong PIN." };
+    }
+
+    writeJson(SESSION_KEY, profile.id);
     return {
       session: {
-        userId: data.user.id,
-        email: data.user.email ?? null,
-        firstName: (data.user.user_metadata?.first_name as string) ?? capitalizeName(name),
-        createdAt: Date.now(),
+        userId: profile.id,
+        firstName: profile.first_name,
+        createdAt: new Date(profile.created_at).getTime(),
       },
     };
   }
@@ -187,7 +201,6 @@ export async function unlockProfile(
 
   const session: AuthSession = {
     userId: profile.id,
-    email: null,
     firstName: profile.firstName,
     createdAt: profile.createdAt,
   };
@@ -196,10 +209,6 @@ export async function unlockProfile(
 }
 
 export async function logoutUser() {
-  if (isSupabaseConfigured()) {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-  }
   if (typeof window !== "undefined") localStorage.removeItem(SESSION_KEY);
 }
 

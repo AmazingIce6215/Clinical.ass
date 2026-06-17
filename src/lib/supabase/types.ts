@@ -4,22 +4,22 @@ export interface Database {
       profiles: {
         Row: {
           id: string;
-          email: string | null;
           first_name: string;
+          pin_hash: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
-          email?: string | null;
           first_name: string;
+          pin_hash?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          email?: string | null;
           first_name?: string;
+          pin_hash?: string | null;
           updated_at?: string;
         };
       };
