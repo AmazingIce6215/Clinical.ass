@@ -80,7 +80,7 @@ export function AvatarButton() {
   }, []);
 
   // Hide button on the homepage name-prompt overlay during first visit
-  if (!userName && pathname === "/") return null;
+  if (!userName && pathname === "/" && !session) return null;
 
   const initial = userName ? userName.charAt(0).toUpperCase() : "\u{1F464}";
 

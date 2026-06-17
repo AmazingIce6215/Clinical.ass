@@ -14,6 +14,7 @@ import {
   createProfile,
   unlockProfile,
   resetPin as resetPinFn,
+  createAnonymousSession,
   type AuthSession,
 } from "@/lib/auth";
 import { setLibraryUserId } from "@/lib/case-library";
@@ -27,6 +28,7 @@ interface AuthContextValue {
   resetPin: (firstName: string, newPin: string) => Promise<string | null>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  goAnonymous: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -66,6 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return null;
   }, []);
 
+  const goAnonymous = useCallback(() => {
+    const s = createAnonymousSession();
+    setSession(s);
+    setLibraryUserId(s.userId);
+    setStatsUserId(s.userId);
+  }, []);
+
   const logout = useCallback(async () => {
     await logoutUser();
     setSession(null);
@@ -90,8 +99,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ session, ready, create, unlock, resetPin, logout, refresh }),
-    [session, ready, create, unlock, resetPin, logout, refresh],
+    () => ({ session, ready, create, unlock, resetPin, logout, refresh, goAnonymous }),
+    [session, ready, create, unlock, resetPin, logout, refresh, goAnonymous],
   );
 
   return (

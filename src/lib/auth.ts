@@ -112,6 +112,16 @@ export async function checkProfile(firstName: string): Promise<ProfileCheck> {
   return { exists: false, hasPin: false };
 }
 
+export function createAnonymousSession(): AuthSession {
+  const session: AuthSession = {
+    userId: crypto.randomUUID(),
+    firstName: "",
+    createdAt: Date.now(),
+  };
+  writeJson(SESSION_KEY, session);
+  return session;
+}
+
 export async function getSession(): Promise<AuthSession | null> {
   if (isSupabaseConfigured()) {
     const sessionId = readJson<string | null>(SESSION_KEY, null);

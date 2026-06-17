@@ -28,8 +28,8 @@ const cardClass = "w-full max-w-sm rounded-2xl border border-border/70 bg-surfac
 const stepTransition = { duration: 0.18, ease: "easeOut" as const };
 
 export function SignInModal() {
-  const { create, unlock, resetPin } = useAuth();
-  const [step, setStep] = useState<"role" | "name" | "pin" | "forgot" | "reset-pin">("role");
+  const { create, unlock, resetPin, goAnonymous } = useAuth();
+  const [step, setStep] = useState<"role" | "name" | "pin" | "forgot" | "reset-pin" | "anonymous">("role");
   const [isNew, setIsNew] = useState(true);
   const [name, setName] = useState("");
   const [pin, setPin] = useState("");
@@ -160,14 +160,14 @@ export function SignInModal() {
             >
               Welcome to Clinical.ass
             </motion.h1>
-            <div className="mt-8 flex w-full items-center justify-center gap-6">
+            <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:flex-row sm:gap-6">
               <motion.button
                 type="button"
                 onClick={() => { setIsNew(true); setStep("name"); }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.35, ease: "easeOut" }}
-                className="flex-1 max-w-[220px] rounded-2xl border border-border/60 bg-surface/70 px-6 py-6 text-center text-base font-medium shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:bg-accent/5 hover:shadow-md sm:py-8"
+                className="w-full max-w-[220px] rounded-2xl border border-border/60 bg-surface/70 px-6 py-6 text-center text-base font-medium shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:bg-accent/5 hover:shadow-md sm:py-8"
               >
                 <div className="text-xl sm:text-2xl">{"\u2728"}</div>
                 <div className="mt-2">I&apos;m a new user</div>
@@ -178,11 +178,58 @@ export function SignInModal() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.35, ease: "easeOut" }}
-                className="flex-1 max-w-[220px] rounded-2xl border border-border/60 bg-surface/70 px-6 py-6 text-center text-base font-medium shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:bg-accent/5 hover:shadow-md sm:py-8"
+                className="w-full max-w-[220px] rounded-2xl border border-border/60 bg-surface/70 px-6 py-6 text-center text-base font-medium shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:bg-accent/5 hover:shadow-md sm:py-8"
               >
                 <div className="text-2xl">{"\u21A9\uFE0F"}</div>
                 <div className="mt-2">I&apos;m a returning user</div>
               </motion.button>
+            </div>
+            <motion.button
+              type="button"
+              onClick={() => setStep("anonymous")}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.35, ease: "easeOut" }}
+              className="mt-6 text-sm text-muted underline underline-offset-2 transition hover:text-foreground"
+            >
+              Skip, stay anonymous
+            </motion.button>
+          </motion.div>
+        ) : step === "anonymous" ? (
+          <motion.div
+            key="anonymous"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={stepTransition}
+            className={cardClass}
+          >
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setStep("role")}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-surface/80 hover:text-foreground"
+              >
+                {"\u2190"}
+              </button>
+              <h2 className="text-xl font-semibold">Stay anonymous</h2>
+            </div>
+            <div className="mt-5 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm leading-relaxed text-muted">
+              <p className="mb-2 font-medium text-foreground">Your data lives on this device</p>
+              <p>
+                Everything you do — your name, saved cases, stats, and preferences — is stored{" "}
+                <strong>only in your browser&apos;s local storage</strong>. Nothing is sent to any
+                server, and there are no accounts or passwords to lose.
+              </p>
+              <p className="mt-3">
+                If you clear your browser data or use a different device, your history won&apos;t
+                carry over.
+              </p>
+            </div>
+            <div className="mt-5 space-y-3">
+              <PrimaryButton type="button" onClick={goAnonymous} className="w-full">
+                I understand, let me in
+              </PrimaryButton>
             </div>
           </motion.div>
         ) : step === "name" ? (
