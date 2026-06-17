@@ -5,6 +5,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { ClinicalContradiction } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+function RippleRing({ delay = 0 }: { delay?: number }) {
+  return (
+    <motion.span
+      className="pointer-events-none absolute inset-0 rounded-full border border-red-500/30"
+      initial={{ scale: 1, opacity: 0.6 }}
+      animate={{ scale: 3, opacity: 0 }}
+      transition={{
+        duration: 3,
+        delay,
+        repeat: Infinity,
+        ease: "easeOut",
+      }}
+    />
+  );
+}
+
 export function ContradictionIndicator({
   contradictions,
   expandedIdx,
@@ -21,11 +37,6 @@ export function ContradictionIndicator({
   const [clarifications, setClarifications] = useState<Record<number, string>>({});
 
   if (contradictions.length === 0) return null;
-
-  const severityColor =
-    contradictions.some((c) => c.severity === "high")
-      ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400"
-      : "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400";
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
@@ -66,37 +77,56 @@ export function ContradictionIndicator({
         )}
       </AnimatePresence>
 
-      <motion.button
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        onClick={() => {
-          if (expandedIdx !== null) {
-            onToggleExpand(expandedIdx);
-          } else if (contradictions.length > 0) {
-            onToggleExpand(0);
-          }
-        }}
-        className={cn(
-          "flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium shadow-lg backdrop-blur-md transition hover:brightness-110",
-          severityColor,
-        )}
-      >
-        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-current/20 text-[10px] font-bold text-current">
-          {contradictions.length}
-        </span>
-        <span>
-          {contradictions.length === 1
-            ? "Clinical inconsistency"
-            : `${contradictions.length} clinical inconsistencies`}
-        </span>
-        <motion.span
-          animate={{ rotate: expandedIdx !== null ? 180 : 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="text-current/60"
+      <div className="relative">
+        <RippleRing delay={0} />
+        <RippleRing delay={1} />
+        <RippleRing delay={2} />
+
+        <motion.button
+          onClick={() => {
+            if (expandedIdx !== null) {
+              onToggleExpand(expandedIdx);
+            } else if (contradictions.length > 0) {
+              onToggleExpand(0);
+            }
+          }}
+          animate={{
+            scale: [1, 1.08, 1],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          whileHover={{ scale: 1.12 }}
+          whileTap={{ scale: 0.92 }}
+          className="relative flex h-11 w-11 items-center justify-center rounded-full bg-red-500/15 shadow-lg backdrop-blur-md transition-colors hover:bg-red-500/25"
         >
-          ▼
-        </motion.span>
-      </motion.button>
+          <motion.span
+            className="text-sm font-bold text-red-500"
+            animate={{
+              textShadow: [
+                "0 0 4px rgba(239,68,68,0.3)",
+                "0 0 12px rgba(239,68,68,0.6)",
+                "0 0 4px rgba(239,68,68,0.3)",
+              ],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            !
+          </motion.span>
+
+          {contradictions.length > 1 && (
+            <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-sm">
+              {contradictions.length}
+            </span>
+          )}
+        </motion.button>
+      </div>
     </div>
   );
 }
