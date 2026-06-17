@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
+import { useAuth } from "@/context/auth-context";
 
 const modes = [
   {
@@ -139,32 +140,19 @@ function pickGreeting(firstName: string) {
     : template.replace(/\s*,\s*\{name\}/g, "").replaceAll("{name}", name);
 }
 
-function getStoredName() {
-  if (typeof window === "undefined") return "";
-  return localStorage.getItem("clinicalass_username")?.trim() || "";
-}
-
 export default function HomePage() {
-  const [greeting] = useState(() => pickGreeting(getStoredName()));
+  const { session } = useAuth();
+  const userName = session?.firstName ?? "";
+
+  const [greeting] = useState(() => pickGreeting(userName));
   const [isFirstVisit] = useState(() => {
     if (typeof window === "undefined") return false;
-    return !localStorage.getItem("clinicalass_username");
+    return !localStorage.getItem("clinicalass_onboarded");
   });
-  const [showPrompt, setShowPrompt] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !localStorage.getItem("clinicalass_username");
-  });
-  const [promptName, setPromptName] = useState("");
-  const [isPromptVisible, setIsPromptVisible] = useState(true);
-  const [promptEntered, setPromptEntered] = useState(false);
   const [heroStage, setHeroStage] = useState<"greeting" | "tagline">("greeting");
-  const [homepageVisible, setHomepageVisible] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return Boolean(localStorage.getItem("clinicalass_username"));
-  });
   const [showOnboarding, setShowOnboarding] = useState(() => {
     if (typeof window === "undefined") return false;
-    return !localStorage.getItem("clinicalass_onboarded") && Boolean(localStorage.getItem("clinicalass_username"));
+    return !localStorage.getItem("clinicalass_onboarded");
   });
   const [hasAnimated] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -184,25 +172,19 @@ export default function HomePage() {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handleChange);
-    const enterTimer = window.setTimeout(() => setPromptEntered(true), 20);
-
-    return () => {
-      mediaQuery.removeEventListener("change", handleChange);
-      window.clearTimeout(enterTimer);
-    };
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   useEffect(() => {
-    if (!homepageVisible) return;
+    if (showOnboarding) return;
     const timer = window.setTimeout(() => {
       setHeroStage("tagline");
       sessionStorage.setItem("homepageAnimated", "true");
     }, 2000);
     return () => window.clearTimeout(timer);
-  }, [homepageVisible]);
+  }, [showOnboarding]);
 
-  const shouldAnimate = !hasAnimated && !prefersReducedMotion && homepageVisible && !showOnboarding;
-  const storedName = getStoredName();
+  const shouldAnimate = !hasAnimated && !prefersReducedMotion && !showOnboarding;
 
   return (
     <AppShell>
@@ -214,7 +196,6 @@ export default function HomePage() {
           <span className="homepage-orb homepage-orb--four" />
         </div>
 
-        {/* Onboarding guide for first-time users */}
         <AnimatePresence>
           {showOnboarding && (
             <motion.div
@@ -234,7 +215,7 @@ export default function HomePage() {
                 <div className="text-center mb-5">
                   <p className="text-3xl mb-2">👋</p>
                   <h2 className="text-xl font-semibold text-foreground">
-                    Hey{storedName && storedName !== "Stranger" ? ` ${storedName}` : ""}, welcome aboard!
+                    Hey{userName ? ` ${userName}` : ""}, welcome aboard!
                   </h2>
                   <p className="mt-2 text-sm text-muted leading-relaxed">
                     Thanks for trying out Clinical.ass! Here&apos;s a quick overview of what you can do.
@@ -271,7 +252,6 @@ export default function HomePage() {
                   onClick={() => {
                     localStorage.setItem("clinicalass_onboarded", "true");
                     setShowOnboarding(false);
-                    setHomepageVisible(true);
                   }}
                   className="w-full rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
                 >
@@ -282,149 +262,96 @@ export default function HomePage() {
           )}
         </AnimatePresence>
 
-        {showPrompt ? (
-          <div
-            className={`absolute inset-0 z-20 flex items-center justify-center px-4 ${
-              isPromptVisible ? "prompt-shell prompt-shell--visible" : "prompt-shell prompt-shell--exit"
-            } ${promptEntered ? "prompt-shell--entered" : ""}`}
-          >
-            <div className="w-full max-w-xl text-center">
-              <p className="mx-auto max-w-lg text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Hey, what should we call you?
-              </p>
-              <div className="mx-auto mt-6 flex max-w-md flex-col gap-3 sm:flex-row">
-                <input
-                  value={promptName}
-                  onChange={(event) => setPromptName(event.target.value)}
-                  placeholder="Your name"
-                  className="min-w-0 flex-1 rounded-2xl border border-border/70 bg-surface/90 px-4 py-3 text-base text-foreground outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const nextName = promptName.trim() || "Stranger";
-                    localStorage.setItem("clinicalass_username", nextName);
-                    setIsPromptVisible(false);
-                setTimeout(() => {
-                      setShowPrompt(false);
-                      setShowOnboarding(true);
-                    }, 350);
-                  }}
-                  className="rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
-                >
-                  Nice, that&apos;s me
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  localStorage.setItem("clinicalass_username", "Stranger");
-                  setIsPromptVisible(false);
-                  setTimeout(() => {
-                    setShowPrompt(false);
-                    setShowOnboarding(true);
-                  }, 350);
-                }}
-                className="mt-4 text-sm text-muted underline-offset-4 transition hover:text-foreground hover:underline"
-              >
-                I&apos;d rather stay anonymous
-              </button>
-            </div>
-          </div>
-        ) : null}
+        <motion.section
+          key="homepage"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="mx-auto flex max-w-4xl flex-1 flex-col justify-center py-8"
+        >
+          <div className="mb-12 text-center">
+            <motion.div
+              initial={shouldAnimate ? { opacity: 0, scale: 0.8 } : false}
+              animate={shouldAnimate ? { opacity: 1, scale: 1 } : false}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted/10 text-5xl shadow-inner text-muted"
+            >
+              <span>🩺</span>
+            </motion.div>
 
-        {homepageVisible ? (
-          <motion.section
-            key="homepage"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="mx-auto flex max-w-4xl flex-1 flex-col justify-center py-8"
-          >
-            <div className="mb-12 text-center">
-              <motion.div
-                initial={shouldAnimate ? { opacity: 0, scale: 0.8 } : false}
-                animate={shouldAnimate ? { opacity: 1, scale: 1 } : false}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted/10 text-5xl shadow-inner text-muted"
-              >
-                <span>🩺</span>
-              </motion.div>
-
-              <div className="mx-auto max-w-3xl text-center">
-                <div className="hero-cube-perspective mx-auto">
-                  <div className={`hero-cube ${heroStage === "tagline" ? "hero-cube--turned" : ""}`}>
-                    <div className="hero-cube__face hero-cube__face--front">
-                      <p className="hero-cube__text uppercase tracking-[0.32em] text-accent/90">
-                        {greeting}
-                      </p>
-                    </div>
-                    <div className="hero-cube__face hero-cube__face--bottom">
-                      <h1 className="hero-cube__text">{titleText}</h1>
-                    </div>
+            <div className="mx-auto max-w-3xl text-center">
+              <div className="hero-cube-perspective mx-auto">
+                <div className={`hero-cube ${heroStage === "tagline" ? "hero-cube--turned" : ""}`}>
+                  <div className="hero-cube__face hero-cube__face--front">
+                    <p className="hero-cube__text uppercase tracking-[0.32em] text-accent/90">
+                      {greeting}
+                    </p>
+                  </div>
+                  <div className="hero-cube__face hero-cube__face--bottom">
+                    <h1 className="hero-cube__text">{titleText}</h1>
                   </div>
                 </div>
-
-                <motion.p
-                  initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
-                  animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
-                  transition={{ duration: 0.6, ease: "easeOut", delay: shouldAnimate ? 2.4 : 0 }}
-                  className="mx-auto mt-4 max-w-xl text-lg font-medium text-muted sm:text-xl"
-                >
-                  A personalized AI companion for clinical reasoning, case review, and medical learning.
-                </motion.p>
-
               </div>
-            </div>
 
-            <motion.div
-              initial={shouldAnimate ? { opacity: 0 } : false}
-              animate={shouldAnimate ? { opacity: 1 } : false}
-              transition={{ duration: 0.5, delay: shouldAnimate ? 3 : 0 }}
-              className="mode-tiles"
-            >
-              {modes.map((mode, index) => (
-                <motion.div
-                  key={mode.href}
-                  initial={shouldAnimate ? { opacity: 0, y: 30 } : false}
-                  animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
-                  transition={{
-                    duration: 0.6,
-                    ease: "easeOut",
-                    delay: shouldAnimate ? 3 + index * 0.15 : 0,
-                  }}
-                  whileHover={{ y: -4 }}
-                >
-                  <Link href={mode.href} className="block h-full">
-                    <GlassCard
-                      hover
-                      className={`group relative flex h-full min-h-[17rem] flex-col overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg`}
-                    >
-                      <div className="relative z-10 flex h-full flex-col">
-                        <span className="text-3xl">{mode.icon}</span>
-                        <h2 className="mt-3 text-lg font-semibold leading-tight transition-colors group-hover:text-accent">
-                          {mode.title}
-                        </h2>
-                        <p className="mt-2 hidden flex-1 text-xs leading-relaxed text-muted sm:block">
-                          {mode.description}
-                        </p>
-                        <p className="mt-2 block flex-1 text-xs leading-relaxed text-muted sm:hidden">
-                          {mode.mobileDescription}
-                        </p>
-                        <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent">
-                          Open
-                          <motion.span className="inline-block" whileHover={{ x: 4 }}>
-                            →
-                          </motion.span>
-                        </p>
-                      </div>
-                    </GlassCard>
-                  </Link>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.section>
-        ) : null}
+              <motion.p
+                initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
+                animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
+                transition={{ duration: 0.6, ease: "easeOut", delay: shouldAnimate ? 2.4 : 0 }}
+                className="mx-auto mt-4 max-w-xl text-lg font-medium text-muted sm:text-xl"
+              >
+                A personalized AI companion for clinical reasoning, case review, and medical learning.
+              </motion.p>
+
+            </div>
+          </div>
+
+          <motion.div
+            initial={shouldAnimate ? { opacity: 0 } : false}
+            animate={shouldAnimate ? { opacity: 1 } : false}
+            transition={{ duration: 0.5, delay: shouldAnimate ? 3 : 0 }}
+            className="mode-tiles"
+          >
+            {modes.map((mode, index) => (
+              <motion.div
+                key={mode.href}
+                initial={shouldAnimate ? { opacity: 0, y: 30 } : false}
+                animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
+                transition={{
+                  duration: 0.6,
+                  ease: "easeOut",
+                  delay: shouldAnimate ? 3 + index * 0.15 : 0,
+                }}
+                whileHover={{ y: -4 }}
+              >
+                <Link href={mode.href} className="block h-full">
+                  <GlassCard
+                    hover
+                    className={`group relative flex h-full min-h-[17rem] flex-col overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg`}
+                  >
+                    <div className="relative z-10 flex h-full flex-col">
+                      <span className="text-3xl">{mode.icon}</span>
+                      <h2 className="mt-3 text-lg font-semibold leading-tight transition-colors group-hover:text-accent">
+                        {mode.title}
+                      </h2>
+                      <p className="mt-2 hidden flex-1 text-xs leading-relaxed text-muted sm:block">
+                        {mode.description}
+                      </p>
+                      <p className="mt-2 block flex-1 text-xs leading-relaxed text-muted sm:hidden">
+                        {mode.mobileDescription}
+                      </p>
+                      <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent">
+                        Open
+                        <motion.span className="inline-block" whileHover={{ x: 4 }}>
+                          →
+                        </motion.span>
+                      </p>
+                    </div>
+                  </GlassCard>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.section>
       </div>
     </AppShell>
   );
