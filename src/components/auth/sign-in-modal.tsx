@@ -156,26 +156,23 @@ export function SignInModal() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              <div className="space-y-1">
+              <div className="text-center">
                 <h2 className="text-xl font-semibold">Welcome to Clinical.ass</h2>
-                <p className="text-sm text-muted">Are you new here or returning?</p>
               </div>
-              <div className="mt-5 flex flex-col gap-3">
+              <div className="mt-6 flex flex-col items-center gap-3">
                 <button
                   type="button"
                   onClick={() => { setIsNew(true); setStep("name"); }}
-                  className="w-full rounded-xl border border-border/60 bg-surface/60 px-5 py-4 text-left transition hover:border-accent/40 hover:bg-accent/5"
+                  className="w-full max-w-[220px] rounded-xl border border-border/60 bg-surface/60 px-5 py-3 text-sm font-medium text-center transition hover:border-accent/40 hover:bg-accent/5"
                 >
-                  <span className="text-sm font-medium">{"\u2728"} I&apos;m new here</span>
-                  <p className="mt-0.5 text-xs text-muted">Create a new account</p>
+                  {"\u2728"} I&apos;m a new user
                 </button>
                 <button
                   type="button"
                   onClick={() => { setIsNew(false); setStep("name"); }}
-                  className="w-full rounded-xl border border-border/60 bg-surface/60 px-5 py-4 text-left transition hover:border-accent/40 hover:bg-accent/5"
+                  className="w-full max-w-[220px] rounded-xl border border-border/60 bg-surface/60 px-5 py-3 text-sm font-medium text-center transition hover:border-accent/40 hover:bg-accent/5"
                 >
-                  <span className="text-sm font-medium">{"\u21A9\uFE0F"} I&apos;m back</span>
-                  <p className="mt-0.5 text-xs text-muted">Sign in to your account</p>
+                  {"\u21A9\uFE0F"} I&apos;m a returning user
                 </button>
               </div>
             </motion.div>
