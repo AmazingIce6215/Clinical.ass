@@ -11,10 +11,10 @@ function ErrorBox({ message }: { message: string | null }) {
     <AnimatePresence>
       {message && (
         <motion.div
-          initial={{ opacity: 0, y: -6 }}
+          initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.2 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.15 }}
           className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm text-red-600"
         >
           {message}
@@ -23,6 +23,8 @@ function ErrorBox({ message }: { message: string | null }) {
     </AnimatePresence>
   );
 }
+
+
 
 export function SignInModal() {
   const { create, unlock, resetPin } = useAuth();
@@ -140,71 +142,53 @@ export function SignInModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className="w-full max-w-sm rounded-2xl border border-border/70 bg-surface/95 p-6 shadow-soft"
       >
         <AnimatePresence mode="wait">
           {step === "role" ? (
             <motion.div
               key="role"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="space-y-5"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.35 }}
-                className="space-y-1"
-              >
+              <div className="space-y-1">
                 <h2 className="text-xl font-semibold">Welcome to Clinical.ass</h2>
                 <p className="text-sm text-muted">Are you new here or returning?</p>
-              </motion.div>
-              <div className="flex flex-col gap-3">
-                <motion.button
+              </div>
+              <div className="mt-5 flex flex-col gap-3">
+                <button
                   type="button"
                   onClick={() => { setIsNew(true); setStep("name"); }}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.35 }}
-                  className="group w-full rounded-xl border border-border/60 bg-surface/60 px-5 py-4 text-left transition hover:border-accent/40 hover:bg-accent/5"
+                  className="w-full rounded-xl border border-border/60 bg-surface/60 px-5 py-4 text-left transition hover:border-accent/40 hover:bg-accent/5"
                 >
                   <span className="text-sm font-medium">{"\u2728"} I&apos;m new here</span>
                   <p className="mt-0.5 text-xs text-muted">Create a new account</p>
-                </motion.button>
-                <motion.button
+                </button>
+                <button
                   type="button"
                   onClick={() => { setIsNew(false); setStep("name"); }}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25, duration: 0.35 }}
-                  className="group w-full rounded-xl border border-border/60 bg-surface/60 px-5 py-4 text-left transition hover:border-accent/40 hover:bg-accent/5"
+                  className="w-full rounded-xl border border-border/60 bg-surface/60 px-5 py-4 text-left transition hover:border-accent/40 hover:bg-accent/5"
                 >
                   <span className="text-sm font-medium">{"\u21A9\uFE0F"} I&apos;m back</span>
                   <p className="mt-0.5 text-xs text-muted">Sign in to your account</p>
-                </motion.button>
+                </button>
               </div>
             </motion.div>
           ) : step === "name" ? (
             <motion.form
               key="name"
               onSubmit={submitName}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="space-y-5"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.35 }}
-                className="flex items-center gap-2"
-              >
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={goToRole}
@@ -222,12 +206,8 @@ export function SignInModal() {
                     <h2 className="text-xl font-semibold">Enter your username</h2>
                   )}
                 </div>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.35 }}
-              >
+              </div>
+              <div className="mt-5">
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -236,28 +216,24 @@ export function SignInModal() {
                   autoFocus
                   required
                 />
-              </motion.div>
-              <ErrorBox message={error} />
-              <PrimaryButton type="submit" disabled={loading} className="w-full">
-                {loading ? "..." : "Continue"}
-              </PrimaryButton>
+              </div>
+              <div className="mt-5 space-y-4">
+                <ErrorBox message={error} />
+                <PrimaryButton type="submit" disabled={loading} className="w-full">
+                  {loading ? "..." : "Continue"}
+                </PrimaryButton>
+              </div>
             </motion.form>
           ) : step === "pin" ? (
             <motion.form
               key="pin"
               onSubmit={submitPin}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="space-y-5"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.35 }}
-                className="flex items-center gap-2"
-              >
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={goBack}
@@ -269,12 +245,8 @@ export function SignInModal() {
                   <p className="text-sm text-muted">{isNew ? "Create a new PIN" : "Enter your PIN"}</p>
                   <p className="text-xs text-muted/60">{name}</p>
                 </div>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, duration: 0.35 }}
-              >
+              </div>
+              <div className="mt-5">
                 <input
                   type="password"
                   inputMode="numeric"
@@ -286,23 +258,20 @@ export function SignInModal() {
                   autoFocus
                   required
                 />
-              </motion.div>
-              <ErrorBox message={error} />
-              <div className="space-y-3">
+              </div>
+              <div className="mt-5 space-y-3">
+                <ErrorBox message={error} />
                 <PrimaryButton type="submit" disabled={loading} className="w-full">
                   {loading ? "..." : "Go"}
                 </PrimaryButton>
                 {!isNew && forgotAttempts < 3 && (
-                  <motion.button
+                  <button
                     type="button"
                     onClick={() => setStep("forgot")}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
                     className="w-full text-center text-xs text-muted underline underline-offset-2 transition hover:text-foreground"
                   >
                     Forgot PIN?
-                  </motion.button>
+                  </button>
                 )}
               </div>
             </motion.form>
@@ -310,18 +279,12 @@ export function SignInModal() {
             <motion.form
               key="forgot"
               onSubmit={submitForgotDate}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="space-y-5"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.35 }}
-                className="flex items-center gap-2"
-              >
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={goToPin}
@@ -333,13 +296,8 @@ export function SignInModal() {
                   <p className="text-sm text-muted">Account recovery</p>
                   <h2 className="text-xl font-semibold">When was it created?</h2>
                 </div>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, duration: 0.35 }}
-                className="space-y-2"
-              >
+              </div>
+              <div className="mt-5 space-y-2">
                 <p className="text-xs text-muted">
                   What date was this account created? Think back to when you first joined.
                 </p>
@@ -351,28 +309,24 @@ export function SignInModal() {
                   autoFocus
                   required
                 />
-              </motion.div>
-              <ErrorBox message={error} />
-              <PrimaryButton type="submit" disabled={loading} className="w-full">
-                {loading ? "..." : "Verify"}
-              </PrimaryButton>
+              </div>
+              <div className="mt-5 space-y-4">
+                <ErrorBox message={error} />
+                <PrimaryButton type="submit" disabled={loading} className="w-full">
+                  {loading ? "..." : "Verify"}
+                </PrimaryButton>
+              </div>
             </motion.form>
           ) : (
             <motion.form
               key="reset-pin"
               onSubmit={submitNewPin}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="space-y-5"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.35 }}
-                className="flex items-center gap-2"
-              >
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={goToPin}
@@ -384,13 +338,8 @@ export function SignInModal() {
                   <p className="text-sm text-muted">Account recovery</p>
                   <p className="text-xs text-muted/60">{name}</p>
                 </div>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, duration: 0.35 }}
-                className="space-y-1"
-              >
+              </div>
+              <div className="mt-5 space-y-1">
                 <h2 className="text-lg font-semibold">Create a new PIN</h2>
                 <input
                   type="password"
@@ -403,11 +352,13 @@ export function SignInModal() {
                   autoFocus
                   required
                 />
-              </motion.div>
-              <ErrorBox message={error} />
-              <PrimaryButton type="submit" disabled={loading} className="w-full">
-                {loading ? "..." : "Set PIN"}
-              </PrimaryButton>
+              </div>
+              <div className="mt-5 space-y-4">
+                <ErrorBox message={error} />
+                <PrimaryButton type="submit" disabled={loading} className="w-full">
+                  {loading ? "..." : "Set PIN"}
+                </PrimaryButton>
+              </div>
             </motion.form>
           )}
         </AnimatePresence>
