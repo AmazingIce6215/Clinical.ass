@@ -78,11 +78,7 @@ export function AppShell({
                 Stats
               </Link>
             )}
-            {session && (
-              <span className="hidden rounded-full border border-border/60 bg-surface/70 px-3 py-1.5 text-[11px] font-medium text-muted sm:block">
-                {session.firstName}
-              </span>
-            )}
+
           </div>
         </header>
         {children}
