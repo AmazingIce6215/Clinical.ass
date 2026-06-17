@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppShell, GlassCard, PrimaryButton } from "@/components/app-shell";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/auth-context";
+import { updateProfile } from "@/lib/auth";
 
 const ACCENT_OPTIONS = [
   { key: "blue", label: "Blue", bg: "bg-blue-500" },
@@ -21,46 +23,27 @@ const THEME_OPTIONS = [
   { key: "system", label: "System" },
 ];
 
-const getStoredValue = (key: string, fallback: string) => {
-  if (typeof window === "undefined") return fallback;
-  return localStorage.getItem(key) || fallback;
-};
-
 export default function SettingsPage() {
   const router = useRouter();
+  const { session } = useAuth();
   const { setTheme } = useTheme();
-  const persistedName = useSyncExternalStore(
-    (notify) => {
-      if (typeof window === "undefined") return () => {};
-      window.addEventListener("storage", notify);
-      return () => window.removeEventListener("storage", notify);
-    },
-    () => getStoredValue("clinicalass_username", ""),
-    () => "",
-  );
-  const persistedAccent = useSyncExternalStore(
-    (notify) => {
-      if (typeof window === "undefined") return () => {};
-      window.addEventListener("storage", notify);
-      return () => window.removeEventListener("storage", notify);
-    },
-    () => getStoredValue("clincalass_accent", "blue"),
-    () => "blue",
-  );
-  const persistedTheme = useSyncExternalStore(
-    (notify) => {
-      if (typeof window === "undefined") return () => {};
-      window.addEventListener("storage", notify);
-      return () => window.removeEventListener("storage", notify);
-    },
-    () => getStoredValue("clincalass_theme", "system"),
-    () => "system",
-  );
 
-  const [name, setName] = useState<string>(persistedName);
-  const [selectedTheme, setSelectedTheme] = useState<string>(persistedTheme);
-  const [accent, setAccent] = useState<string>(persistedAccent);
+  const [name, setName] = useState(session?.firstName ?? "");
+  const [pin, setPin] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState(() => {
+    if (typeof window === "undefined") return "system";
+    return localStorage.getItem("clincalass_theme") || "system";
+  });
+  const [accent, setAccent] = useState(() => {
+    if (typeof window === "undefined") return "blue";
+    return localStorage.getItem("clincalass_accent") || "blue";
+  });
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session?.firstName) setName(session.firstName);
+  }, [session?.firstName]);
 
   useEffect(() => {
     setTheme(selectedTheme);
@@ -77,18 +60,22 @@ export default function SettingsPage() {
 
     const values = accentMap[accentKey] ?? accentMap.blue;
     document.documentElement.style.setProperty("--accent", values.accent);
-    document.documentElement.style.setProperty(
-      "--accent-foreground",
-      values.accentForeground,
-    );
+    document.documentElement.style.setProperty("--accent-foreground", values.accentForeground);
   };
 
   useEffect(() => {
     applyAccent(accent);
   }, [accent]);
 
-  const handleSave = () => {
-    localStorage.setItem("clinicalass_username", name);
+  const handleSave = async () => {
+    setError(null);
+
+    const result = await updateProfile({ first_name: name, pin: pin || undefined });
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
     localStorage.setItem("clincalass_accent", accent);
     localStorage.setItem("clincalass_theme", selectedTheme);
     setTheme(selectedTheme);
@@ -100,7 +87,6 @@ export default function SettingsPage() {
 
   return (
     <>
-      {/* Success toast overlay */}
       <AnimatePresence>
         {showSuccess && (
           <motion.div
@@ -138,7 +124,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">Profile</p>
-                <p className="mt-2 text-sm text-muted">Update your name and avatar placeholder.</p>
+                <p className="mt-2 text-sm text-muted">Update your username and PIN.</p>
               </div>
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface/90 text-2xl shadow-soft">
                 <span>{initial}</span>
@@ -146,21 +132,40 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">Name</label>
+              <label className="text-sm font-medium text-foreground">Username</label>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Enter your name"
+                placeholder="Your username"
                 className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-base outline-none transition placeholder:text-muted/50 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
               />
-              <p className="text-sm text-muted">This value is saved locally and used for greetings.</p>
             </div>
+
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground">New PIN</label>
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                placeholder="4-digit PIN"
+                className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-base tracking-[0.5em] outline-none transition placeholder:text-muted/50 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+              />
+              <p className="text-sm text-muted">Leave blank to keep your current PIN.</p>
+            </div>
+
+            {error && (
+              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+                {error}
+              </p>
+            )}
           </GlassCard>
 
           <GlassCard className="space-y-6">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">Appearance</p>
-              <p className="mt-2 text-sm text-muted">Control theme and accent preferences for the app shell.</p>
+              <p className="mt-2 text-sm text-muted">Control theme and accent preferences.</p>
             </div>
 
             <div className="space-y-4">
@@ -204,7 +209,6 @@ export default function SettingsPage() {
                     </button>
                   ))}
                 </div>
-                <p className="text-sm text-muted">Saved accent selection is stored locally.</p>
               </div>
             </div>
           </GlassCard>

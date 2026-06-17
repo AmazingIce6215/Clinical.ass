@@ -258,6 +258,67 @@ export async function unlockProfile(
   return { session };
 }
 
+export async function updateProfile(data: {
+  first_name?: string;
+  pin?: string;
+}): Promise<{ error?: string }> {
+  const session = await getSession();
+  if (!session) return { error: "Not logged in." };
+
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    const updates: Record<string, string | null> = {};
+
+    if (data.first_name) {
+      const name = normalizeName(data.first_name);
+      if (name.length < 2) return { error: "Name must be at least 2 characters." };
+
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("first_name", capitalizeName(name));
+
+      if (existing && existing.length > 0 && existing[0].id !== session.userId) {
+        return { error: "That username is already taken." };
+      }
+      updates.first_name = capitalizeName(name);
+    }
+
+    if (data.pin) {
+      if (!/^\d{4}$/.test(data.pin)) return { error: "PIN must be 4 digits." };
+      updates.pin_hash = await hashPin(data.pin);
+    }
+
+    if (Object.keys(updates).length === 0) return {};
+
+    const { error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("id", session.userId);
+
+    if (error) return { error: error.message };
+  } else {
+    const profiles = getProfiles();
+    const idx = profiles.findIndex((p) => p.id === session.userId);
+    if (idx === -1) return { error: "Profile not found." };
+
+    if (data.first_name) {
+      const name = normalizeName(data.first_name);
+      if (name.length < 2) return { error: "Name must be at least 2 characters." };
+      profiles[idx].firstName = capitalizeName(name);
+    }
+
+    if (data.pin) {
+      if (!/^\d{4}$/.test(data.pin)) return { error: "PIN must be 4 digits." };
+      profiles[idx].pinHash = await hashPin(data.pin);
+    }
+
+    saveProfiles(profiles);
+  }
+
+  return {};
+}
+
 export async function logoutUser() {
   if (typeof window !== "undefined") localStorage.removeItem(SESSION_KEY);
 }

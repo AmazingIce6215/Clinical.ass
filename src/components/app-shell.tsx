@@ -25,7 +25,7 @@ export function AppShell({
   subtitle?: string;
 }) {
   const pathname = usePathname();
-  const { session, logout } = useAuth();
+  const { session } = useAuth();
   const showBack = Boolean(backHref || onBack);
 
   return (
@@ -79,14 +79,9 @@ export function AppShell({
               </Link>
             )}
             {session && (
-              <button
-                type="button"
-                onClick={logout}
-                className="hidden rounded-full border border-border/60 bg-surface/70 px-3 py-1.5 text-[11px] font-medium text-muted backdrop-blur-md transition hover:text-accent sm:block"
-                title={`Signed in as ${session.firstName}`}
-              >
-                {session.firstName} · Sign out
-              </button>
+              <span className="hidden rounded-full border border-border/60 bg-surface/70 px-3 py-1.5 text-[11px] font-medium text-muted sm:block">
+                {session.firstName}
+              </span>
             )}
           </div>
         </header>

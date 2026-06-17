@@ -23,7 +23,7 @@ export function AvatarButton() {
     getStoredUserName,
     () => "",
   );
-  const { session } = useAuth();
+  const { session, logout } = useAuth();
   const userName = storedName || session?.firstName || "";
   const pathname = usePathname();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -168,6 +168,16 @@ export function AvatarButton() {
                 <button
                   type="button"
                   onClick={() => {
+                    logout();
+                    setIsOpen(false);
+                  }}
+                  className="w-full rounded-xl px-3 py-2 text-left text-sm text-foreground transition hover:bg-accent/10 hover:text-accent"
+                >
+                  {"🚪"} Sign out
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
                     const keys = Object.keys(localStorage);
                     for (const key of keys) {
                       if (
@@ -183,7 +193,7 @@ export function AvatarButton() {
                   }}
                   className="w-full rounded-xl px-3 py-2 text-left text-xs text-muted transition hover:bg-accent/10 hover:text-accent"
                 >
-                  {"🚪"} Reset everything
+                  Reset everything
                 </button>
               </div>
             </motion.div>
