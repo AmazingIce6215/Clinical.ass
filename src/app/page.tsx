@@ -15,13 +15,13 @@ const categories = [
     modes: [
       {
         href: "/clinical",
-        title: "Companion",
+        title: "By Symptoms",
         icon: "🩺",
         desc: "Real-life workup with AI differentials and Co-Pilot",
       },
       {
         href: "/image-diagnosis",
-        title: "Image Diagnosis",
+        title: "Using an Image",
         icon: "🖼️",
         desc: "Upload an image for AI-assisted visual diagnosis",
       },
@@ -35,7 +35,7 @@ const categories = [
     modes: [
       {
         href: "/teaching",
-        title: "Teaching",
+        title: "Q-Bank",
         icon: "📚",
         desc: "Case-based Q-bank with MCQs and detailed explanations",
       },
@@ -55,7 +55,7 @@ const categories = [
     modes: [
       {
         href: "/classic",
-        title: "Classic",
+        title: "Case Report Generator",
         icon: "📋",
         desc: "Ward-round history taking for case presentations",
       },
