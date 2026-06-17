@@ -6,60 +6,66 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AppShell, GlassCard } from "@/components/app-shell";
 import { useAuth } from "@/context/auth-context";
 
-const modes = [
+const categories = [
   {
-    href: "/clinical",
-    title: "Clincalass Companion",
-    description:
-      "Real-life workup: triage, targeted HPI, exam, investigations → diagnosis, differentials & management.",
-    mobileDescription: "Chat through cases with live AI differentials",
-    icon: "🩺",
+    title: "Diagnose",
+    icon: "🔍",
     accent: "from-blue-500/20 to-cyan-500/10",
+    description: "Work through clinical cases and analyze medical images",
+    modes: [
+      {
+        href: "/clinical",
+        title: "Companion",
+        icon: "🩺",
+        desc: "Real-life workup with AI differentials and Co-Pilot",
+      },
+      {
+        href: "/image-diagnosis",
+        title: "Image Diagnosis",
+        icon: "🖼️",
+        desc: "Upload an image for AI-assisted visual diagnosis",
+      },
+    ],
   },
   {
-    href: "/classic",
-    title: "Classic Mode",
-    description:
-      "Full ward-round history taking — build a structured case presentation for your consultant.",
-    mobileDescription: "Generate structured study guides",
-    icon: "📋",
-    accent: "from-amber-500/20 to-orange-500/10",
-  },
-  {
-    href: "/teaching",
-    title: "Teaching Mode",
-    description:
-      "Case-based Q-bank with 3 unique patient vignettes per session, MCQs, and detailed explanations.",
-    mobileDescription: "Practice AMBOSS-style clinical cases",
+    title: "Learn",
     icon: "📚",
     accent: "from-violet-500/20 to-fuchsia-500/10",
+    description: "Test your knowledge with cases and OSCE practice",
+    modes: [
+      {
+        href: "/teaching",
+        title: "Teaching",
+        icon: "📚",
+        desc: "Case-based Q-bank with MCQs and detailed explanations",
+      },
+      {
+        href: "/osce",
+        title: "OSCE Examiner",
+        icon: "🎓",
+        desc: "Timed OSCE station with AI patient and strict grading",
+      },
+    ],
   },
   {
-    href: "/image-diagnosis",
-    title: "Image Diagnosis",
-    description:
-      "Upload a medical image and get a concise visual impression, key findings, and standard management.",
-    mobileDescription: "Upload an image for AI-assisted diagnosis",
-    icon: "🖼️",
-    accent: "from-emerald-500/20 to-teal-500/10",
-  },
-  {
-    href: "/calculators",
-    title: "Clinical Calculators",
-    description:
-      "Evidence-based scoring tools: GCS, CURB-65, Wells, HEART, CHA₂DS₂-VASc, SOFA, and more.",
-    mobileDescription: "Instant offline clinical score calculations",
-    icon: "📊",
-    accent: "from-sky-500/20 to-indigo-500/10",
-  },
-  {
-    href: "/osce",
-    title: "OSCE Examiner",
-    description:
-      "Simulated OSCE station with AI patient. Real-time history taking, timed exam, and strict grading.",
-    mobileDescription: "Timed OSCE practice with AI patient and grading",
-    icon: "🎓",
-    accent: "from-rose-500/20 to-pink-500/10",
+    title: "Others",
+    icon: "📋",
+    accent: "from-amber-500/20 to-orange-500/10",
+    description: "Additional clinical tools",
+    modes: [
+      {
+        href: "/classic",
+        title: "Classic",
+        icon: "📋",
+        desc: "Ward-round history taking for case presentations",
+      },
+      {
+        href: "/calculators",
+        title: "Calculators",
+        icon: "📊",
+        desc: "GCS, CURB-65, Wells, HEART, SOFA and more",
+      },
+    ],
   },
 ];
 
@@ -238,45 +244,50 @@ export default function HomePage() {
             initial={shouldAnimate ? { opacity: 0 } : false}
             animate={shouldAnimate ? { opacity: 1 } : false}
             transition={{ duration: 0.5, delay: shouldAnimate ? 3 : 0 }}
-            className="mode-tiles"
+            className="grid grid-cols-1 gap-6 px-4 sm:grid-cols-3 sm:px-0"
           >
-            {modes.map((mode, index) => (
+            {categories.map((cat, i) => (
               <motion.div
-                key={mode.href}
+                key={cat.title}
                 initial={shouldAnimate ? { opacity: 0, y: 30 } : false}
                 animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
                 transition={{
                   duration: 0.6,
                   ease: "easeOut",
-                  delay: shouldAnimate ? 3 + index * 0.15 : 0,
+                  delay: shouldAnimate ? 3 + i * 0.15 : 0,
                 }}
-                whileHover={{ y: -4 }}
               >
-                <Link href={mode.href} className="block h-full">
-                  <GlassCard
-                    hover
-                    className={`group relative flex h-full flex-col overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg`}
-                  >
-                    <div className="relative z-10 flex h-full flex-col">
-                      <span className="text-3xl">{mode.icon}</span>
-                      <h2 className="mt-3 text-lg font-semibold leading-tight transition-colors group-hover:text-accent">
-                        {mode.title}
-                      </h2>
-                      <p className="mt-2 hidden flex-1 text-xs leading-relaxed text-muted sm:block">
-                        {mode.description}
-                      </p>
-                      <p className="mt-2 block flex-1 text-xs leading-relaxed text-muted sm:hidden">
-                        {mode.mobileDescription}
-                      </p>
-                      <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent">
-                        Open
-                        <motion.span className="inline-block" whileHover={{ x: 4 }}>
-                          →
-                        </motion.span>
-                      </p>
+                <GlassCard
+                  className={`flex h-full flex-col overflow-hidden bg-gradient-to-br ${cat.accent} p-5`}
+                >
+                  <div className="mb-4 flex items-center gap-3">
+                    <span className="text-2xl">{cat.icon}</span>
+                    <div>
+                      <h2 className="text-lg font-semibold leading-tight">{cat.title}</h2>
+                      <p className="text-xs text-muted">{cat.description}</p>
                     </div>
-                  </GlassCard>
-                </Link>
+                  </div>
+                  <div className="mt-auto space-y-2">
+                    {cat.modes.map((mode) => (
+                      <Link
+                        key={mode.href}
+                        href={mode.href}
+                        className="group flex items-center gap-3 rounded-xl border border-border/40 bg-surface/50 px-3.5 py-3 text-sm transition hover:border-accent/30 hover:bg-accent/5"
+                      >
+                        <span className="text-lg">{mode.icon}</span>
+                        <div className="flex-1">
+                          <p className="font-medium text-foreground transition group-hover:text-accent">
+                            {mode.title}
+                          </p>
+                          <p className="text-xs text-muted">{mode.desc}</p>
+                        </div>
+                        <span className="text-muted transition group-hover:text-accent group-hover:translate-x-0.5">
+                          →
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </GlassCard>
               </motion.div>
             ))}
           </motion.div>
