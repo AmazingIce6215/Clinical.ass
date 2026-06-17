@@ -46,17 +46,17 @@ export function OnboardingGuide({
                 Hey{userName ? ` ${userName}` : ""}, welcome aboard!
               </h2>
               <p className="mt-1 text-xs text-muted leading-relaxed sm:mt-2 sm:text-sm">
-                Thanks for trying out Clinical.ass! Here&apos;s a quick overview of what you can do.
+                Thanks for trying Clinical.ass! Here&apos;s a quick overview of what you can do.
               </p>
             </div>
 
             <div className="space-y-2 mb-4 sm:space-y-3 sm:mb-5">
-              <ModeRow icon="🩺" title="Companion" desc="Real clinical workup — triage, history, exam, investigations, then diagnosis with differentials." />
-              <ModeRow icon="📋" title="Classic" desc="Full ward-round history taking to build a structured case presentation." />
-              <ModeRow icon="📚" title="Teaching" desc="Case-based Q-bank with patient vignettes, MCQs, and detailed explanations." />
-              <ModeRow icon="🖼️" title="Image Diagnosis" desc="Upload a medical image and get a visual impression with key findings." />
-              <ModeRow icon="📊" title="Calculators" desc="Evidence-based scoring tools: GCS, CURB-65, Wells, HEART, SOFA, and more." />
-              <ModeRow icon="🎓" title="OSCE Examiner" desc="Timed OSCE station with AI patient simulation and strict grading." />
+              <ModeRow icon="🩺" title="Companion" desc="Real clinical workup — triage, history, exam, investigations, then diagnosis with differentials and a Co-Pilot thinking coach." />
+              <ModeRow icon="📋" title="Classic" desc="Full ward-round history taking to build a structured case presentation for your consultant." />
+              <ModeRow icon="📚" title="Teaching" desc="Case-based Q-bank with patient vignettes, MCQs, and detailed explanations. Save cases to your Library for later review." />
+              <ModeRow icon="🖼️" title="Image Diagnosis" desc="Upload a medical image and get a visual impression with key findings and standard management." />
+              <ModeRow icon="📊" title="Calculators" desc="Evidence-based scoring tools: GCS, CURB-65, Wells, HEART, CHA₂DS₂-VASc, SOFA, and more." />
+              <ModeRow icon="🎓" title="OSCE Examiner" desc="Timed OSCE station with AI patient simulation, history taking, and strict grading." />
             </div>
 
             <div className="rounded-2xl border border-border/50 bg-surface/60 p-3 mb-3 sm:p-4 sm:mb-4">
