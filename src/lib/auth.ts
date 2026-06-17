@@ -107,24 +107,41 @@ export async function createProfile(
   if (name.length < 2) return { error: "Enter your first name (at least 2 letters)." };
   if (pin && !/^\d{4}$/.test(pin)) return { error: "PIN must be exactly 4 digits." };
 
+  const capitalized = capitalizeName(name);
+
   if (isSupabaseConfigured()) {
     const supabase = createClient();
+
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("first_name")
+      .eq("first_name", capitalized);
+
+    if (existing && existing.length > 0) {
+      return { error: `"${capitalized}" already has a profile. Switch to unlock below.` };
+    }
+
     const id = crypto.randomUUID();
     const pinHash = pin ? await hashPin(pin) : null;
 
     const { error } = await supabase.from("profiles").insert({
       id,
-      first_name: capitalizeName(name),
+      first_name: capitalized,
       pin_hash: pinHash,
     });
 
-    if (error) return { error: error.message };
+    if (error) {
+      if (error.message.includes("unique constraint") || error.code === "23505") {
+        return { error: `"${capitalized}" is already taken. Try unlocking instead.` };
+      }
+      return { error: error.message };
+    }
 
     writeJson(SESSION_KEY, id);
     return {
       session: {
         userId: id,
-        firstName: capitalizeName(name),
+        firstName: capitalized,
         createdAt: Date.now(),
       },
     };

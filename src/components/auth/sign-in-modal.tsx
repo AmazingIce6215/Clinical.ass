@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PrimaryButton } from "@/components/app-shell";
 import { useAuth } from "@/context/auth-context";
 
@@ -27,6 +27,13 @@ export function SignInModal() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (error?.toLowerCase().includes("already taken") ||
+        error?.toLowerCase().includes("already has a profile")) {
+      setMode("unlock");
+    }
+  }, [error]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
       <motion.div
@@ -39,10 +46,12 @@ export function SignInModal() {
             <span className="text-sm font-bold">Cl</span>
           </div>
           <h2 className="mt-3 text-xl font-semibold">
-            {mode === "create" ? "Create a profile" : "Unlock your profile"}
+            {mode === "create" ? "Create a profile" : "Welcome back"}
           </h2>
           <p className="mt-2 text-sm text-muted">
-            Enter your first name to get started.
+            {mode === "create"
+              ? "Enter your first name to get started."
+              : "Enter your name and PIN to unlock."}
           </p>
         </div>
 
