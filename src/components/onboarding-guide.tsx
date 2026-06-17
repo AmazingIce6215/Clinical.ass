@@ -80,9 +80,7 @@ export function OnboardingGuide({
               onClick={onClose}
               className="w-full rounded-2xl bg-accent px-5 py-3 text-base font-semibold text-accent-foreground transition hover:bg-accent/90"
             >
-              {typeof window !== "undefined" && !localStorage.getItem("clinicalass_onboarded")
-                ? "Let&apos;s go"
-                : "Got it"}
+              Let&apos;s go
             </button>
           </motion.div>
         </motion.div>
