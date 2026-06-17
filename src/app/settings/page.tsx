@@ -25,7 +25,7 @@ const THEME_OPTIONS = [
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { session } = useAuth();
+  const { session, refresh } = useAuth();
   const { setTheme } = useTheme();
 
   const [name, setName] = useState(session?.firstName ?? "");
@@ -76,6 +76,7 @@ export default function SettingsPage() {
       return;
     }
 
+    await refresh();
     localStorage.setItem("clincalass_accent", accent);
     localStorage.setItem("clincalass_theme", selectedTheme);
     setTheme(selectedTheme);

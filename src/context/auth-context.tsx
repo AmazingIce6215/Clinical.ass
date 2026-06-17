@@ -24,6 +24,7 @@ interface AuthContextValue {
   create: (firstName: string, pin: string) => Promise<string | null>;
   unlock: (firstName: string, pin?: string) => Promise<string | null>;
   logout: () => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -69,9 +70,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatsUserId(null);
   }, []);
 
+  const refresh = useCallback(async () => {
+    const s = await getSession();
+    setSession(s);
+    setLibraryUserId(s?.userId ?? null);
+    setStatsUserId(s?.userId ?? null);
+  }, []);
+
   const value = useMemo(
-    () => ({ session, ready, create, unlock, logout }),
-    [session, ready, create, unlock, logout],
+    () => ({ session, ready, create, unlock, logout, refresh }),
+    [session, ready, create, unlock, logout, refresh],
   );
 
   return (
