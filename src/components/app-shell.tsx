@@ -55,9 +55,9 @@ export function AppShell({
               )
             ) : null}
             {(title || subtitle) && (
-              <div className="hidden min-w-0 sm:block">
-                {title && <p className="truncate text-sm font-medium">{title}</p>}
-                {subtitle && <p className="truncate text-xs text-muted">{subtitle}</p>}
+              <div className="min-w-0">
+                {title && <p className="truncate text-sm font-medium max-sm:text-xs">{title}</p>}
+                {subtitle && <p className="truncate text-xs text-muted max-sm:text-[10px]">{subtitle}</p>}
               </div>
             )}
           </div>

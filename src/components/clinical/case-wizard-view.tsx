@@ -279,13 +279,13 @@ function WizardCard({
 }) {
   return (
     <GlassCard className="max-w-2xl">
-      <div className="mb-6 flex items-start gap-4">
-        <motion.div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-sm font-bold text-accent">
+      <div className="mb-6 flex items-start gap-3 sm:gap-4">
+        <motion.div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-xs font-bold text-accent sm:h-10 sm:w-10 sm:text-sm">
           {step}
         </motion.div>
         <div>
-          <h1 className="text-2xl font-semibold">{title}</h1>
-          <p className="mt-1 text-muted">{subtitle}</p>
+          <h1 className="text-xl font-semibold sm:text-2xl">{title}</h1>
+          <p className="mt-1 text-sm text-muted sm:text-base">{subtitle}</p>
         </div>
       </div>
       {children}
@@ -316,7 +316,7 @@ function NavRow({
           </SecondaryButton>
         )}
         <PrimaryButton onClick={onNext} disabled={nextDisabled}>
-          {nextLabel} →
+          {nextLabel}
         </PrimaryButton>
       </div>
     </div>
@@ -382,13 +382,13 @@ function ClinicalResults({
           {diagnosis.differentials.map((d) => (
             <div key={d.diagnosis} className="rounded-xl border border-border/60 bg-surface/40 p-4">
               <div className="flex items-center justify-between gap-2">
-                <div>
+                <div className="min-w-0">
                   <span className="font-medium">{d.diagnosis}</span>
                   {typeof d.probability === "number" && (
                     <span className="ml-2 text-xs text-muted">{d.probability}%</span>
                   )}
                 </div>
-                <span className="text-xs uppercase text-muted">{d.likelihood}</span>
+                <span className="shrink-0 text-xs uppercase text-muted">{d.likelihood}</span>
               </div>
               <p className="mt-2 text-sm text-muted">{d.reasoning}</p>
               {d.supportingFindings && d.supportingFindings.length > 0 && (

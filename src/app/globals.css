@@ -395,6 +395,13 @@ body {
   }
 }
 
+/* ── GlassCard mobile padding ── */
+@media (max-width: 640px) {
+  .glass-card-responsive {
+    padding: 1rem;
+  }
+}
+
 /* ── Homepage hero text mobile ── */
 @media (max-width: 768px) {
   .hero-cube-perspective {

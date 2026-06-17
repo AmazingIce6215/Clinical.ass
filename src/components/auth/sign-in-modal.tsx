@@ -24,7 +24,7 @@ function ErrorBox({ message }: { message: string | null }) {
   );
 }
 
-const cardClass = "w-full max-w-sm rounded-2xl border border-border/70 bg-surface/95 p-6 shadow-soft";
+const cardClass = "w-full max-w-sm rounded-2xl border border-border/70 bg-surface/95 p-4 shadow-soft sm:p-6";
 const stepTransition = { duration: 0.18, ease: "easeOut" as const };
 
 export function SignInModal() {
@@ -141,7 +141,7 @@ export function SignInModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-3 backdrop-blur-sm sm:p-4">
       <AnimatePresence mode="wait">
         {step === "role" ? (
           <motion.div
@@ -156,7 +156,7 @@ export function SignInModal() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, ease: "easeOut" }}
-              className="text-3xl font-bold tracking-tight"
+              className="text-2xl font-bold tracking-tight sm:text-3xl"
             >
               Welcome to Clinical.ass
             </motion.h1>
@@ -167,9 +167,9 @@ export function SignInModal() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.35, ease: "easeOut" }}
-                className="flex-1 max-w-[220px] rounded-2xl border border-border/60 bg-surface/70 px-6 py-8 text-center text-base font-medium shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:bg-accent/5 hover:shadow-md"
+                className="flex-1 max-w-[220px] rounded-2xl border border-border/60 bg-surface/70 px-6 py-6 text-center text-base font-medium shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:bg-accent/5 hover:shadow-md sm:py-8"
               >
-                <div className="text-2xl">{"\u2728"}</div>
+                <div className="text-xl sm:text-2xl">{"\u2728"}</div>
                 <div className="mt-2">I&apos;m a new user</div>
               </motion.button>
               <motion.button
@@ -178,7 +178,7 @@ export function SignInModal() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.35, ease: "easeOut" }}
-                className="flex-1 max-w-[220px] rounded-2xl border border-border/60 bg-surface/70 px-6 py-8 text-center text-base font-medium shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:bg-accent/5 hover:shadow-md"
+                className="flex-1 max-w-[220px] rounded-2xl border border-border/60 bg-surface/70 px-6 py-6 text-center text-base font-medium shadow-sm backdrop-blur-md transition hover:border-accent/40 hover:bg-accent/5 hover:shadow-md sm:py-8"
               >
                 <div className="text-2xl">{"\u21A9\uFE0F"}</div>
                 <div className="mt-2">I&apos;m a returning user</div>

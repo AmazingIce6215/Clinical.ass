@@ -226,7 +226,7 @@ export default function HomePage() {
                 initial={shouldAnimate ? { opacity: 0, y: 20 } : false}
                 animate={shouldAnimate ? { opacity: 1, y: 0 } : false}
                 transition={{ duration: 0.6, ease: "easeOut", delay: shouldAnimate ? 2.4 : 0 }}
-                className="mx-auto mt-4 max-w-xl text-lg font-medium text-muted sm:text-xl"
+                className="mx-auto mt-4 max-w-xl text-base font-medium text-muted sm:text-xl"
               >
                 A personalized AI companion for clinical reasoning, case review, and medical learning.
               </motion.p>
@@ -255,7 +255,7 @@ export default function HomePage() {
                 <Link href={mode.href} className="block h-full">
                   <GlassCard
                     hover
-                    className={`group relative flex h-full min-h-[17rem] flex-col overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg`}
+                    className={`group relative flex h-full min-h-[17rem] flex-col overflow-hidden bg-gradient-to-br ${mode.accent} p-4 transition-shadow duration-200 hover:shadow-lg max-sm:min-h-[13rem] max-sm:p-3`}
                   >
                     <div className="relative z-10 flex h-full flex-col">
                       <span className="text-3xl">{mode.icon}</span>

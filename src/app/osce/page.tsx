@@ -217,7 +217,7 @@ export default function OscePage() {
           </Link>
         </header>
 
-        <div className="flex flex-1 items-start justify-center pt-12">
+        <div className="flex flex-1 items-start justify-center pt-6 sm:pt-12">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
