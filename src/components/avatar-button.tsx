@@ -59,7 +59,8 @@ export function AvatarButton() {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="fixed right-4 top-4 z-50 max-sm:right-3 max-sm:top-3"
+      className="fixed right-4 z-50 max-sm:right-3"
+      style={{ top: "calc(0.75rem + env(safe-area-inset-top))" }}
     >
       <div className="relative" ref={dropdownRef}>
         <motion.button

@@ -1,0 +1,35 @@
+workflows:
+  ios-app:
+    name: Clincalass iOS
+    environment:
+      vars:
+        APP_STORE_APP_ID: ''  # Your Apple App ID — you'll get this from App Store Connect
+      node: 22
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+      - name: Sync Capacitor iOS
+        script: npx cap sync ios
+      - name: Build iOS archive
+        script: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -archivePath build/Clincalass.xcarchive \
+            -allowProvisioningUpdates \
+            archive
+      - name: Export IPA
+        script: |
+          xcodebuild -exportArchive \
+            -archivePath ios/App/build/Clincalass.xcarchive \
+            -exportPath ios/App/build/Clincalass.ipa \
+            -exportOptionsPlist ios/App/exportOptions.plist \
+            -allowProvisioningUpdates
+    artifacts:
+      - ios/App/build/Clincalass.ipa
+    publishing:
+      app_store_connect:
+        apple_id: ''  # Your Apple ID email
+        auth_type: API_KEY  # or APP_SPECIFIC_PASSWORD
+        submit_to_testflight: true

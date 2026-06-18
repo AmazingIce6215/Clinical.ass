@@ -1,6 +1,6 @@
 "use client";
 
-import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 
@@ -25,6 +25,28 @@ function applyAccentColor(key: string) {
   );
 }
 
+function NativeStatusBar() {
+  const { resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    async function update() {
+      try {
+        const { StatusBar, Style } = await import("@capacitor/status-bar");
+        const isDark = resolvedTheme === "dark";
+        await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
+        await StatusBar.setBackgroundColor({
+          color: isDark ? "#070b14" : "#f4f6fb",
+        });
+      } catch {
+        // Not running in Capacitor — ignore
+      }
+    }
+    update();
+  }, [resolvedTheme]);
+
+  return null;
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -47,6 +69,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       disableTransitionOnChange={false}
     >
       {children}
+      <NativeStatusBar />
     </NextThemesProvider>
   );
 }
