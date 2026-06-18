@@ -8,9 +8,8 @@ import {
   isSpeechSynthesisSupported,
   createSpeechRecognizer,
   warmVoiceCache,
-  speak,
+  apiSpeak,
   stopSpeaking,
-  getVoiceQuality,
 } from "@/lib/voice";
 import { cn } from "@/lib/utils";
 
@@ -131,7 +130,7 @@ export function OsceSession({
     if (!synthesisSupported) return;
     stopSpeaking();
     setVoiceStatus("speaking");
-    speak(text, undefined, () => setVoiceStatus(voiceModeRef.current ? "listening" : "idle"));
+    apiSpeak(text, undefined, () => setVoiceStatus(voiceModeRef.current ? "listening" : "idle"));
   }, [synthesisSupported]);
 
   useEffect(() => {
@@ -148,7 +147,7 @@ export function OsceSession({
     }
     stopSpeaking();
     setVoiceStatus("speaking");
-    speak(text, undefined, () => {
+    apiSpeak(text, undefined, () => {
       if (voiceModeRef.current) {
         startListening();
       } else {
@@ -253,8 +252,6 @@ export function OsceSession({
   };
 
   const timerColor = timeLeft < 60 ? "text-red-500" : timeLeft < 180 ? "text-amber-500" : "text-emerald-500";
-
-  const voiceQuality = voiceSupported ? getVoiceQuality() : null;
 
   useEffect(() => {
     handleSendWithTextRef.current = handleSendWithText;
@@ -413,9 +410,9 @@ export function OsceSession({
                   <span className={voiceStatus === "listening" ? "animate-pulse" : ""}>
                     {getStatusDisplay().text}
                   </span>
-                  {voiceQuality === "premium" && voiceMode && (
+                  {voiceMode && (
                     <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-accent">
-                      HD Voice
+                      Edge TTS
                     </span>
                   )}
                 </div>

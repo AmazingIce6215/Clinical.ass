@@ -7,6 +7,21 @@ export function isSpeechSupported(): boolean {
   return "SpeechRecognition" in window || "webkitSpeechRecognition" in window;
 }
 
+export const EDGE_TTS_VOICES = [
+  { id: "en-US-JennyNeural", label: "Jenny (US, Female)" },
+  { id: "en-US-AriaNeural", label: "Aria (US, Female)" },
+  { id: "en-US-GuyNeural", label: "Guy (US, Male)" },
+  { id: "en-US-DavisNeural", label: "Davis (US, Male)" },
+  { id: "en-GB-SoniaNeural", label: "Sonia (UK, Female)" },
+  { id: "en-GB-LibbyNeural", label: "Libby (UK, Female)" },
+  { id: "en-GB-RyanNeural", label: "Ryan (UK, Male)" },
+  { id: "en-AU-NatashaNeural", label: "Natasha (AU, Female)" },
+] as const;
+
+export function getEdgeVoiceLabel(voiceId: string): string {
+  return EDGE_TTS_VOICES.find((v) => v.id === voiceId)?.label ?? voiceId;
+}
+
 export function isSpeechSynthesisSupported(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
 }
@@ -162,6 +177,7 @@ export function processTextForSpeech(text: string): string {
 }
 
 let speakingAborted = false;
+let currentAudio: HTMLAudioElement | null = null;
 
 export function speak(text: string, onStart?: () => void, onEnd?: () => void): void {
   if (!isSpeechSynthesisSupported()) return;
@@ -203,11 +219,77 @@ export function speak(text: string, onStart?: () => void, onEnd?: () => void): v
 
 export function stopSpeaking(): void {
   speakingAborted = true;
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.src = "";
+    currentAudio = null;
+  }
   if (speechSynthesis.speaking) {
     speechSynthesis.cancel();
   }
 }
 
 export function isSpeaking(): boolean {
-  return speechSynthesis.speaking;
+  return speechSynthesis.speaking || currentAudio !== null;
+}
+
+export async function apiSpeak(
+  text: string,
+  onStart?: () => void,
+  onEnd?: () => void,
+  voice?: string,
+): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  stopSpeaking();
+  speakingAborted = false;
+
+  try {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: processTextForSpeech(text),
+        voice: voice || "en-US-JennyNeural",
+        rate: 0,
+        pitch: 0,
+      }),
+    });
+
+    if (!res.ok) throw new Error("TTS API failed");
+    if (speakingAborted) return;
+
+    const blob = await res.blob();
+    if (speakingAborted) return;
+
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    currentAudio = audio;
+
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      if (currentAudio === audio) currentAudio = null;
+      if (!speakingAborted) onEnd?.();
+    };
+
+    audio.onerror = () => {
+      URL.revokeObjectURL(url);
+      if (currentAudio === audio) currentAudio = null;
+      if (!speakingAborted) onEnd?.();
+    };
+
+    onStart?.();
+
+    try {
+      await audio.play();
+    } catch {
+      URL.revokeObjectURL(url);
+      if (currentAudio === audio) currentAudio = null;
+      if (!speakingAborted) onEnd?.();
+    }
+  } catch {
+    if (!speakingAborted) {
+      speak(text, onStart, onEnd);
+    }
+  }
 }

@@ -10,6 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@andresaya/edge-tts": "^1.8.0",
     "@capacitor/cli": "^8.4.0",
     "@capacitor/core": "^8.4.0",
     "@capacitor/ios": "^8.4.0",
