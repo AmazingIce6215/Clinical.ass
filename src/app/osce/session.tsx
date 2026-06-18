@@ -6,10 +6,9 @@ import type { OsceSessionState } from "@/lib/osce/state";
 import {
   isSpeechSupported,
   isSpeechSynthesisSupported,
-  isApiSpeechSupported,
-  createApiSpeechRecognizer,
+  createSpeechRecognizer,
   warmVoiceCache,
-  apiSpeak,
+  speak,
   stopSpeaking,
 } from "@/lib/voice";
 import { cn } from "@/lib/utils";
@@ -37,9 +36,8 @@ export function OsceSession({
   const [recordingError, setRecordingError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const recognizerRef = useRef<ReturnType<typeof createApiSpeechRecognizer>>(null);
-  const voiceSupported = isApiSpeechSupported() || isSpeechSupported();
-  const apiSttAvailable = isApiSpeechSupported();
+  const recognizerRef = useRef<ReturnType<typeof createSpeechRecognizer>>(null);
+  const voiceSupported = isSpeechSupported();
   const synthesisSupported = isSpeechSynthesisSupported();
 
   const pendingTextRef = useRef("");
@@ -95,7 +93,7 @@ export function OsceSession({
     if (!voiceModeRef.current || sendingLockRef.current) return;
 
     if (!recognizerRef.current) {
-      recognizerRef.current = createApiSpeechRecognizer(
+      recognizerRef.current = createSpeechRecognizer(
         (text) => {
           pendingTextRef.current = text;
         },
@@ -133,7 +131,7 @@ export function OsceSession({
     if (!synthesisSupported) return;
     stopSpeaking();
     setVoiceStatus("speaking");
-    apiSpeak(text, undefined, () => setVoiceStatus(voiceModeRef.current ? "listening" : "idle"));
+    speak(text, undefined, () => setVoiceStatus(voiceModeRef.current ? "listening" : "idle"));
   }, [synthesisSupported]);
 
   useEffect(() => {
@@ -150,7 +148,7 @@ export function OsceSession({
     }
     stopSpeaking();
     setVoiceStatus("speaking");
-    apiSpeak(text, undefined, () => {
+    speak(text, undefined, () => {
       if (voiceModeRef.current) {
         startListening();
       } else {
@@ -232,7 +230,7 @@ export function OsceSession({
       const lastPatientMsg = messages.filter((m) => m.role === "patient").pop();
       if (lastPatientMsg && synthesisSupported) {
         setVoiceStatus("speaking");
-        apiSpeak(lastPatientMsg.content, undefined, () => startListening());
+        speak(lastPatientMsg.content, undefined, () => startListening());
       } else {
         setTimeout(() => startListening(), 300);
       }
@@ -424,14 +422,9 @@ export function OsceSession({
                   <span className={voiceStatus === "listening" ? "animate-pulse" : ""}>
                     {getStatusDisplay().text}
                   </span>
-                  {voiceMode && apiSttAvailable && (
-                    <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-accent">
-                      Whisper
-                    </span>
-                  )}
                   {voiceMode && synthesisSupported && (
                     <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-accent">
-                      TTS
+                      Speech
                     </span>
                   )}
                 </div>
