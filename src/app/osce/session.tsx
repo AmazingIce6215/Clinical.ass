@@ -142,6 +142,13 @@ export function OsceSession({
     }
   }, [voiceMode, voiceStatus, startListening]);
 
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+      cleanupRecognizer();
+    };
+  }, [cleanupRecognizer]);
+
   const tryAutoSpeak = useCallback((text: string) => {
     if (!synthesisSupported) {
       setVoiceStatus("idle");
