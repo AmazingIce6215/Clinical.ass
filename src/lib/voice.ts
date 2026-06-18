@@ -322,6 +322,10 @@ export function getVoiceQuality(): VoiceQuality {
 export function processTextForSpeech(text: string): string {
   let processed = text;
 
+  processed = processed.replace(/\*[^*]+\*/g, "");
+
+  processed = processed.replace(/\s+/g, " ");
+
   processed = processed.replace(/([.!?])\s*/g, "$1 ");
 
   processed = processed.replace(/([,;:])\s*/g, "$1 ");
@@ -329,6 +333,43 @@ export function processTextForSpeech(text: string): string {
   processed = processed.trim();
 
   return processed;
+}
+
+export function analyzeActionProsody(text: string): {
+  rate: number;
+  pitch: number;
+} {
+  const pattern = /\*([^*]+)\*/g;
+  let match;
+  let rate = 0;
+  let pitch = 0;
+
+  while ((match = pattern.exec(text)) !== null) {
+    const a = match[1].toLowerCase().trim();
+
+    if (/laugh|chuckle|giggle|amused|happily|joy/i.test(a)) {
+      rate += 10; pitch += 5;
+    } else if (/sigh|tired|weary|exhausted|yawn/i.test(a)) {
+      rate -= 10; pitch -= 5;
+    } else if (/whisper|quiet|softly|gently|murmur/i.test(a)) {
+      rate -= 15; pitch -= 10;
+    } else if (/urgent|urgently|worried|anxious|nervous/i.test(a)) {
+      rate += 15; pitch += 10;
+    } else if (/calm|calmly|relaxed|peaceful/i.test(a)) {
+      rate -= 10; pitch -= 5;
+    } else if (/sad|sadly|tearful|crying|cries|sob/i.test(a)) {
+      rate -= 15; pitch -= 10;
+    } else if (/angry|angrily|frustrated|annoyed|irritated/i.test(a)) {
+      rate += 10; pitch += 10;
+    } else if (/shout|loud|exclaimed|excited|exclaim/i.test(a)) {
+      rate += 20; pitch += 15;
+    }
+  }
+
+  return {
+    rate: Math.max(-50, Math.min(100, rate)),
+    pitch: Math.max(-50, Math.min(50, pitch)),
+  };
 }
 
 let speakingAborted = false;
@@ -341,10 +382,11 @@ export function speak(text: string, onStart?: () => void, onEnd?: () => void): v
   speakingAborted = false;
 
   const processed = processTextForSpeech(text);
+  const prosody = analyzeActionProsody(text);
   const utterance = new SpeechSynthesisUtterance(processed);
   utterance.lang = "en-US";
-  utterance.rate = 0.88;
-  utterance.pitch = 1.05;
+  utterance.rate = Math.max(0.1, Math.min(2, 0.88 + prosody.rate / 100));
+  utterance.pitch = Math.max(0.1, Math.min(2, 1.05 + prosody.pitch / 100));
   utterance.volume = 1.0;
 
   const bestVoice = findBestVoice();
@@ -400,14 +442,17 @@ export async function apiSpeak(
   speakingAborted = false;
 
   try {
+    const processed = processTextForSpeech(text);
+    const prosody = analyzeActionProsody(text);
+
     const res = await fetch("/api/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        text: processTextForSpeech(text),
+        text: processed,
         voice: voice || "en-US-JennyNeural",
-        rate: 0,
-        pitch: 0,
+        rate: prosody.rate,
+        pitch: prosody.pitch,
       }),
     });
 
