@@ -3,17 +3,20 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import type { OsceSessionState } from "@/lib/osce/state";
-import {
-  isSpeechSupported,
-  isSpeechSynthesisSupported,
-  createSpeechRecognizer,
-  warmVoiceCache,
-  speak,
-  stopSpeaking,
-} from "@/lib/voice";
+import { warmVoiceCache, speak, stopSpeaking, isSpeechSynthesisSupported } from "@/lib/voice";
 import { cn } from "@/lib/utils";
 
 type VoiceStatus = "idle" | "listening" | "thinking" | "speaking";
+
+const hasSpeechRecognition =
+  typeof window !== "undefined" &&
+  ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+
+const SpeechRecognitionAPI =
+  typeof window !== "undefined"
+    ? ((window as unknown as Record<string, unknown>).SpeechRecognition ??
+       (window as unknown as Record<string,unknown>).webkitSpeechRecognition)
+    : null;
 
 export function OsceSession({
   session,
@@ -36,16 +39,12 @@ export function OsceSession({
   const [recordingError, setRecordingError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const recognizerRef = useRef<ReturnType<typeof createSpeechRecognizer>>(null);
-  const voiceSupported = isSpeechSupported();
-  const synthesisSupported = isSpeechSynthesisSupported();
 
-  const pendingTextRef = useRef("");
   const voiceModeRef = useRef(false);
   const loadingRef = useRef(false);
-  const sendingLockRef = useRef(false);
+  const sendingRef = useRef(false);
   const onMessageRef = useRef(onMessage);
-  const handleSendWithTextRef = useRef<(text: string) => void>(() => {});
+  const listeningRef = useRef(false);
 
   useEffect(() => {
     voiceModeRef.current = voiceMode;
@@ -53,9 +52,7 @@ export function OsceSession({
     onMessageRef.current = onMessage;
   }, [voiceMode, loading, onMessage]);
 
-  useEffect(() => {
-    warmVoiceCache();
-  }, []);
+  useEffect(() => { warmVoiceCache(); }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -68,14 +65,15 @@ export function OsceSession({
   useEffect(() => {
     const interval = setInterval(() => {
       setTimeLeft((t) => {
-        if (t <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
+        if (t <= 1) { clearInterval(interval); return 0; }
         return t - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    return () => { stopSpeaking(); };
   }, []);
 
   const formatTime = (seconds: number) => {
@@ -84,114 +82,98 @@ export function OsceSession({
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const cleanupRecognizer = useCallback(() => {
-    recognizerRef.current?.abort();
-    recognizerRef.current = null;
-  }, []);
+  const beginListening = useCallback(() => {
+    if (!voiceModeRef.current || sendingRef.current || listeningRef.current) return;
+    if (!SpeechRecognitionAPI) return;
 
-  const startListening = useCallback(() => {
-    if (!voiceModeRef.current || sendingLockRef.current) return;
+    listeningRef.current = true;
+    setRecordingError(null);
+    setVoiceStatus("listening");
 
-    if (!recognizerRef.current) {
-      recognizerRef.current = createSpeechRecognizer(
-        (text) => {
-          pendingTextRef.current = text;
-        },
-        () => {
-          const text = pendingTextRef.current;
-          pendingTextRef.current = "";
-          if (text && voiceModeRef.current) {
+    try {
+      const sr = new (SpeechRecognitionAPI as new () => {
+        lang: string; continuous: boolean; interimResults: boolean;
+        maxAlternatives: number; start: () => void; abort: () => void;
+        onresult: ((e: { results: { length: number; [i: number]: { [j: number]: { transcript: string } } } }) => void) | null;
+        onend: (() => void) | null;
+        onerror: ((e: { error: string }) => void) | null;
+      })();
+      sr.lang = "en-US";
+      sr.continuous = false;
+      sr.interimResults = false;
+      sr.maxAlternatives = 1;
+
+      let finished = false;
+
+      const cleanup = () => {
+        if (finished) return;
+        finished = true;
+        listeningRef.current = false;
+      };
+
+      sr.onresult = (e) => {
+        const r = e.results[e.results.length - 1];
+        if (r?.[0]?.transcript) {
+          const text = r[0].transcript.trim();
+          if (text && voiceModeRef.current && !sendingRef.current) {
+            cleanup();
             setVoiceStatus("thinking");
-            handleSendWithTextRef.current(text);
-          } else if (voiceModeRef.current) {
-            setTimeout(startListening, 400);
+            sendText(text);
           }
-        },
-        (err) => {
-          if (err !== "no-speech" && err !== "aborted") {
-            setRecordingError(err);
-          } else if (voiceModeRef.current) {
-            setTimeout(startListening, 400);
-          }
-        },
-      );
-    }
+        }
+      };
 
-    if (recognizerRef.current) {
-      setRecordingError(null);
-      setVoiceStatus("listening");
-      recognizerRef.current.start();
+      sr.onend = () => {
+        cleanup();
+        if (voiceModeRef.current && !finished) {
+          setTimeout(beginListening, 600);
+        }
+      };
+
+      sr.onerror = (e) => {
+        cleanup();
+        if (e.error === "aborted") return;
+        if (e.error !== "no-speech") setRecordingError(e.error);
+        if (voiceModeRef.current) {
+          setTimeout(beginListening, 800);
+        }
+      };
+
+      sr.start();
+    } catch {
+      listeningRef.current = false;
+      if (voiceModeRef.current) setTimeout(beginListening, 1000);
     }
   }, []);
 
-  const stopListening = useCallback(() => {
-    pendingTextRef.current = "";
-    recognizerRef.current?.abort();
-    recognizerRef.current = null;
-    setVoiceStatus("idle");
-  }, []);
-
-  const handleSpeakMessage = useCallback((text: string) => {
-    if (!synthesisSupported) return;
-    stopSpeaking();
-    setVoiceStatus("speaking");
-    speak(text, undefined, () => setVoiceStatus(voiceModeRef.current ? "listening" : "idle"));
-  }, [synthesisSupported]);
-
-  useEffect(() => {
-    return () => {
-      stopSpeaking();
-      cleanupRecognizer();
-    };
-  }, [cleanupRecognizer]);
-
-  const tryAutoSpeak = useCallback((text: string) => {
-    if (!synthesisSupported) {
-      setVoiceStatus("idle");
-      return;
-    }
-    stopSpeaking();
-    setVoiceStatus("speaking");
-    speak(text, undefined, () => {
-      if (voiceModeRef.current) {
-        startListening();
-      } else {
-        setVoiceStatus("idle");
-      }
-    });
-  }, [synthesisSupported, startListening]);
-
-  const handleSendWithText = useCallback((text: string) => {
-    if (!text.trim() || sendingLockRef.current) return;
-    sendingLockRef.current = true;
-    setInput("");
+  const sendText = useCallback(async (text: string) => {
+    if (sendingRef.current) return;
+    sendingRef.current = true;
     setError(null);
     setMessages((prev) => [...prev, { role: "user" as const, content: text }]);
     setLoading(true);
-    onMessageRef.current(text)
-      .then((response) => {
-        setMessages((prev) => [...prev, { role: "patient" as const, content: response }]);
-        if (voiceModeRef.current) {
-          tryAutoSpeak(response);
-        }
-      })
-      .catch((err) => {
-        const message = err instanceof Error ? err.message : "Failed to get response";
-        setError(message);
-        if (voiceModeRef.current) {
-          startListening();
-        }
-      })
-      .finally(() => {
-        sendingLockRef.current = false;
-        setLoading(false);
-      });
-  }, [tryAutoSpeak, startListening]);
+    try {
+      const response = await onMessageRef.current(text);
+      setMessages((prev) => [...prev, { role: "patient" as const, content: response }]);
+      sendingRef.current = false;
+      setLoading(false);
+      if (voiceModeRef.current) {
+        speak(response, () => {
+          if (voiceModeRef.current) beginListening();
+        });
+      }
+    } catch (err) {
+      sendingRef.current = false;
+      setLoading(false);
+      setError(err instanceof Error ? err.message : "Failed");
+      if (voiceModeRef.current) setTimeout(beginListening, 500);
+    }
+  }, [beginListening]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
-    if (!text || sendingLockRef.current) return;
-    sendingLockRef.current = true;
+    if (!text || sendingRef.current) return;
+    sendingRef.current = true;
     setInput("");
     setError(null);
     setMessages((prev) => [...prev, { role: "user" as const, content: text }]);
@@ -199,114 +181,76 @@ export function OsceSession({
     try {
       const response = await onMessageRef.current(text);
       setMessages((prev) => [...prev, { role: "patient" as const, content: response }]);
-      if (voiceModeRef.current && synthesisSupported) {
-        tryAutoSpeak(response);
+      sendingRef.current = false;
+      setLoading(false);
+      if (voiceModeRef.current) {
+        speak(response, () => {
+          if (voiceModeRef.current) beginListening();
+        });
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to get response";
-      setError(message);
-      if (voiceModeRef.current) {
-        startListening();
-      }
-    } finally {
-      sendingLockRef.current = false;
+      sendingRef.current = false;
       setLoading(false);
+      setError(err instanceof Error ? err.message : "Failed");
+      if (voiceModeRef.current) setTimeout(beginListening, 500);
     }
-  }, [input, synthesisSupported, tryAutoSpeak, startListening]);
+  }, [input, beginListening]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
+
+  const stopListening = useCallback(() => {
+    listeningRef.current = false;
+    setVoiceStatus("idle");
+  }, []);
 
   const toggleVoiceMode = useCallback(() => {
     if (voiceMode) {
       stopSpeaking();
-      cleanupRecognizer();
-      setVoiceStatus("idle");
+      stopListening();
       setRecordingError(null);
       setVoiceMode(false);
     } else {
       setVoiceMode(true);
       setRecordingError(null);
-      const lastPatientMsg = messages.filter((m) => m.role === "patient").pop();
-      if (lastPatientMsg && synthesisSupported) {
-        setVoiceStatus("speaking");
-        speak(lastPatientMsg.content, undefined, () => startListening());
-      } else {
-        setTimeout(() => startListening(), 300);
-      }
+      setTimeout(beginListening, 300);
     }
-  }, [voiceMode, cleanupRecognizer, startListening, messages, synthesisSupported]);
+  }, [voiceMode, beginListening, stopListening]);
 
   const handleMicClick = useCallback(() => {
-    if (voiceStatus === "speaking") {
-      stopSpeaking();
-      setVoiceStatus("idle");
-      return;
-    }
-    if (voiceStatus === "listening") {
-      stopListening();
-      return;
-    }
-    startListening();
-  }, [voiceStatus, startListening, stopListening]);
+    if (voiceStatus === "speaking") { stopSpeaking(); setVoiceStatus("idle"); return; }
+    if (voiceStatus === "listening") { stopListening(); return; }
+    beginListening();
+  }, [voiceStatus, beginListening, stopListening]);
 
-  const getStatusDisplay = (): { icon: string; text: string; color: string } => {
+  const statusDisplay = (): { icon: string; text: string; color: string } => {
     switch (voiceStatus) {
-      case "listening":
-        return { icon: "🎤", text: "Listening...", color: "text-red-500" };
-      case "thinking":
-        return { icon: "🤔", text: "Patient is thinking...", color: "text-amber-500" };
-      case "speaking":
-        return { icon: "🗣️", text: "Patient is speaking...", color: "text-accent" };
-      default:
-        return { icon: "🎤", text: "Tap to speak", color: "text-muted" };
+      case "listening": return { icon: "🎤", text: "Listening...", color: "text-red-500" };
+      case "thinking": return { icon: "🤔", text: "Patient is thinking...", color: "text-amber-500" };
+      case "speaking": return { icon: "🗣️", text: "Patient is speaking...", color: "text-accent" };
+      default: return { icon: "🎤", text: "Tap to speak", color: "text-muted" };
     }
   };
 
   const timerColor = timeLeft < 60 ? "text-red-500" : timeLeft < 180 ? "text-amber-500" : "text-emerald-500";
 
-  useEffect(() => {
-    handleSendWithTextRef.current = handleSendWithText;
-  });
+  const synthesisSupported = isSpeechSynthesisSupported();
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border/60 bg-surface/50 px-4 py-3 backdrop-blur-md sm:px-6">
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex items-center gap-2 rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-xs font-medium text-muted transition hover:border-accent/40"
-          >
-            ← Exit OSCE
-          </button>
-          <span className="hidden rounded-full border border-border/60 px-2 py-0.5 text-[11px] font-semibold uppercase text-accent sm:inline">
-            {session.difficulty}
-          </span>
+          <button type="button" onClick={onBack} className="flex items-center gap-2 rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-xs font-medium text-muted transition hover:border-accent/40">← Exit OSCE</button>
+          <span className="hidden rounded-full border border-border/60 px-2 py-0.5 text-[11px] font-semibold uppercase text-accent sm:inline">{session.difficulty}</span>
         </div>
-
         <div className={`flex items-center gap-2 font-mono text-xl font-bold tracking-wider ${timerColor}`}>
           <span className="h-2.5 w-2.5 rounded-full bg-current animate-pulse" />
           {formatTime(timeLeft)}
         </div>
-
         <div className="flex items-center gap-2">
-          {voiceSupported && (
-            <button
-              type="button"
-              onClick={toggleVoiceMode}
-              className={cn(
-                "rounded-xl border px-3 py-1.5 text-xs font-medium transition",
-                voiceMode
-                  ? "border-accent/50 bg-accent/15 text-accent shadow-glow-sm"
-                  : "border-border/60 bg-surface/60 text-muted hover:border-accent/40 hover:text-accent",
-              )}
-              title={voiceMode ? "Disable voice mode" : "Enable voice mode"}
-            >
+          {hasSpeechRecognition && (
+            <button type="button" onClick={toggleVoiceMode} className={cn("rounded-xl border px-3 py-1.5 text-xs font-medium transition", voiceMode ? "border-accent/50 bg-accent/15 text-accent shadow-glow-sm" : "border-border/60 bg-surface/60 text-muted hover:border-accent/40 hover:text-accent")} title={voiceMode ? "Disable voice mode" : "Enable voice mode"}>
               <span className="flex items-center gap-1.5">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
@@ -325,57 +269,24 @@ export function OsceSession({
       <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
         <div className="mx-auto max-w-3xl space-y-4">
           {messages.map((msg, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={cn(
-                  "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed sm:max-w-[70%]",
-                  msg.role === "user"
-                    ? "bg-accent text-accent-foreground"
-                    : "border border-border/60 bg-surface/70 text-foreground",
-                )}
-              >
+            <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div className={cn("max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed sm:max-w-[70%]", msg.role === "user" ? "bg-accent text-accent-foreground" : "border border-border/60 bg-surface/70 text-foreground")}>
                 <p className="whitespace-pre-wrap">{msg.content}</p>
                 {msg.role === "patient" && synthesisSupported && voiceMode && (
-                  <button
-                    type="button"
-                    onClick={() => handleSpeakMessage(msg.content)}
-                    className={cn(
-                      "mt-2 flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium uppercase tracking-wider transition",
-                      voiceStatus === "speaking" && i === messages.length - 1
-                        ? "bg-accent/20 text-accent"
-                        : "text-muted hover:bg-surface/50 hover:text-accent",
-                    )}
-                    title="Read aloud"
-                  >
+                  <button type="button" onClick={() => { stopSpeaking(); speak(msg.content, () => { if (voiceModeRef.current) beginListening(); }); }} className={cn("mt-2 flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium uppercase tracking-wider transition", voiceStatus === "speaking" && i === messages.length - 1 ? "bg-accent/20 text-accent" : "text-muted hover:bg-surface/50 hover:text-accent")} title="Read aloud">
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M11 5L6 9H2v6h4l5 4V5z" />
                     </svg>
                     {voiceStatus === "speaking" && i === messages.length - 1 ? (
-                      <span className="flex items-center gap-1">
-                        <span className="h-1 w-1 animate-pulse rounded-full bg-current" />
-                        Playing
-                      </span>
-                    ) : (
-                      "Listen"
-                    )}
+                      <span className="flex items-center gap-1"><span className="h-1 w-1 animate-pulse rounded-full bg-current" /> Playing</span>
+                    ) : "Listen"}
                   </button>
                 )}
               </div>
             </motion.div>
           ))}
-
           {loading && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
-            >
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
               <div className="rounded-2xl border border-border/60 bg-surface/70 px-4 py-3">
                 <div className="flex gap-1.5">
                   <span className="h-2 w-2 animate-bounce rounded-full bg-muted" style={{ animationDelay: "0ms" }} />
@@ -385,81 +296,39 @@ export function OsceSession({
               </div>
             </motion.div>
           )}
-
           {error && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex justify-center"
-            >
-              <div className="rounded-xl bg-red-500/10 px-4 py-2 text-xs text-red-500">
-                {error}
-              </div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center">
+              <div className="rounded-xl bg-red-500/10 px-4 py-2 text-xs text-red-500">{error}</div>
             </motion.div>
           )}
-
           <div ref={bottomRef} />
         </div>
       </div>
 
       <div className="border-t border-border/60 bg-surface/30 backdrop-blur-md">
-        {voiceMode && voiceSupported && (
+        {voiceMode && hasSpeechRecognition && (
           <div className="border-b border-border/40 px-4 py-3 sm:px-6">
             <div className="mx-auto max-w-3xl">
               <div className="flex items-center justify-between gap-3">
-                <div className={`flex items-center gap-2 text-sm font-medium ${getStatusDisplay().color}`}>
+                <div className={`flex items-center gap-2 text-sm font-medium ${statusDisplay().color}`}>
                   <span className="relative flex h-6 w-6 items-center justify-center">
-                    {voiceStatus === "listening" && (
-                      <>
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/30" />
-                        <span className="text-base">🎤</span>
-                      </>
-                    )}
-                    {voiceStatus === "thinking" && (
-                      <span className="inline-block animate-bounce text-base">🤔</span>
-                    )}
-                    {voiceStatus === "speaking" && (
-                      <span className="inline-block text-base">🗣️</span>
-                    )}
+                    {voiceStatus === "listening" && (<><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/30" /><span className="text-base">🎤</span></>)}
+                    {voiceStatus === "thinking" && <span className="inline-block animate-bounce text-base">🤔</span>}
+                    {voiceStatus === "speaking" && <span className="inline-block text-base">🗣️</span>}
                     {voiceStatus === "idle" && <span className="text-base">🎤</span>}
                   </span>
-                  <span className={voiceStatus === "listening" ? "animate-pulse" : ""}>
-                    {getStatusDisplay().text}
-                  </span>
+                  <span className={voiceStatus === "listening" ? "animate-pulse" : ""}>{statusDisplay().text}</span>
                   {voiceMode && synthesisSupported && (
-                    <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-accent">
-                      Speech
-                    </span>
+                    <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-accent">Speech</span>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={handleMicClick}
-                  disabled={loading}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition disabled:opacity-50",
-                    voiceStatus === "listening"
-                      ? "bg-red-500/15 text-red-500"
-                      : voiceStatus === "speaking"
-                        ? "bg-accent/15 text-accent"
-                        : "bg-surface/60 text-muted hover:bg-surface hover:text-accent",
-                  )}
-                >
-                  {voiceStatus === "listening" ? (
-                    <>
-                      <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-                      Stop
-                    </>
-                  ) : voiceStatus === "speaking" ? (
-                    "Skip"
-                  ) : (
-                    "Start"
-                  )}
+                <button type="button" onClick={handleMicClick} disabled={loading}
+                  className={cn("flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition disabled:opacity-50",
+                    voiceStatus === "listening" ? "bg-red-500/15 text-red-500" : voiceStatus === "speaking" ? "bg-accent/15 text-accent" : "bg-surface/60 text-muted hover:bg-surface hover:text-accent")}>
+                  {voiceStatus === "listening" ? <><span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Stop</> : voiceStatus === "speaking" ? "Skip" : "Start"}
                 </button>
               </div>
-              {recordingError && (
-                <p className="mt-1.5 text-[10px] text-red-500">{recordingError}</p>
-              )}
+              {recordingError && <p className="mt-1.5 text-[10px] text-red-500">{recordingError}</p>}
             </div>
           </div>
         )}
@@ -467,26 +336,14 @@ export function OsceSession({
         <div className="px-4 py-4 sm:px-6">
           <div className="mx-auto flex max-w-3xl items-end gap-3">
             <div className="relative flex-1">
-              {voiceMode && voiceSupported && voiceStatus !== "idle" ? null : (
+              {voiceMode && hasSpeechRecognition && voiceStatus !== "idle" ? null : (
                 <>
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={
-                      voiceMode && voiceSupported ? "Type your question..." : "Ask the patient a question..."
-                    }
+                  <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+                    placeholder={voiceMode && hasSpeechRecognition ? "Type your question..." : "Ask the patient a question..."}
                     disabled={loading}
-                    className="w-full rounded-xl border border-border/70 bg-surface/80 px-4 py-3 pr-12 text-sm outline-none transition placeholder:text-muted/50 focus:border-accent/50 disabled:opacity-50"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSend}
-                    disabled={loading || !input.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted transition hover:text-accent disabled:opacity-30"
-                  >
+                    className="w-full rounded-xl border border-border/70 bg-surface/80 px-4 py-3 pr-12 text-sm outline-none transition placeholder:text-muted/50 focus:border-accent/50 disabled:opacity-50" />
+                  <button type="button" onClick={handleSend} disabled={loading || !input.trim()}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted transition hover:text-accent disabled:opacity-30">
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
@@ -494,12 +351,8 @@ export function OsceSession({
                 </>
               )}
             </div>
-            <button
-              type="button"
-              onClick={onSubmit}
-              disabled={loading}
-              className="flex shrink-0 items-center gap-2 rounded-xl border-2 border-red-500/40 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-500/20 disabled:opacity-50"
-            >
+            <button type="button" onClick={onSubmit} disabled={loading}
+              className="flex shrink-0 items-center gap-2 rounded-xl border-2 border-red-500/40 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-500/20 disabled:opacity-50">
               Submit OSCE
             </button>
           </div>
