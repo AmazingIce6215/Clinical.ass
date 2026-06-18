@@ -103,11 +103,15 @@ export function OsceSession({
           if (text && voiceModeRef.current) {
             setVoiceStatus("thinking");
             handleSendWithTextRef.current(text);
+          } else if (voiceModeRef.current) {
+            setTimeout(startListening, 400);
           }
         },
         (err) => {
           if (err !== "no-speech" && err !== "aborted") {
             setRecordingError(err);
+          } else if (voiceModeRef.current) {
+            setTimeout(startListening, 400);
           }
         },
       );
