@@ -1,5 +1,7 @@
 "use client";
 
+export type VoiceQuality = "premium" | "standard" | "basic";
+
 export function isSpeechSupported(): boolean {
   if (typeof window === "undefined") return false;
   return "SpeechRecognition" in window || "webkitSpeechRecognition" in window;
@@ -100,38 +102,107 @@ export function createSpeechRecognizer(
   return { start, abort, isRunning };
 }
 
-export function speak(text: string, onEnd?: () => void): void {
+const PREMIUM_VOICE_NAMES = ["Samantha", "Karen", "Fiona", "Moira", "Tessa", "Veena"];
+
+let cachedVoices: SpeechSynthesisVoice[] | null = null;
+
+function getVoices(): SpeechSynthesisVoice[] {
+  if (cachedVoices) return cachedVoices;
+  const voices = speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    cachedVoices = voices;
+  }
+  return voices;
+}
+
+export function warmVoiceCache(): void {
+  if (!isSpeechSynthesisSupported()) return;
+  const voices = speechSynthesis.getVoices();
+  if (voices.length > 0) cachedVoices = voices;
+  speechSynthesis.onvoiceschanged = () => {
+    cachedVoices = speechSynthesis.getVoices();
+  };
+}
+
+export function findBestVoice(): SpeechSynthesisVoice | null {
+  const voices = getVoices();
+
+  for (const name of PREMIUM_VOICE_NAMES) {
+    const match = voices.find((v) => v.name === name && v.lang.startsWith("en"));
+    if (match) return match;
+  }
+
+  const female = voices.find((v) => v.lang.startsWith("en") && /female|samantha|karen|fiona|moira|tessa|veena|zira|hazel|heather|ava|emma|martha|sarah|jenny|salli|joanna|kimberly|kendra/i.test(v.name));
+  if (female) return female;
+
+  const enVoice = voices.find((v) => v.lang.startsWith("en"));
+  if (enVoice) return enVoice;
+
+  return voices[0] ?? null;
+}
+
+export function getVoiceQuality(): VoiceQuality {
+  const voice = findBestVoice();
+  if (!voice) return "basic";
+  if (PREMIUM_VOICE_NAMES.includes(voice.name)) return "premium";
+  if (voice.name.includes("Enhanced") || voice.name.includes("Premium") || voice.name.includes("Neural")) return "premium";
+  return "standard";
+}
+
+export function processTextForSpeech(text: string): string {
+  let processed = text;
+
+  processed = processed.replace(/([.!?])\s*/g, "$1 ");
+
+  processed = processed.replace(/([,;:])\s*/g, "$1 ");
+
+  processed = processed.trim();
+
+  return processed;
+}
+
+let speakingAborted = false;
+
+export function speak(text: string, onStart?: () => void, onEnd?: () => void): void {
   if (!isSpeechSynthesisSupported()) return;
 
   stopSpeaking();
+  speakingAborted = false;
 
-  const utterance = new SpeechSynthesisUtterance(text);
+  const processed = processTextForSpeech(text);
+  const utterance = new SpeechSynthesisUtterance(processed);
   utterance.lang = "en-US";
-  utterance.rate = 1.0;
-  utterance.pitch = 1.0;
+  utterance.rate = 0.88;
+  utterance.pitch = 1.05;
   utterance.volume = 1.0;
 
-  const voices = speechSynthesis.getVoices();
-  const preferredVoice =
-    voices.find((v) => v.lang.startsWith("en") && /female/i.test(v.name)) ??
-    voices.find((v) => v.lang.startsWith("en")) ??
-    null;
+  const bestVoice = findBestVoice();
+  if (bestVoice) {
+    utterance.voice = bestVoice;
+  }
 
-  if (preferredVoice) utterance.voice = preferredVoice;
+  utterance.onstart = () => {
+    onStart?.();
+  };
 
   utterance.onend = () => {
-    onEnd?.();
+    if (!speakingAborted) {
+      onEnd?.();
+    }
   };
 
   utterance.onerror = () => {
     stopSpeaking();
-    onEnd?.();
+    if (!speakingAborted) {
+      onEnd?.();
+    }
   };
 
   speechSynthesis.speak(utterance);
 }
 
 export function stopSpeaking(): void {
+  speakingAborted = true;
   if (speechSynthesis.speaking) {
     speechSynthesis.cancel();
   }
