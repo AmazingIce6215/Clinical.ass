@@ -7,6 +7,11 @@ export function isSpeechSupported(): boolean {
   return "SpeechRecognition" in window || "webkitSpeechRecognition" in window;
 }
 
+export function isApiSpeechSupported(): boolean {
+  if (typeof window === "undefined") return false;
+  return !!(navigator.mediaDevices && typeof MediaRecorder !== "undefined");
+}
+
 export const EDGE_TTS_VOICES = [
   { id: "en-US-JennyNeural", label: "Jenny (US, Female)" },
   { id: "en-US-AriaNeural", label: "Aria (US, Female)" },
@@ -108,6 +113,156 @@ export function createSpeechRecognizer(
     }
     running = false;
     recognition = null;
+  }
+
+  function isRunning() {
+    return running;
+  }
+
+  return { start, abort, isRunning };
+}
+
+export function createApiSpeechRecognizer(
+  onResult: (text: string) => void,
+  onEnd: () => void,
+  onError: (error: string) => void,
+): SpeechRecognizer | null {
+  if (!isApiSpeechSupported()) return null;
+
+  let mediaRecorder: MediaRecorder | null = null;
+  let chunks: Blob[] = [];
+  let running = false;
+  let stream: MediaStream | null = null;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  let mimeType = "audio/webm";
+
+  function getBestMimeType(): string {
+    const types = [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/ogg;codecs=opus",
+      "audio/mp4",
+    ];
+    for (const t of types) {
+      if (MediaRecorder.isTypeSupported(t)) return t;
+    }
+    return "audio/webm";
+  }
+
+  async function startInternal() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mimeType = getBestMimeType();
+      chunks = [];
+
+      mediaRecorder = new MediaRecorder(stream, { mimeType });
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+
+      const stopRecorder = () => {
+        if (mediaRecorder?.state === "recording") {
+          mediaRecorder.stop();
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        running = false;
+        if (timeoutId) clearTimeout(timeoutId);
+
+        stream?.getTracks().forEach((t) => t.stop());
+        stream = null;
+
+        if (chunks.length === 0) {
+          onEnd();
+          return;
+        }
+
+        const blob = new Blob(chunks, { type: mimeType });
+        chunks = [];
+
+        try {
+          const formData = new FormData();
+          formData.append("audio", blob, "recording.webm");
+
+          const res = await fetch("/api/stt", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!res.ok) {
+            const data = (await res.json().catch(() => ({}))) as {
+              error?: string;
+            };
+            throw new Error(data.error || "Transcription failed");
+          }
+
+          const data = (await res.json()) as { text: string };
+          if (data.text?.trim()) {
+            onResult(data.text.trim());
+          }
+          onEnd();
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Transcription failed";
+          onError(message);
+          onEnd();
+        }
+      };
+
+      mediaRecorder.onerror = () => {
+        running = false;
+        if (timeoutId) clearTimeout(timeoutId);
+        stream?.getTracks().forEach((t) => t.stop());
+        stream = null;
+        onError("Recording error");
+        onEnd();
+      };
+
+      mediaRecorder.start();
+      running = true;
+
+      timeoutId = setTimeout(stopRecorder, 30000);
+    } catch {
+      running = false;
+      stream?.getTracks().forEach((t) => t.stop());
+      stream = null;
+      const browserRecognizer = createSpeechRecognizer(
+        onResult,
+        onEnd,
+        onError,
+      );
+      if (browserRecognizer) {
+        browserRecognizer.start();
+        return;
+      }
+      onError("Microphone access denied");
+      onEnd();
+    }
+  }
+
+  function start() {
+    if (running) return;
+    running = true;
+    startInternal();
+  }
+
+  function abort() {
+    if (timeoutId) clearTimeout(timeoutId);
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.onstop = null;
+      try {
+        mediaRecorder.stop();
+      } catch {
+        // ignore
+      }
+    }
+    stream?.getTracks().forEach((t) => t.stop());
+    stream = null;
+    mediaRecorder = null;
+    chunks = [];
+    running = false;
   }
 
   function isRunning() {

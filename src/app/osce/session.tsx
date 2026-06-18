@@ -6,7 +6,8 @@ import type { OsceSessionState } from "@/lib/osce/state";
 import {
   isSpeechSupported,
   isSpeechSynthesisSupported,
-  createSpeechRecognizer,
+  isApiSpeechSupported,
+  createApiSpeechRecognizer,
   warmVoiceCache,
   apiSpeak,
   stopSpeaking,
@@ -36,8 +37,9 @@ export function OsceSession({
   const [recordingError, setRecordingError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const recognizerRef = useRef<ReturnType<typeof createSpeechRecognizer>>(null);
-  const voiceSupported = isSpeechSupported();
+  const recognizerRef = useRef<ReturnType<typeof createApiSpeechRecognizer>>(null);
+  const voiceSupported = isApiSpeechSupported() || isSpeechSupported();
+  const apiSttAvailable = isApiSpeechSupported();
   const synthesisSupported = isSpeechSynthesisSupported();
 
   const pendingTextRef = useRef("");
@@ -92,7 +94,7 @@ export function OsceSession({
     if (!voiceModeRef.current || loadingRef.current) return;
 
     if (!recognizerRef.current) {
-      recognizerRef.current = createSpeechRecognizer(
+      recognizerRef.current = createApiSpeechRecognizer(
         (text) => {
           pendingTextRef.current = text;
         },
@@ -410,6 +412,11 @@ export function OsceSession({
                   <span className={voiceStatus === "listening" ? "animate-pulse" : ""}>
                     {getStatusDisplay().text}
                   </span>
+                  {voiceMode && apiSttAvailable && (
+                    <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-accent">
+                      Whisper
+                    </span>
+                  )}
                   {voiceMode && (
                     <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-accent">
                       Edge TTS
