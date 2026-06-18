@@ -45,6 +45,7 @@ export function OsceSession({
   const pendingTextRef = useRef("");
   const voiceModeRef = useRef(false);
   const loadingRef = useRef(false);
+  const sendingLockRef = useRef(false);
   const onMessageRef = useRef(onMessage);
   const handleSendWithTextRef = useRef<(text: string) => void>(() => {});
 
@@ -91,7 +92,7 @@ export function OsceSession({
   }, []);
 
   const startListening = useCallback(() => {
-    if (!voiceModeRef.current || loadingRef.current) return;
+    if (!voiceModeRef.current || sendingLockRef.current) return;
 
     if (!recognizerRef.current) {
       recognizerRef.current = createApiSpeechRecognizer(
@@ -159,7 +160,8 @@ export function OsceSession({
   }, [synthesisSupported, startListening]);
 
   const handleSendWithText = useCallback((text: string) => {
-    if (!text.trim() || loadingRef.current) return;
+    if (!text.trim() || sendingLockRef.current) return;
+    sendingLockRef.current = true;
     setInput("");
     setError(null);
     setMessages((prev) => [...prev, { role: "user" as const, content: text }]);
@@ -179,13 +181,15 @@ export function OsceSession({
         }
       })
       .finally(() => {
+        sendingLockRef.current = false;
         setLoading(false);
       });
   }, [tryAutoSpeak, startListening]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
-    if (!text || loadingRef.current) return;
+    if (!text || sendingLockRef.current) return;
+    sendingLockRef.current = true;
     setInput("");
     setError(null);
     setMessages((prev) => [...prev, { role: "user" as const, content: text }]);
@@ -203,6 +207,7 @@ export function OsceSession({
         startListening();
       }
     } finally {
+      sendingLockRef.current = false;
       setLoading(false);
     }
   }, [input, synthesisSupported, tryAutoSpeak, startListening]);
@@ -224,9 +229,15 @@ export function OsceSession({
     } else {
       setVoiceMode(true);
       setRecordingError(null);
-      setTimeout(() => startListening(), 300);
+      const lastPatientMsg = messages.filter((m) => m.role === "patient").pop();
+      if (lastPatientMsg && synthesisSupported) {
+        setVoiceStatus("speaking");
+        apiSpeak(lastPatientMsg.content, undefined, () => startListening());
+      } else {
+        setTimeout(() => startListening(), 300);
+      }
     }
-  }, [voiceMode, cleanupRecognizer, startListening]);
+  }, [voiceMode, cleanupRecognizer, startListening, messages, synthesisSupported]);
 
   const handleMicClick = useCallback(() => {
     if (voiceStatus === "speaking") {
@@ -418,9 +429,9 @@ export function OsceSession({
                       Whisper
                     </span>
                   )}
-                  {voiceMode && (
+                  {voiceMode && synthesisSupported && (
                     <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-accent">
-                      Edge TTS
+                      TTS
                     </span>
                   )}
                 </div>

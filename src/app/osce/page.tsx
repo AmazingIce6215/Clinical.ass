@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { GlassCard, PrimaryButton } from "@/components/app-shell";
 import Link from "next/link";
@@ -25,6 +25,7 @@ export default function OscePage() {
   const [loading, setLoading] = useState(false);
   const [grading, setGrading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const sessionRef = useRef(session);
 
   const handleStart = useCallback(async () => {
     setLoading(true);
@@ -61,6 +62,7 @@ export default function OscePage() {
         conversation: [{ role: "patient", content: caseData.presentation }],
       };
 
+      sessionRef.current = initialSession;
       setSession(initialSession);
       setView("session");
     } catch (err) {
@@ -73,12 +75,13 @@ export default function OscePage() {
 
   const handleMessage = useCallback(
     async (input: string): Promise<string> => {
-      if (!session) throw new Error("No active session");
+      const currentSession = sessionRef.current;
+      if (!currentSession) throw new Error("No active session");
 
       const res = await fetch("/api/osce/patient", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session, userInput: input }),
+        body: JSON.stringify({ session: currentSession, userInput: input }),
       });
 
       if (!res.ok) {
@@ -90,7 +93,7 @@ export default function OscePage() {
 
       setSession((prev) => {
         if (!prev) return prev;
-        return {
+        const updated: OsceSessionState = {
           ...prev,
           questionsAsked: [
             ...prev.questionsAsked,
@@ -98,15 +101,17 @@ export default function OscePage() {
           ],
           conversation: [
             ...prev.conversation,
-            { role: "user", content: input },
-            { role: "patient", content: data.response },
+            { role: "user" as const, content: input },
+            { role: "patient" as const, content: data.response },
           ],
         };
+        sessionRef.current = updated;
+        return updated;
       });
 
       return data.response;
     },
-    [session],
+    [],
   );
 
   const handleSubmit = useCallback(async () => {

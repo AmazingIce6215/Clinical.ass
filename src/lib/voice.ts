@@ -136,7 +136,8 @@ export function createApiSpeechRecognizer(
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
   let audioContext: AudioContext | null = null;
   let silenceCheckId: number | null = null;
-  let mimeType = "audio/webm";
+  let mimeType = "";
+  let browserFallback: SpeechRecognizer | null = null;
 
   function getBestMimeType(): string {
     const types = [
@@ -148,7 +149,7 @@ export function createApiSpeechRecognizer(
     for (const t of types) {
       if (MediaRecorder.isTypeSupported(t)) return t;
     }
-    return "audio/webm";
+    return "";
   }
 
   function cleanupSilenceDetection() {
@@ -164,7 +165,7 @@ export function createApiSpeechRecognizer(
 
   function stopRecorder() {
     cleanupSilenceDetection();
-    if (mediaRecorder?.state === "recording") {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
       mediaRecorder.stop();
     }
   }
@@ -181,8 +182,9 @@ export function createApiSpeechRecognizer(
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
       let silenceStartMs: number | null = null;
-      const SILENCE_THRESHOLD = 0.03;
-      const SILENCE_DURATION_MS = 1500;
+      const SILENCE_THRESHOLD = 0.015;
+      const SILENCE_DURATION_MS = 2000;
+      const NOISE_GATE_HYSTERESIS = 0.008;
 
       function check() {
         if (!running || mediaRecorder?.state !== "recording") return;
@@ -203,7 +205,7 @@ export function createApiSpeechRecognizer(
             stopRecorder();
             return;
           }
-        } else {
+        } else if (rms > SILENCE_THRESHOLD + NOISE_GATE_HYSTERESIS) {
           silenceStartMs = null;
         }
 
@@ -222,7 +224,9 @@ export function createApiSpeechRecognizer(
       mimeType = getBestMimeType();
       chunks = [];
 
-      mediaRecorder = new MediaRecorder(stream, { mimeType });
+      const recorderOptions: MediaRecorderOptions = {};
+      if (mimeType) recorderOptions.mimeType = mimeType;
+      mediaRecorder = new MediaRecorder(stream, recorderOptions);
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunks.push(e.data);
@@ -241,12 +245,14 @@ export function createApiSpeechRecognizer(
           return;
         }
 
-        const blob = new Blob(chunks, { type: mimeType });
+        const actualType = mimeType || "audio/webm";
+        const blob = new Blob(chunks, { type: actualType });
         chunks = [];
 
         try {
           const formData = new FormData();
-          formData.append("audio", blob, "recording.webm");
+          const ext = actualType.includes("mp4") ? "recording.mp4" : actualType.includes("ogg") ? "recording.ogg" : "recording.webm";
+          formData.append("audio", blob, ext);
 
           const res = await fetch("/api/stt", {
             method: "POST",
@@ -291,13 +297,14 @@ export function createApiSpeechRecognizer(
       running = false;
       stream?.getTracks().forEach((t) => t.stop());
       stream = null;
-      const browserRecognizer = createSpeechRecognizer(
+      browserFallback = createSpeechRecognizer(
         onResult,
         onEnd,
         onError,
       );
-      if (browserRecognizer) {
-        browserRecognizer.start();
+      if (browserFallback) {
+        browserFallback.start();
+        running = true;
         return;
       }
       onError("Microphone access denied");
@@ -312,6 +319,10 @@ export function createApiSpeechRecognizer(
   }
 
   function abort() {
+    if (browserFallback) {
+      browserFallback.abort();
+      browserFallback = null;
+    }
     cleanupSilenceDetection();
     if (timeoutId) clearTimeout(timeoutId);
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
@@ -436,14 +447,14 @@ export function analyzeActionProsody(text: string): {
   };
 }
 
-let speakingAborted = false;
 let currentAudio: HTMLAudioElement | null = null;
+let speechCallId = 0;
 
 export function speak(text: string, onStart?: () => void, onEnd?: () => void): void {
   if (!isSpeechSynthesisSupported()) return;
 
+  const callId = ++speechCallId;
   stopSpeaking();
-  speakingAborted = false;
 
   const processed = processTextForSpeech(text);
   const prosody = analyzeActionProsody(text);
@@ -459,27 +470,21 @@ export function speak(text: string, onStart?: () => void, onEnd?: () => void): v
   }
 
   utterance.onstart = () => {
-    onStart?.();
+    if (callId === speechCallId) onStart?.();
   };
 
   utterance.onend = () => {
-    if (!speakingAborted) {
-      onEnd?.();
-    }
+    if (callId === speechCallId) onEnd?.();
   };
 
   utterance.onerror = () => {
-    stopSpeaking();
-    if (!speakingAborted) {
-      onEnd?.();
-    }
+    if (callId === speechCallId) onEnd?.();
   };
 
   speechSynthesis.speak(utterance);
 }
 
 export function stopSpeaking(): void {
-  speakingAborted = true;
   if (currentAudio) {
     currentAudio.pause();
     currentAudio.src = "";
@@ -488,6 +493,7 @@ export function stopSpeaking(): void {
   if (speechSynthesis.speaking) {
     speechSynthesis.cancel();
   }
+  speechCallId++;
 }
 
 export function isSpeaking(): boolean {
@@ -502,8 +508,8 @@ export async function apiSpeak(
 ): Promise<void> {
   if (typeof window === "undefined") return;
 
+  const callId = ++speechCallId;
   stopSpeaking();
-  speakingAborted = false;
 
   try {
     const processed = processTextForSpeech(text);
@@ -521,10 +527,10 @@ export async function apiSpeak(
     });
 
     if (!res.ok) throw new Error("TTS API failed");
-    if (speakingAborted) return;
+    if (callId !== speechCallId) return;
 
     const blob = await res.blob();
-    if (speakingAborted) return;
+    if (callId !== speechCallId) return;
 
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
@@ -533,13 +539,13 @@ export async function apiSpeak(
     audio.onended = () => {
       URL.revokeObjectURL(url);
       if (currentAudio === audio) currentAudio = null;
-      if (!speakingAborted) onEnd?.();
+      if (callId === speechCallId) onEnd?.();
     };
 
     audio.onerror = () => {
       URL.revokeObjectURL(url);
       if (currentAudio === audio) currentAudio = null;
-      if (!speakingAborted) onEnd?.();
+      if (callId === speechCallId) onEnd?.();
     };
 
     onStart?.();
@@ -549,10 +555,10 @@ export async function apiSpeak(
     } catch {
       URL.revokeObjectURL(url);
       if (currentAudio === audio) currentAudio = null;
-      if (!speakingAborted) onEnd?.();
+      if (callId === speechCallId) onEnd?.();
     }
   } catch {
-    if (!speakingAborted) {
+    if (callId === speechCallId) {
       speak(text, onStart, onEnd);
     }
   }
