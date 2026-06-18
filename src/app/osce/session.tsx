@@ -136,13 +136,6 @@ export function OsceSession({
   }, [synthesisSupported]);
 
   useEffect(() => {
-    if (voiceMode && voiceStatus === "idle") {
-      const timer = setTimeout(() => startListening(), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [voiceMode, voiceStatus, startListening]);
-
-  useEffect(() => {
     return () => {
       stopSpeaking();
       cleanupRecognizer();
@@ -231,8 +224,9 @@ export function OsceSession({
     } else {
       setVoiceMode(true);
       setRecordingError(null);
+      setTimeout(() => startListening(), 300);
     }
-  }, [voiceMode, cleanupRecognizer]);
+  }, [voiceMode, cleanupRecognizer, startListening]);
 
   const handleMicClick = useCallback(() => {
     if (voiceStatus === "speaking") {

@@ -134,6 +134,8 @@ export function createApiSpeechRecognizer(
   let running = false;
   let stream: MediaStream | null = null;
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  let audioContext: AudioContext | null = null;
+  let silenceCheckId: number | null = null;
   let mimeType = "audio/webm";
 
   function getBestMimeType(): string {
@@ -149,6 +151,71 @@ export function createApiSpeechRecognizer(
     return "audio/webm";
   }
 
+  function cleanupSilenceDetection() {
+    if (silenceCheckId !== null) {
+      cancelAnimationFrame(silenceCheckId);
+      silenceCheckId = null;
+    }
+    if (audioContext) {
+      audioContext.close().catch(() => {});
+      audioContext = null;
+    }
+  }
+
+  function stopRecorder() {
+    cleanupSilenceDetection();
+    if (mediaRecorder?.state === "recording") {
+      mediaRecorder.stop();
+    }
+  }
+
+  function startSilenceDetection(stream: MediaStream) {
+    try {
+      audioContext = new AudioContext();
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.5;
+      source.connect(analyser);
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      let silenceStartMs: number | null = null;
+      const SILENCE_THRESHOLD = 0.03;
+      const SILENCE_DURATION_MS = 1500;
+
+      function check() {
+        if (!running || mediaRecorder?.state !== "recording") return;
+
+        analyser.getByteTimeDomainData(dataArray);
+
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          const v = dataArray[i] / 128 - 1;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / bufferLength);
+
+        if (rms < SILENCE_THRESHOLD) {
+          if (silenceStartMs === null) {
+            silenceStartMs = Date.now();
+          } else if (Date.now() - silenceStartMs >= SILENCE_DURATION_MS) {
+            stopRecorder();
+            return;
+          }
+        } else {
+          silenceStartMs = null;
+        }
+
+        silenceCheckId = requestAnimationFrame(check);
+      }
+
+      silenceCheckId = requestAnimationFrame(check);
+    } catch {
+      cleanupSilenceDetection();
+    }
+  }
+
   async function startInternal() {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -161,14 +228,9 @@ export function createApiSpeechRecognizer(
         if (e.data.size > 0) chunks.push(e.data);
       };
 
-      const stopRecorder = () => {
-        if (mediaRecorder?.state === "recording") {
-          mediaRecorder.stop();
-        }
-      };
-
       mediaRecorder.onstop = async () => {
         running = false;
+        cleanupSilenceDetection();
         if (timeoutId) clearTimeout(timeoutId);
 
         stream?.getTracks().forEach((t) => t.stop());
@@ -213,6 +275,7 @@ export function createApiSpeechRecognizer(
 
       mediaRecorder.onerror = () => {
         running = false;
+        cleanupSilenceDetection();
         if (timeoutId) clearTimeout(timeoutId);
         stream?.getTracks().forEach((t) => t.stop());
         stream = null;
@@ -222,7 +285,7 @@ export function createApiSpeechRecognizer(
 
       mediaRecorder.start();
       running = true;
-
+      startSilenceDetection(stream);
       timeoutId = setTimeout(stopRecorder, 30000);
     } catch {
       running = false;
@@ -249,6 +312,7 @@ export function createApiSpeechRecognizer(
   }
 
   function abort() {
+    cleanupSilenceDetection();
     if (timeoutId) clearTimeout(timeoutId);
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.onstop = null;
