@@ -1,4 +1,5 @@
 -- Add device_id column for per-device creation limits
+
 alter table if exists public.profiles
   add column if not exists device_id text;
 

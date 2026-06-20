@@ -84,8 +84,8 @@ export function stopSpeaking(): void {
 
 export function speak(text: string, onEnd?: () => void): void {
   if (!isSpeechSynthesisSupported()) return;
-  const callId = ++speechCallId;
   stopSpeaking();
+  const callId = ++speechCallId;
   const cleaned = cleanText(text);
   if (!cleaned) { onEnd?.(); return; }
   const emotion = analyzeEmotion(text);
