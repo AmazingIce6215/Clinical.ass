@@ -78,6 +78,13 @@ export function OsceSession({
     setVoiceStatus("idle");
   }, []);
 
+  const disableVoiceMode = useCallback(() => {
+    stopVoiceCapture();
+    stopSpeaking();
+    setRecordingError(null);
+    setVoiceMode(false);
+  }, [stopVoiceCapture]);
+
   useEffect(() => {
     voiceModeRef.current = voiceMode;
     voiceStatusRef.current = voiceStatus;
@@ -284,16 +291,13 @@ export function OsceSession({
 
   const toggleVoiceMode = useCallback(() => {
     if (voiceMode) {
-      stopSpeaking();
-      stopVoiceCapture();
-      setRecordingError(null);
-      setVoiceMode(false);
+      disableVoiceMode();
     } else {
       setVoiceMode(true);
       setRecordingError(null);
       setTimeout(beginListening, 300);
     }
-  }, [voiceMode, beginListening, stopVoiceCapture]);
+  }, [voiceMode, beginListening, disableVoiceMode]);
 
   const handleMicClick = useCallback(() => {
     if (voiceStatus === "speaking") { stopSpeaking(); setVoiceStatus("idle"); return; }
@@ -305,10 +309,9 @@ export function OsceSession({
   }, [voiceStatus, beginListening, stopVoiceCapture]);
 
   const handleSubmitClick = useCallback(() => {
-    stopVoiceCapture();
-    stopSpeaking();
+    disableVoiceMode();
     onSubmit();
-  }, [onSubmit, stopVoiceCapture]);
+  }, [onSubmit, disableVoiceMode]);
 
   const statusDisplay = (): { icon: string; text: string; color: string } => {
     switch (voiceStatus) {
@@ -327,7 +330,7 @@ export function OsceSession({
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border/60 bg-surface/50 px-4 py-3 backdrop-blur-md sm:px-6">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => { stopVoiceCapture(); stopSpeaking(); onBack(); }} className="flex items-center gap-2 rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-xs font-medium text-muted transition hover:border-accent/40">← Exit OSCE</button>
+          <button type="button" onClick={() => { disableVoiceMode(); onBack(); }} className="flex items-center gap-2 rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-xs font-medium text-muted transition hover:border-accent/40">← Exit OSCE</button>
           <span className="hidden rounded-full border border-border/60 px-2 py-0.5 text-[11px] font-semibold uppercase text-accent sm:inline">{session.difficulty}</span>
         </div>
         <div className={`flex items-center gap-2 font-mono text-xl font-bold tracking-wider ${timerColor}`}>
