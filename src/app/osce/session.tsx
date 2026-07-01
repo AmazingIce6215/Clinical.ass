@@ -65,6 +65,18 @@ export function OsceSession({
   const beginListeningRef = useRef<() => void>(() => {});
   const sendTextRef = useRef<(text: string) => Promise<void>>(async () => {});
 
+  const stopVoiceCapture = useCallback(() => {
+    if (restartTimerRef.current) {
+      window.clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = null;
+    }
+    listeningRef.current = false;
+    recognitionRef.current?.abort?.();
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setVoiceStatus("idle");
+  }, []);
+
   useEffect(() => {
     voiceModeRef.current = voiceMode;
     voiceStatusRef.current = voiceStatus;
@@ -94,11 +106,10 @@ export function OsceSession({
 
   useEffect(() => {
     return () => {
-      if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current);
-      recognitionRef.current?.stop();
+      stopVoiceCapture();
       stopSpeaking();
     };
-  }, []);
+  }, [stopVoiceCapture]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -272,13 +283,7 @@ export function OsceSession({
   const toggleVoiceMode = useCallback(() => {
     if (voiceMode) {
       stopSpeaking();
-      if (restartTimerRef.current) {
-        window.clearTimeout(restartTimerRef.current);
-        restartTimerRef.current = null;
-      }
-      listeningRef.current = false;
-      recognitionRef.current?.stop();
-      recognitionRef.current = null;
+      stopVoiceCapture();
       setRecordingError(null);
       setVoiceMode(false);
     } else {
@@ -286,23 +291,22 @@ export function OsceSession({
       setRecordingError(null);
       setTimeout(beginListening, 300);
     }
-  }, [voiceMode, beginListening]);
+  }, [voiceMode, beginListening, stopVoiceCapture]);
 
   const handleMicClick = useCallback(() => {
     if (voiceStatus === "speaking") { stopSpeaking(); setVoiceStatus("idle"); return; }
     if (voiceStatus === "listening") {
-      if (restartTimerRef.current) {
-        window.clearTimeout(restartTimerRef.current);
-        restartTimerRef.current = null;
-      }
-      listeningRef.current = false;
-      recognitionRef.current?.stop();
-      recognitionRef.current = null;
-      setVoiceStatus("idle");
+      stopVoiceCapture();
       return;
     }
     beginListening();
-  }, [voiceStatus, beginListening]);
+  }, [voiceStatus, beginListening, stopVoiceCapture]);
+
+  const handleSubmitClick = useCallback(() => {
+    stopVoiceCapture();
+    stopSpeaking();
+    onSubmit();
+  }, [onSubmit, stopVoiceCapture]);
 
   const statusDisplay = (): { icon: string; text: string; color: string } => {
     switch (voiceStatus) {
@@ -321,7 +325,7 @@ export function OsceSession({
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border/60 bg-surface/50 px-4 py-3 backdrop-blur-md sm:px-6">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={onBack} className="flex items-center gap-2 rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-xs font-medium text-muted transition hover:border-accent/40">← Exit OSCE</button>
+          <button type="button" onClick={() => { stopVoiceCapture(); stopSpeaking(); onBack(); }} className="flex items-center gap-2 rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-xs font-medium text-muted transition hover:border-accent/40">← Exit OSCE</button>
           <span className="hidden rounded-full border border-border/60 px-2 py-0.5 text-[11px] font-semibold uppercase text-accent sm:inline">{session.difficulty}</span>
         </div>
         <div className={`flex items-center gap-2 font-mono text-xl font-bold tracking-wider ${timerColor}`}>
@@ -431,7 +435,7 @@ export function OsceSession({
                 </>
               )}
             </div>
-            <button type="button" onClick={onSubmit} disabled={loading}
+            <button type="button" onClick={handleSubmitClick} disabled={loading}
               className="flex shrink-0 items-center gap-2 rounded-xl border-2 border-red-500/40 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-500/20 disabled:opacity-50">
               Submit OSCE
             </button>
