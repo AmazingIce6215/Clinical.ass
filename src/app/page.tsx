@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
 import { AppShell, ButtonLink, GlassCard } from "@/components/app-shell";
+import { BrainHero } from "@/components/brain/brain-hero";
 
 function greetingLine(name: string) {
   if (!name) return "Welcome to a sharper clinical workspace";
@@ -64,6 +65,8 @@ export default function HomePage() {
               </Link>
             </motion.div>
           </GlassCard>
+
+          <BrainHero />
         </section>
       </div>
     </AppShell>
