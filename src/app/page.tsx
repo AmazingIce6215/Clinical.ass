@@ -51,12 +51,6 @@ const modules = [
   },
 ];
 
-const highlights = [
-  { label: "Modes", value: "6" },
-  { label: "Calculators", value: "15+" },
-  { label: "Adaptive", value: "AI-assisted" },
-];
-
 function greetingLine(name: string) {
   if (!name) return "Welcome to a sharper clinical workspace";
   return `Welcome back, ${name}`;
@@ -107,17 +101,6 @@ export default function HomePage() {
                 <ButtonLink href="/case-report" className="px-6 py-3.5">
                   Case report
                 </ButtonLink>
-              </div>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                {highlights.map((item) => (
-                  <div key={item.label} className="metric-tile">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                      {item.label}
-                    </p>
-                    <p className="metric-value mt-2">{item.value}</p>
-                  </div>
-                ))}
               </div>
             </motion.div>
           </GlassCard>
