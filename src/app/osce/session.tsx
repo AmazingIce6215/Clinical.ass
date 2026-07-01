@@ -59,6 +59,7 @@ export function OsceSession({
   const patientSexRef = useRef<OsceSessionState["patientSex"]>(session.patientSex);
   const loadingRef = useRef(false);
   const sendingRef = useRef(false);
+  const sessionEndingRef = useRef(false);
   const onMessageRef = useRef(onMessage);
   const listeningRef = useRef(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -67,6 +68,7 @@ export function OsceSession({
   const sendTextRef = useRef<(text: string) => Promise<void>>(async () => {});
 
   const stopVoiceCapture = useCallback(() => {
+    sessionEndingRef.current = true;
     if (restartTimerRef.current) {
       window.clearTimeout(restartTimerRef.current);
       restartTimerRef.current = null;
@@ -79,6 +81,7 @@ export function OsceSession({
   }, []);
 
   const disableVoiceMode = useCallback(() => {
+    sessionEndingRef.current = true;
     stopVoiceCapture();
     stopSpeaking();
     setRecordingError(null);
@@ -91,6 +94,9 @@ export function OsceSession({
     patientSexRef.current = session.patientSex;
     loadingRef.current = loading;
     onMessageRef.current = onMessage;
+    if (voiceMode) {
+      sessionEndingRef.current = false;
+    }
   }, [voiceMode, voiceStatus, loading, onMessage, session.patientSex]);
 
   useEffect(() => { warmVoiceCache(); }, []);
@@ -127,7 +133,7 @@ export function OsceSession({
   };
 
   const beginListening = useCallback(() => {
-    if (!voiceModeRef.current || sendingRef.current || listeningRef.current || loadingRef.current) return;
+    if (sessionEndingRef.current || !voiceModeRef.current || sendingRef.current || listeningRef.current || loadingRef.current) return;
     if (!SpeechRecognitionAPI) return;
 
     if (restartTimerRef.current) {
@@ -153,6 +159,7 @@ export function OsceSession({
         if (r?.[0]?.transcript) {
           const text = r[0].transcript.trim();
           if (text && voiceModeRef.current && !sendingRef.current) {
+            if (sessionEndingRef.current) return;
             listeningRef.current = false;
             recognitionRef.current = null;
             sr.stop();
@@ -163,6 +170,11 @@ export function OsceSession({
       };
 
       sr.onend = () => {
+        if (sessionEndingRef.current) {
+          listeningRef.current = false;
+          recognitionRef.current = null;
+          return;
+        }
         listeningRef.current = false;
         recognitionRef.current = null;
         if (voiceModeRef.current && !sendingRef.current && !loadingRef.current) {
@@ -178,6 +190,11 @@ export function OsceSession({
       };
 
       sr.onerror = (e) => {
+        if (sessionEndingRef.current) {
+          listeningRef.current = false;
+          recognitionRef.current = null;
+          return;
+        }
         listeningRef.current = false;
         recognitionRef.current = null;
         if (e.error === "aborted") return;
@@ -193,6 +210,7 @@ export function OsceSession({
 
       sr.start();
     } catch {
+      if (sessionEndingRef.current) return;
       listeningRef.current = false;
       recognitionRef.current = null;
       if (voiceModeRef.current) {
@@ -206,6 +224,7 @@ export function OsceSession({
   }, []);
 
   const sendText = useCallback(async (text: string) => {
+    if (sessionEndingRef.current) return;
     if (sendingRef.current) return;
     sendingRef.current = true;
     setError(null);
@@ -217,9 +236,10 @@ export function OsceSession({
       sendingRef.current = false;
       setLoading(false);
       if (voiceModeRef.current) {
+        if (sessionEndingRef.current) return;
         setVoiceStatus("speaking");
         speak(response, () => {
-          if (voiceModeRef.current) {
+          if (voiceModeRef.current && !sessionEndingRef.current) {
             setVoiceStatus("idle");
             beginListeningRef.current();
           }
@@ -230,9 +250,10 @@ export function OsceSession({
       setLoading(false);
       setError(err instanceof Error ? err.message : "Failed");
       if (voiceModeRef.current) {
+        if (sessionEndingRef.current) return;
         setVoiceStatus("idle");
         restartTimerRef.current = window.setTimeout(() => {
-          if (shouldRestartListening({ voiceMode: voiceModeRef.current, isListening: false, isSending: false, isSpeaking: false, isLoading: loadingRef.current, hasSpeechRecognition: true })) {
+          if (!sessionEndingRef.current && shouldRestartListening({ voiceMode: voiceModeRef.current, isListening: false, isSending: false, isSpeaking: false, isLoading: loadingRef.current, hasSpeechRecognition: true })) {
             beginListeningRef.current();
           }
         }, 500);
@@ -293,6 +314,7 @@ export function OsceSession({
     if (voiceMode) {
       disableVoiceMode();
     } else {
+      sessionEndingRef.current = false;
       setVoiceMode(true);
       setRecordingError(null);
       setTimeout(beginListening, 300);
