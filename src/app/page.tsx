@@ -113,20 +113,7 @@ export default function HomePage() {
             </motion.div>
           </GlassCard>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <GlassCard className="p-6">
-              <p className="shell-kicker">Quick actions</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link href="/calculators" className="ui-pill">Open scores</Link>
-                <Link href="/library" className="ui-pill">Saved cases</Link>
-                <Link href="/stats" className="ui-pill">Performance</Link>
-                <Link href="/settings" className="ui-pill">Settings</Link>
-              </div>
-              <p className="mt-4 text-sm text-muted">
-                Everything is reachable from a single, consistent shell so switching modes feels seamless.
-              </p>
-            </GlassCard>
-          </div>
+
         </section>
 
         <section className="space-y-4">
