@@ -86,7 +86,13 @@ function mapAuthError(message: string): string {
 
 export function shouldIgnoreProfileError(message: string): boolean {
   const normalized = message.toLowerCase();
-  return normalized.includes("relation \"profiles\" does not exist") || normalized.includes("permission denied for table profiles") || normalized.includes("permission denied for relation profiles");
+  return (
+    normalized.includes("relation \"profiles\" does not exist") ||
+    normalized.includes("permission denied for table profiles") ||
+    normalized.includes("permission denied for relation profiles") ||
+    normalized.includes("new row violates row-level security policy") ||
+    normalized.includes("violates row-level security policy")
+  );
 }
 
 export function normalizeAuthResult(result: unknown): string {
