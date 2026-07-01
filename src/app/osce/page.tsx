@@ -49,6 +49,7 @@ export default function OscePage() {
         caseId: caseData.id,
         casePresentation: caseData.presentation,
         caseFullDetails: caseData.fullDetails,
+        patientSex: caseData.sex,
         difficulty: caseData.difficulty,
         timeRemaining: duration,
         duration,

@@ -10,6 +10,7 @@ export interface OsceSessionState {
   caseId: string;
   casePresentation: string;
   caseFullDetails: string;
+  patientSex: "male" | "female" | "other";
   difficulty: Difficulty;
   timeRemaining: number;
   duration: number;
@@ -53,6 +54,7 @@ export interface IdealAnswer {
 
 export interface OsceCase {
   id: string;
+  sex: "male" | "female" | "other";
   presentation: string;
   fullDetails: string;
   difficulty: Difficulty;
@@ -63,6 +65,7 @@ export function createInitialState(caseData: OsceCase, duration: number): OsceSe
     caseId: caseData.id,
     casePresentation: caseData.presentation,
     caseFullDetails: caseData.fullDetails,
+    patientSex: caseData.sex,
     difficulty: caseData.difficulty,
     timeRemaining: duration,
     duration,

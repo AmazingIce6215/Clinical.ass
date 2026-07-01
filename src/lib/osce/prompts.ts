@@ -201,6 +201,7 @@ The case should include:
 Return ONLY valid JSON with NO markdown formatting. Use this structure:
 {
   "id": "case-<random-4-digits>",
+  "sex": "male" | "female" | "other",
   "presentation": "Brief opening statement the patient would say when entering (1-2 sentences, in first person, as a patient would speak)",
   "fullDetails": "Complete structured case details for the examiner/patient simulator",
   "difficulty": "${difficulty}"

@@ -56,6 +56,7 @@ export function OsceSession({
 
   const voiceModeRef = useRef(false);
   const voiceStatusRef = useRef<VoiceStatus>("idle");
+  const patientSexRef = useRef<OsceSessionState["patientSex"]>(session.patientSex);
   const loadingRef = useRef(false);
   const sendingRef = useRef(false);
   const onMessageRef = useRef(onMessage);
@@ -80,9 +81,10 @@ export function OsceSession({
   useEffect(() => {
     voiceModeRef.current = voiceMode;
     voiceStatusRef.current = voiceStatus;
+    patientSexRef.current = session.patientSex;
     loadingRef.current = loading;
     onMessageRef.current = onMessage;
-  }, [voiceMode, voiceStatus, loading, onMessage]);
+  }, [voiceMode, voiceStatus, loading, onMessage, session.patientSex]);
 
   useEffect(() => { warmVoiceCache(); }, []);
 
@@ -214,7 +216,7 @@ export function OsceSession({
             setVoiceStatus("idle");
             beginListeningRef.current();
           }
-        });
+        }, { sex: patientSexRef.current });
       }
     } catch (err) {
       sendingRef.current = false;
@@ -259,7 +261,7 @@ export function OsceSession({
             setVoiceStatus("idle");
             beginListening();
           }
-        });
+        }, { sex: patientSexRef.current });
       }
     } catch (err) {
       sendingRef.current = false;
@@ -357,7 +359,7 @@ export function OsceSession({
               <div className={cn("max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed sm:max-w-[70%]", msg.role === "user" ? "bg-accent text-accent-foreground" : "border border-border/60 bg-surface/70 text-foreground")}>
                 <p className="whitespace-pre-wrap">{msg.content}</p>
                 {msg.role === "patient" && synthesisSupported && voiceMode && (
-                  <button type="button" onClick={() => { stopSpeaking(); speak(msg.content, () => { if (voiceModeRef.current) beginListening(); }); }} className={cn("mt-2 flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium uppercase tracking-wider transition", voiceStatus === "speaking" && i === messages.length - 1 ? "bg-accent/20 text-accent" : "text-muted hover:bg-surface/50 hover:text-accent")} title="Read aloud">
+                  <button type="button" onClick={() => { stopSpeaking(); speak(msg.content, () => { if (voiceModeRef.current) beginListening(); }, { sex: patientSexRef.current }); }} className={cn("mt-2 flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium uppercase tracking-wider transition", voiceStatus === "speaking" && i === messages.length - 1 ? "bg-accent/20 text-accent" : "text-muted hover:bg-surface/50 hover:text-accent")} title="Read aloud">
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M11 5L6 9H2v6h4l5 4V5z" />
                     </svg>

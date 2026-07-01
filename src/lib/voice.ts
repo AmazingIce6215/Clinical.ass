@@ -1,11 +1,16 @@
 "use client";
 
+import type { Sex } from "@/lib/types";
+
 export function isSpeechSynthesisSupported(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
 }
 
-const PREMIUM_VOICES = new Set([
-  "Samantha", "Karen", "Fiona", "Moira", "Tessa", "Veena",
+const FEMALE_VOICES = new Set([
+  "Samantha", "Karen", "Fiona", "Moira", "Tessa", "Veena", "Zira", "Hazel", "Heather", "Ava", "Emma", "Martha", "Sarah", "Jenny", "Salli", "Joanna", "Kimberly", "Kendra", "Alexa",
+]);
+const MALE_VOICES = new Set([
+  "Daniel", "George", "Mark", "Oliver", "Thomas", "David", "Alex", "Aron", "Aiden", "Ryan", "Brandon", "Peter", "John",
 ]);
 
 let cachedVoices: SpeechSynthesisVoice[] | null = null;
@@ -15,8 +20,8 @@ function loadVoices(): SpeechSynthesisVoice[] {
   const voices = speechSynthesis.getVoices();
   if (voices.length > 0) {
     const sorted = [...voices].sort((a, b) => {
-      const aScore = (a.lang.startsWith("en") ? 2 : 0) + (PREMIUM_VOICES.has(a.name) ? 3 : a.name.includes("Premium") || a.name.includes("Neural") ? 1 : 0);
-      const bScore = (b.lang.startsWith("en") ? 2 : 0) + (PREMIUM_VOICES.has(b.name) ? 3 : b.name.includes("Premium") || b.name.includes("Neural") ? 1 : 0);
+      const aScore = (a.lang.startsWith("en") ? 2 : 0) + (a.name.includes("Neural") ? 4 : 0) + (a.name.includes("Premium") ? 3 : 0) + (a.name.includes("Enhanced") ? 2 : 0);
+      const bScore = (b.lang.startsWith("en") ? 2 : 0) + (b.name.includes("Neural") ? 4 : 0) + (b.name.includes("Premium") ? 3 : 0) + (b.name.includes("Enhanced") ? 2 : 0);
       return bScore - aScore;
     });
     cachedVoices = sorted;
@@ -33,19 +38,38 @@ export function warmVoiceCache(): void {
   };
 }
 
-function findBestVoice(): SpeechSynthesisVoice | null {
+function findBestVoice(sex?: Sex): SpeechSynthesisVoice | null {
   const voices = loadVoices();
-  for (const name of PREMIUM_VOICES) {
-    const match = voices.find((v) => v.name === name && v.lang.startsWith("en"));
-    if (match) return match;
-  }
-  const neural = voices.find((v) => v.lang.startsWith("en") && (v.name.includes("Neural") || v.name.includes("Premium") || v.name.includes("Enhanced")));
-  if (neural) return neural;
-  const female = voices.find((v) => v.lang.startsWith("en") && /female|samantha|karen|fiona|moira|tessa|veena|zira|hazel|heather|ava|emma|martha|sarah|jenny|salli|joanna|kimberly|kendra|alexa/i.test(v.name));
-  if (female) return female;
-  const enVoice = voices.find((v) => v.lang.startsWith("en"));
-  if (enVoice) return enVoice;
-  return voices[0] ?? null;
+  const english = voices.filter((v) => v.lang.startsWith("en"));
+  const score = (voice: SpeechSynthesisVoice) =>
+    (voice.lang.startsWith("en") ? 3 : 0) +
+    (voice.name.includes("Neural") ? 4 : 0) +
+    (voice.name.includes("Premium") ? 3 : 0) +
+    (voice.name.includes("Enhanced") ? 2 : 0) +
+    (voice.localService ? 1 : 0);
+
+  const gendered = english.filter((v) => {
+    if (!sex || sex === "other") return true;
+    const name = v.name.toLowerCase();
+    if (sex === "female") {
+      return FEMALE_VOICES.has(v.name) || /female|woman|girl|samantha|karen|fiona|moira|tessa|veena|zira|hazel|heather|ava|emma|martha|sarah|jenny|salli|joanna|kimberly|kendra|alexa/.test(name);
+    }
+    return MALE_VOICES.has(v.name) || /male|man|boy|daniel|george|mark|oliver|thomas|david|alex|aron|aiden|ryan|brandon|peter|john/.test(name);
+  });
+
+  const rankedGendered = [...gendered].sort((a, b) => score(b) - score(a));
+  if (rankedGendered.length > 0) return rankedGendered[0];
+
+  const rankedEnglish = [...english].sort((a, b) => score(b) - score(a));
+  if (rankedEnglish.length > 0) return rankedEnglish[0];
+
+  return [...voices].sort((a, b) => score(b) - score(a))[0] ?? null;
+}
+
+function getVoiceStyle(sex?: Sex): { rate: number; pitch: number } {
+  if (sex === "female") return { rate: 0.95, pitch: 1.08 };
+  if (sex === "male") return { rate: 0.94, pitch: 0.92 };
+  return { rate: 0.95, pitch: 1.0 };
 }
 
 function analyzeEmotion(text: string): { rate: number; pitch: number } {
@@ -82,7 +106,7 @@ export function stopSpeaking(): void {
   speechCallId++;
 }
 
-export function speak(text: string, onEnd?: () => void): void {
+export function speak(text: string, onEnd?: () => void, options?: { sex?: Sex }): void {
   if (!isSpeechSynthesisSupported()) return;
   stopSpeaking();
   const callId = ++speechCallId;
@@ -91,10 +115,11 @@ export function speak(text: string, onEnd?: () => void): void {
   const emotion = analyzeEmotion(text);
   const u = new SpeechSynthesisUtterance(cleaned);
   u.lang = "en-US";
-  u.rate = Math.max(0.1, Math.min(2, 0.9 + emotion.rate / 100));
-  u.pitch = Math.max(0.1, Math.min(2, 1.0 + emotion.pitch / 100));
+  const voiceStyle = getVoiceStyle(options?.sex);
+  u.rate = Math.max(0.1, Math.min(2, voiceStyle.rate + emotion.rate / 120));
+  u.pitch = Math.max(0.1, Math.min(2, voiceStyle.pitch + emotion.pitch / 120));
   u.volume = 1.0;
-  const v = findBestVoice();
+  const v = findBestVoice(options?.sex);
   if (v) u.voice = v;
   u.onend = () => { if (callId === speechCallId) onEnd?.(); };
   u.onerror = () => { if (callId === speechCallId) onEnd?.(); };
