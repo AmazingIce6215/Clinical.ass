@@ -71,10 +71,7 @@ export default function HomePage() {
       <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 pb-4 pt-4 sm:gap-10 lg:pt-8">
         <section className="grid gap-6 lg:grid-cols-[1.25fr_0.9fr] lg:items-start">
           <GlassCard className="glass-card--hero p-7 sm:p-9">
-            <div className="mb-6 flex flex-wrap items-center gap-2">
-              <span className="ui-pill ui-pill--accent">World-class medical workspace</span>
-              <span className="ui-pill">Built for students, interns, and residents</span>
-            </div>
+
 
             <motion.div
               initial={{ opacity: 0, y: 12 }}
