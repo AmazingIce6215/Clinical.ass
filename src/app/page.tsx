@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
 import { AppShell, ButtonLink, GlassCard } from "@/components/app-shell";
+import { HeroRightPanel } from "@/components/hero-anatomy/hero-right-panel";
 
 function greetingLine(name: string) {
   if (!name) return "Welcome to a sharper clinical workspace";
@@ -64,6 +65,14 @@ export default function HomePage() {
               </Link>
             </motion.div>
           </GlassCard>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <HeroRightPanel />
+          </motion.div>
         </section>
       </div>
     </AppShell>

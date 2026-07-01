@@ -623,3 +623,225 @@ body {
     overflow: hidden;
   }
 }
+
+.hero-right-panel {
+  min-height: 28rem;
+}
+
+.hero-right-panel__stage {
+  position: relative;
+  min-height: 28rem;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero-right-panel__stage--simple {
+  display: grid;
+  place-items: center;
+  padding: 2rem 1.5rem;
+}
+
+.hero-right-panel__layer {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-right-panel__layer--anatomy {
+  z-index: 2;
+}
+
+.hero-right-panel__static {
+  display: grid;
+  place-content: center;
+  min-height: 28rem;
+  padding: 2rem 1.75rem;
+}
+
+.walking-crowd {
+  position: relative;
+  min-height: 28rem;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--mesh-b) 35%, transparent), transparent 38%),
+    linear-gradient(180deg, transparent 62%, color-mix(in srgb, var(--mesh-a) 18%, transparent));
+}
+
+.walking-crowd__road {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 22%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--foreground) 16%, transparent) 18%,
+    color-mix(in srgb, var(--foreground) 16%, transparent) 82%,
+    transparent
+  );
+  opacity: 0.45;
+}
+
+.walking-crowd__hint {
+  position: absolute;
+  left: 1.5rem;
+  top: 1.5rem;
+  z-index: 2;
+  max-width: 12rem;
+}
+
+.walking-figure {
+  position: absolute;
+  bottom: calc(18% + var(--walk-lane) * 3.2%);
+  width: 2.4rem;
+  height: 4.8rem;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  color: color-mix(in srgb, var(--foreground) 72%, var(--mesh-b));
+  opacity: var(--walk-depth);
+  transform: scale(var(--walk-scale));
+  will-change: transform;
+  animation-duration: var(--walk-duration);
+  animation-delay: var(--walk-delay);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  transition: color 0.25s ease, filter 0.25s ease;
+}
+
+.walking-figure:hover {
+  color: var(--accent);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 35%, transparent));
+}
+
+.walking-figure--right {
+  left: -12%;
+  animation-name: walk-right-to-left;
+}
+
+.walking-figure--left {
+  right: -12%;
+  animation-name: walk-left-to-right;
+}
+
+.walking-figure__body,
+.walking-figure__ghost {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.walking-figure__ghost {
+  opacity: calc(0.16 - var(--ghost-index) * 0.04);
+  transform: translateX(calc(var(--ghost-index) * -6px));
+  pointer-events: none;
+}
+
+.walking-figure--left .walking-figure__ghost {
+  transform: translateX(calc(var(--ghost-index) * 6px));
+}
+
+.walking-figure__svg {
+  width: 100%;
+  height: 100%;
+}
+
+.anatomy-scene__canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 28rem;
+  touch-action: none;
+}
+
+.anatomy-scene__chrome {
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 3;
+  padding: 0.85rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+.anatomy-scene__loading {
+  display: grid;
+  place-content: center;
+  gap: 0.85rem;
+  min-height: 28rem;
+  text-align: center;
+}
+
+.anatomy-scene__loading--overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.anatomy-scene__loading-orbit {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0 auto;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-top-color: var(--accent);
+  animation: anatomy-orbit 0.9s linear infinite;
+}
+
+.anatomy-fallback {
+  display: grid;
+  gap: 0.75rem;
+  width: min(100%, 18rem);
+  padding: 1rem;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.anatomy-fallback__figure {
+  width: 100%;
+  aspect-ratio: 3 / 5;
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--foreground) 18%, transparent), transparent 24%),
+    linear-gradient(180deg, color-mix(in srgb, var(--mesh-b) 55%, transparent), color-mix(in srgb, var(--mesh-a) 35%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+@keyframes walk-right-to-left {
+  from {
+    transform: translateX(0) scale(var(--walk-scale));
+  }
+  to {
+    transform: translateX(calc(-100vw - 8rem)) scale(var(--walk-scale));
+  }
+}
+
+@keyframes walk-left-to-right {
+  from {
+    transform: translateX(0) scale(var(--walk-scale));
+  }
+  to {
+    transform: translateX(calc(100vw + 8rem)) scale(var(--walk-scale));
+  }
+}
+
+@keyframes anatomy-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walking-figure,
+  .anatomy-scene__loading-orbit {
+    animation: none !important;
+  }
+}
