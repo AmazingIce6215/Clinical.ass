@@ -114,17 +114,6 @@ export default function HomePage() {
           </GlassCard>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <GlassCard className="glass-card--hero p-6">
-              <p className="shell-kicker">Designed for flow</p>
-              <p className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
-                Clean composition. Calm motion. Faster decisions.
-              </p>
-              <p className="mt-3 text-sm leading-6 text-muted">
-                The interface leans on clear hierarchy and restrained animation so the screen never
-                gets in the way of the reasoning.
-              </p>
-            </GlassCard>
-
             <GlassCard className="p-6">
               <p className="shell-kicker">Quick actions</p>
               <div className="mt-4 flex flex-wrap gap-2">
