@@ -98,6 +98,15 @@ export default function HomePage() {
                 <ButtonLink href="/teaching" className="px-6 py-3.5">
                   Open teaching bank
                 </ButtonLink>
+                <ButtonLink href="/image-diagnosis" className="px-6 py-3.5">
+                  Image diagnosis
+                </ButtonLink>
+                <ButtonLink href="/calculators" className="px-6 py-3.5">
+                  Calculator
+                </ButtonLink>
+                <ButtonLink href="/case-report" className="px-6 py-3.5">
+                  Case report generator
+                </ButtonLink>
               </div>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-3">
