@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import type { OsceSessionState } from "@/lib/osce/state";
 import { warmVoiceCache, speak, stopSpeaking, isSpeechSynthesisSupported } from "@/lib/voice";
 import { cn } from "@/lib/utils";
+import { shouldRestartListening } from "@/lib/osce/voice-loop";
 
 type VoiceStatus = "idle" | "listening" | "thinking" | "speaking";
 
@@ -17,6 +18,19 @@ const SpeechRecognitionAPI =
     ? ((window as unknown as Record<string, unknown>).SpeechRecognition ??
        (window as unknown as Record<string,unknown>).webkitSpeechRecognition)
     : null;
+
+type SpeechRecognitionLike = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+};
 
 export function OsceSession({
   session,
@@ -41,16 +55,22 @@ export function OsceSession({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const voiceModeRef = useRef(false);
+  const voiceStatusRef = useRef<VoiceStatus>("idle");
   const loadingRef = useRef(false);
   const sendingRef = useRef(false);
   const onMessageRef = useRef(onMessage);
   const listeningRef = useRef(false);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const restartTimerRef = useRef<number | null>(null);
+  const beginListeningRef = useRef<() => void>(() => {});
+  const sendTextRef = useRef<(text: string) => Promise<void>>(async () => {});
 
   useEffect(() => {
     voiceModeRef.current = voiceMode;
+    voiceStatusRef.current = voiceStatus;
     loadingRef.current = loading;
     onMessageRef.current = onMessage;
-  }, [voiceMode, loading, onMessage]);
+  }, [voiceMode, voiceStatus, loading, onMessage]);
 
   useEffect(() => { warmVoiceCache(); }, []);
 
@@ -73,7 +93,11 @@ export function OsceSession({
   }, []);
 
   useEffect(() => {
-    return () => { stopSpeaking(); };
+    return () => {
+      if (restartTimerRef.current) window.clearTimeout(restartTimerRef.current);
+      recognitionRef.current?.stop();
+      stopSpeaking();
+    };
   }, []);
 
   const formatTime = (seconds: number) => {
@@ -83,66 +107,81 @@ export function OsceSession({
   };
 
   const beginListening = useCallback(() => {
-    if (!voiceModeRef.current || sendingRef.current || listeningRef.current) return;
+    if (!voiceModeRef.current || sendingRef.current || listeningRef.current || loadingRef.current) return;
     if (!SpeechRecognitionAPI) return;
+
+    if (restartTimerRef.current) {
+      window.clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = null;
+    }
 
     listeningRef.current = true;
     setRecordingError(null);
     setVoiceStatus("listening");
 
     try {
-      const sr = new (SpeechRecognitionAPI as new () => {
-        lang: string; continuous: boolean; interimResults: boolean;
-        maxAlternatives: number; start: () => void; abort: () => void;
-        onresult: ((e: { results: { length: number; [i: number]: { [j: number]: { transcript: string } } } }) => void) | null;
-        onend: (() => void) | null;
-        onerror: ((e: { error: string }) => void) | null;
-      })();
+      const sr = new (SpeechRecognitionAPI as new () => SpeechRecognitionLike)();
       sr.lang = "en-US";
       sr.continuous = false;
       sr.interimResults = false;
       sr.maxAlternatives = 1;
 
-      let finished = false;
-
-      const cleanup = () => {
-        if (finished) return;
-        finished = true;
-        listeningRef.current = false;
-      };
+      recognitionRef.current = sr;
 
       sr.onresult = (e) => {
         const r = e.results[e.results.length - 1];
         if (r?.[0]?.transcript) {
           const text = r[0].transcript.trim();
           if (text && voiceModeRef.current && !sendingRef.current) {
-            cleanup();
+            listeningRef.current = false;
+            recognitionRef.current = null;
+            sr.stop();
             setVoiceStatus("thinking");
-            sendText(text);
+            void sendTextRef.current(text);
           }
         }
       };
 
       sr.onend = () => {
-        cleanup();
-        if (voiceModeRef.current && !finished) {
-          setTimeout(beginListening, 600);
+        listeningRef.current = false;
+        recognitionRef.current = null;
+        if (voiceModeRef.current && !sendingRef.current && !loadingRef.current) {
+          if (voiceStatusRef.current === "thinking") {
+            return;
+          }
+          restartTimerRef.current = window.setTimeout(() => {
+            if (shouldRestartListening({ voiceMode: voiceModeRef.current, isListening: false, isSending: false, isSpeaking: false, isLoading: loadingRef.current, hasSpeechRecognition: true })) {
+              beginListeningRef.current();
+            }
+          }, 600);
         }
       };
 
       sr.onerror = (e) => {
-        cleanup();
+        listeningRef.current = false;
+        recognitionRef.current = null;
         if (e.error === "aborted") return;
         if (e.error !== "no-speech") setRecordingError(e.error);
         if (voiceModeRef.current) {
-          setTimeout(beginListening, 800);
+          restartTimerRef.current = window.setTimeout(() => {
+            if (shouldRestartListening({ voiceMode: voiceModeRef.current, isListening: false, isSending: false, isSpeaking: false, isLoading: loadingRef.current, hasSpeechRecognition: true })) {
+              beginListeningRef.current();
+            }
+          }, 800);
         }
       };
 
       sr.start();
     } catch {
       listeningRef.current = false;
-      if (voiceModeRef.current) setTimeout(beginListening, 1000);
+      recognitionRef.current = null;
+      if (voiceModeRef.current) {
+        restartTimerRef.current = window.setTimeout(() => {
+          if (shouldRestartListening({ voiceMode: voiceModeRef.current, isListening: false, isSending: false, isSpeaking: false, isLoading: loadingRef.current, hasSpeechRecognition: true })) {
+            beginListeningRef.current();
+          }
+        }, 1000);
+      }
     }
   }, []);
 
@@ -158,17 +197,36 @@ export function OsceSession({
       sendingRef.current = false;
       setLoading(false);
       if (voiceModeRef.current) {
+        setVoiceStatus("speaking");
         speak(response, () => {
-          if (voiceModeRef.current) beginListening();
+          if (voiceModeRef.current) {
+            setVoiceStatus("idle");
+            beginListeningRef.current();
+          }
         });
       }
     } catch (err) {
       sendingRef.current = false;
       setLoading(false);
       setError(err instanceof Error ? err.message : "Failed");
-      if (voiceModeRef.current) setTimeout(beginListening, 500);
+      if (voiceModeRef.current) {
+        setVoiceStatus("idle");
+        restartTimerRef.current = window.setTimeout(() => {
+          if (shouldRestartListening({ voiceMode: voiceModeRef.current, isListening: false, isSending: false, isSpeaking: false, isLoading: loadingRef.current, hasSpeechRecognition: true })) {
+            beginListeningRef.current();
+          }
+        }, 500);
+      }
     }
+  }, []);
+
+  useEffect(() => {
+    beginListeningRef.current = beginListening;
   }, [beginListening]);
+
+  useEffect(() => {
+    sendTextRef.current = sendText;
+  }, [sendText]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -184,15 +242,26 @@ export function OsceSession({
       sendingRef.current = false;
       setLoading(false);
       if (voiceModeRef.current) {
+        setVoiceStatus("speaking");
         speak(response, () => {
-          if (voiceModeRef.current) beginListening();
+          if (voiceModeRef.current) {
+            setVoiceStatus("idle");
+            beginListening();
+          }
         });
       }
     } catch (err) {
       sendingRef.current = false;
       setLoading(false);
       setError(err instanceof Error ? err.message : "Failed");
-      if (voiceModeRef.current) setTimeout(beginListening, 500);
+      if (voiceModeRef.current) {
+        setVoiceStatus("idle");
+        restartTimerRef.current = window.setTimeout(() => {
+          if (shouldRestartListening({ voiceMode: voiceModeRef.current, isListening: false, isSending: false, isSpeaking: false, isLoading: loadingRef.current, hasSpeechRecognition: true })) {
+            beginListening();
+          }
+        }, 500);
+      }
     }
   }, [input, beginListening]);
 
@@ -200,15 +269,16 @@ export function OsceSession({
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  const stopListening = useCallback(() => {
-    listeningRef.current = false;
-    setVoiceStatus("idle");
-  }, []);
-
   const toggleVoiceMode = useCallback(() => {
     if (voiceMode) {
       stopSpeaking();
-      stopListening();
+      if (restartTimerRef.current) {
+        window.clearTimeout(restartTimerRef.current);
+        restartTimerRef.current = null;
+      }
+      listeningRef.current = false;
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
       setRecordingError(null);
       setVoiceMode(false);
     } else {
@@ -216,13 +286,23 @@ export function OsceSession({
       setRecordingError(null);
       setTimeout(beginListening, 300);
     }
-  }, [voiceMode, beginListening, stopListening]);
+  }, [voiceMode, beginListening]);
 
   const handleMicClick = useCallback(() => {
     if (voiceStatus === "speaking") { stopSpeaking(); setVoiceStatus("idle"); return; }
-    if (voiceStatus === "listening") { stopListening(); return; }
+    if (voiceStatus === "listening") {
+      if (restartTimerRef.current) {
+        window.clearTimeout(restartTimerRef.current);
+        restartTimerRef.current = null;
+      }
+      listeningRef.current = false;
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
+      setVoiceStatus("idle");
+      return;
+    }
     beginListening();
-  }, [voiceStatus, beginListening, stopListening]);
+  }, [voiceStatus, beginListening]);
 
   const statusDisplay = (): { icon: string; text: string; color: string } => {
     switch (voiceStatus) {
