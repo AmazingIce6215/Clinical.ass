@@ -25,11 +25,13 @@ const THEME_OPTIONS = [
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { session, refresh } = useAuth();
+  const { session, refresh, resetPin } = useAuth();
   const { setTheme } = useTheme();
 
   const [name, setName] = useState(session?.firstName ?? "");
-  const [pin, setPin] = useState("");
+  const [email, setEmail] = useState(session?.email ?? "");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState(() => {
     if (typeof window === "undefined") return "system";
     return localStorage.getItem("clincalass_theme") || "system";
@@ -43,7 +45,8 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (session?.firstName) setName(session.firstName);
-  }, [session?.firstName]);
+    if (session?.email) setEmail(session.email);
+  }, [session?.firstName, session?.email]);
 
   useEffect(() => {
     setTheme(selectedTheme);
@@ -69,8 +72,10 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setError(null);
+    setIsSaving(true);
 
-    const result = await updateProfile({ first_name: name, pin: pin || undefined });
+    const result = await updateProfile({ first_name: name });
+    setIsSaving(false);
     if (result.error) {
       setError(result.error);
       return;
@@ -82,6 +87,26 @@ export default function SettingsPage() {
     setTheme(selectedTheme);
     setShowSuccess(true);
     window.setTimeout(() => router.push("/"), 1300);
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email.trim()) {
+      setError("Please sign in first so we know your email address.");
+      return;
+    }
+
+    setIsResettingPassword(true);
+    const resetError = await resetPin(email);
+    setIsResettingPassword(false);
+
+    if (resetError) {
+      setError(resetError);
+      return;
+    }
+
+    setError(null);
+    setShowSuccess(true);
+    window.setTimeout(() => router.push("/"), 1000);
   };
 
   const initial = name ? name.charAt(0).toUpperCase() : "👤";
@@ -125,7 +150,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">Profile</p>
-                <p className="mt-2 text-sm text-muted">Update your username and PIN.</p>
+                <p className="mt-2 text-sm text-muted">Update your display name and secure your account.</p>
               </div>
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface/90 text-2xl shadow-soft">
                 <span>{initial}</span>
@@ -133,28 +158,33 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">Username</label>
+              <label className="text-sm font-medium text-foreground">Display name</label>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Your username"
+                placeholder="Your name"
                 className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-base outline-none transition placeholder:text-muted/50 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
               />
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">New PIN</label>
+              <label className="text-sm font-medium text-foreground">Email address</label>
               <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                placeholder="4-digit PIN"
-                className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-base tracking-[0.5em] outline-none transition placeholder:text-muted/50 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+                value={email}
+                readOnly
+                className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-base outline-none"
               />
-              <p className="text-sm text-muted">Leave blank to keep your current PIN.</p>
+              <p className="text-sm text-muted">Use the button below if you need to reset your password.</p>
             </div>
+
+            <button
+              type="button"
+              onClick={handlePasswordReset}
+              disabled={isResettingPassword}
+              className="rounded-xl border border-border/80 bg-surface/70 px-4 py-2.5 text-sm font-medium transition hover:border-accent/40 hover:bg-surface/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isResettingPassword ? "Sending link..." : "Send password reset link"}
+            </button>
 
             {error && (
               <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
@@ -215,7 +245,9 @@ export default function SettingsPage() {
           </GlassCard>
 
           <div className="flex justify-end">
-            <PrimaryButton onClick={handleSave}>Save settings</PrimaryButton>
+            <PrimaryButton onClick={handleSave} disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save settings"}
+            </PrimaryButton>
           </div>
         </div>
       </AppShell>

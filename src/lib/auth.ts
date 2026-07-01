@@ -353,7 +353,10 @@ export async function updateProfile(data: {
     if (Object.keys(updates).length === 0) return {};
 
     const { error } = await supabase.from("profiles").update(updates).eq("id", session.userId);
-    if (error) return { error: error.message };
+    if (error) {
+      if (shouldIgnoreProfileError(error.message)) return {};
+      return { error: error.message };
+    }
   }
 
   return {};
