@@ -716,12 +716,12 @@ body {
 }
 
 .walking-figure--right {
-  left: -12%;
+  right: -12%;
   animation-name: walk-right-to-left;
 }
 
 .walking-figure--left {
-  right: -12%;
+  left: -12%;
   animation-name: walk-left-to-right;
 }
 
