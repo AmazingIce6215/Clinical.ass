@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { AppShell, ButtonLink, GlassCard } from "@/components/app-shell";
 import { cn } from "@/lib/utils";
@@ -59,6 +60,7 @@ function greetingLine(name: string) {
 export default function HomePage() {
   const { session } = useAuth();
   const firstName = session?.firstName?.trim() ?? "";
+  const [showAll, setShowAll] = useState(false);
 
   return (
     <AppShell>
@@ -102,55 +104,60 @@ export default function HomePage() {
                   Case report
                 </ButtonLink>
               </div>
+
+              <button
+                onClick={() => setShowAll((v) => !v)}
+                className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition hover:gap-2"
+              >
+                {showAll ? "Show less" : "See all modules"}
+                <span aria-hidden="true">{showAll ? "↑" : "↓"}</span>
+              </button>
             </motion.div>
           </GlassCard>
 
 
         </section>
 
-        <section className="space-y-4">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="shell-kicker">Explore the platform</p>
-              <h2 className="shell-heading mt-2 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
-                One app, multiple clinical workflows
-              </h2>
-            </div>
-            <p className="hidden max-w-sm text-sm leading-6 text-muted sm:block">
-              Each module is tuned for a different part of the clinical journey, but they all share the
-              same visual language and interaction rhythm.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {modules.map((module, index) => (
-              <motion.div
-                key={module.href}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.08 * index, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <GlassCard hover className={cn("module-card bg-gradient-to-br", module.accent)}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="module-card__icon">{module.icon}</div>
-                    <span className="ui-pill">Open</span>
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="module-card__title">{module.title}</h3>
-                    <p className="module-card__desc">{module.desc}</p>
-                  </div>
-                  <Link
-                    href={module.href}
-                    className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition hover:gap-2"
+        <AnimatePresence>
+          {showAll && (
+            <motion.section
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-4 overflow-hidden"
+            >
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {modules.map((module, index) => (
+                  <motion.div
+                    key={module.href}
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.08 * index, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    Enter module
-                    <span aria-hidden="true">→</span>
-                  </Link>
-                </GlassCard>
-              </motion.div>
-            ))}
-          </div>
-        </section>
+                    <GlassCard hover className={cn("module-card bg-gradient-to-br", module.accent)}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="module-card__icon">{module.icon}</div>
+                        <span className="ui-pill">Open</span>
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="module-card__title">{module.title}</h3>
+                        <p className="module-card__desc">{module.desc}</p>
+                      </div>
+                      <Link
+                        href={module.href}
+                        className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition hover:gap-2"
+                      >
+                        Enter module
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    </GlassCard>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
       </div>
     </AppShell>
   );
