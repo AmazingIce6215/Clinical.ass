@@ -202,47 +202,97 @@ export default function OscePage() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-mesh opacity-70" />
-      <div className="relative z-10 mx-auto flex min-h-dvh max-w-6xl flex-col px-4 pb-8 pt-6 sm:px-6 lg:px-8">
-        <header className="mb-8 flex items-center gap-3">
+      <div className="pointer-events-none absolute inset-0 bg-mesh opacity-90" />
+      <div className="app-shell-grid pointer-events-none absolute inset-0 opacity-35" />
+      <div className="relative z-10 mx-auto flex min-h-dvh max-w-7xl flex-col px-4 pb-8 pt-5 sm:px-6 lg:px-8">
+        <header className="mb-6 flex items-center justify-between border-b border-border/40 pb-4">
           <Link
             href="/"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/70 bg-surface/80 text-lg text-muted backdrop-blur-md transition hover:border-accent/40"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/70 bg-surface/80 text-lg text-muted shadow-sm backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:border-accent/35 hover:text-accent"
           >
             ←
           </Link>
-          <div className="flex-1">
-            <p className="text-sm font-medium">OSCE Examiner Mode</p>
-            <p className="text-xs text-muted">Real clinical exam simulation</p>
+          <div className="flex items-center gap-2">
+            <span className="ui-pill ui-pill--accent">Exam mode</span>
+            <Link href="/osce/stats" className="ui-pill">
+              Stats
+            </Link>
           </div>
-          <Link
-            href="/osce/stats"
-            className="rounded-full border border-border/60 bg-surface/70 px-3 py-1.5 text-[11px] font-medium text-muted backdrop-blur-md transition hover:border-accent/40 hover:text-accent"
-          >
-            Stats
-          </Link>
         </header>
 
-        <div className="flex flex-1 items-start justify-center pt-6 sm:pt-12">
+        <div className="grid flex-1 gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:pt-8">
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-lg"
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-6"
           >
-            <GlassCard>
-              <div className="mb-6">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/15">
-                  <span className="text-3xl">🩺</span>
+            <GlassCard className="glass-card--hero p-7 sm:p-9">
+              <div className="mb-6 flex flex-wrap items-center gap-2">
+                <span className="ui-pill ui-pill--accent">Timed simulation</span>
+                <span className="ui-pill">Patient voice + strict grading</span>
+              </div>
+              <p className="shell-kicker mb-3">OSCE examiner mode</p>
+              <h1 className="shell-heading max-w-3xl text-4xl font-semibold tracking-[-0.06em] sm:text-5xl lg:text-6xl">
+                A calm, focused exam room for high-pressure practice.
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-muted sm:text-lg">
+                Enter a clinically realistic station with a patient voice, timed flow, and examiner
+                feedback that looks and feels like a premium assessment experience.
+              </p>
+
+              <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                <div className="metric-tile">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Timer</p>
+                  <p className="metric-value mt-2">8 min</p>
                 </div>
-                <h1 className="text-center text-2xl font-bold">OSCE Station</h1>
-                <p className="mt-2 text-center text-sm text-muted">
-                  You are about to enter a simulated OSCE station. The AI will act as a patient. No hints, no
-                  guidance — only your clinical skills.
-                </p>
+                <div className="metric-tile">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Focus</p>
+                  <p className="metric-value mt-2">History</p>
+                </div>
+                <div className="metric-tile">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Scoring</p>
+                  <p className="metric-value mt-2">100</p>
+                </div>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6">
+              <p className="shell-kicker">Why this mode feels better</p>
+              <ul className="mt-4 grid gap-3 text-sm text-muted sm:grid-cols-2">
+                <li className="rounded-2xl border border-border/60 bg-surface/45 p-4">
+                  Clear structure keeps you grounded under pressure.
+                </li>
+                <li className="rounded-2xl border border-border/60 bg-surface/45 p-4">
+                  Voice mode supports natural, interview-like pacing.
+                </li>
+                <li className="rounded-2xl border border-border/60 bg-surface/45 p-4">
+                  The grader rewards systematic history and safety.
+                </li>
+                <li className="rounded-2xl border border-border/60 bg-surface/45 p-4">
+                  Results are laid out like an actual examiner report.
+                </li>
+              </ul>
+            </GlassCard>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <GlassCard className="glass-card--hero p-6 sm:p-7">
+              <div className="mb-6 flex items-center justify-between gap-3">
+                <div>
+                  <p className="shell-kicker">Station setup</p>
+                  <p className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
+                    Pick your difficulty
+                  </p>
+                </div>
+                <div className="ui-pill ui-pill--accent">Ready</div>
               </div>
 
-              <div className="mb-6 space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-muted">Difficulty</p>
+              <div className="mb-6">
                 <SegmentedControl<Difficulty>
                   options={[
                     { label: "Easy", value: "easy" },
@@ -254,47 +304,30 @@ export default function OscePage() {
                 />
               </div>
 
-              <div className="mb-6 space-y-3 rounded-xl border border-border/60 bg-surface/40 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-muted">Rules</p>
-                <ul className="space-y-1.5 text-xs text-muted">
-                  <li className="flex gap-2">
-                    <span className="text-accent">•</span>
-                    You have <strong>8 minutes</strong> to take a history
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-accent">•</span>
-                    Ask questions freely — the AI responds as the patient
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-accent">•</span>
-                    No hints or coaching will be given
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-accent">•</span>
-                    Click &ldquo;Submit OSCE&rdquo; when done for grading
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-accent">•</span>
-                    The examiner will evaluate: History (40%), Differentials (20%), Investigations (20%),
-                    Management (20%)
-                  </li>
+              <div className="space-y-3">
+                <p className="shell-kicker">Exam rules</p>
+                <ul className="space-y-2 text-sm text-muted">
+                  <li className="flex gap-2"><span className="text-accent">•</span>You have 8 minutes to take a history.</li>
+                  <li className="flex gap-2"><span className="text-accent">•</span>The AI acts as the patient, not an examiner.</li>
+                  <li className="flex gap-2"><span className="text-accent">•</span>No hints, no coaching, just clinical responses.</li>
+                  <li className="flex gap-2"><span className="text-accent">•</span>Submit when you are done and the station will be graded.</li>
                 </ul>
               </div>
 
               {error && (
-                <div className="mb-4 rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-500">
+                <div className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-500">
                   {error}
                 </div>
               )}
 
-              <PrimaryButton onClick={handleStart} disabled={loading} className="w-full py-4 text-base">
+              <PrimaryButton onClick={handleStart} disabled={loading} className="mt-6 w-full py-4 text-base">
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     Generating case...
                   </span>
                 ) : (
-                  "Start OSCE Station"
+                  "Start OSCE station"
                 )}
               </PrimaryButton>
             </GlassCard>

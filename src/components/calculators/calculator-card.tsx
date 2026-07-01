@@ -29,44 +29,39 @@ export function CalculatorCard({
   return (
     <motion.div layout>
       <Link href={`/calculators/${slug}`} className="block h-full">
-          <GlassCard
-            hover
-            className="group relative flex h-full flex-col p-5 transition-shadow"
-          >
-            <div className="flex items-start justify-between">
-              <span className="text-3xl">{icon}</span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onToggleFavorite(slug);
-                }}
-                className={cn(
-                  "text-lg transition",
-                  isFavorite ? "text-accent" : "text-muted/40 hover:text-accent/60",
-                )}
-                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-              >
-                {isFavorite ? "★" : "☆"}
-              </button>
-            </div>
-            <h3 className="mt-3 text-base font-semibold leading-tight transition-colors group-hover:text-accent">
-              {title}
-            </h3>
-            <span className="mt-1 inline-block rounded-full border border-border/50 px-2.5 py-0.5 text-[11px] font-medium text-muted capitalize">
-              {category}
-            </span>
-            <p className="mt-2 text-xs leading-relaxed text-muted line-clamp-2">
-              {description}
-            </p>
-            <div className="mt-auto pt-4">
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-accent group-hover:gap-1.5 transition-all">
-                Calculate
-                <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
-              </span>
-            </div>
-          </GlassCard>
+        <GlassCard
+          hover
+          className="group module-card glass-card--action transition-shadow"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <span className="module-card__icon">{icon}</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleFavorite(slug);
+              }}
+              className={cn(
+                "rounded-full border border-border/60 bg-surface/70 px-2.5 py-1 text-xs font-semibold transition",
+                isFavorite ? "border-amber-500/40 text-amber-500" : "text-muted hover:border-accent/35 hover:text-accent",
+              )}
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              {isFavorite ? "★ Saved" : "☆ Save"}
+            </button>
+          </div>
+          <div className="space-y-2">
+            <h3 className="module-card__title">{title}</h3>
+            <p className="text-xs font-medium text-muted">{shortName}</p>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">{category}</p>
+            <p className="module-card__desc line-clamp-3">{description}</p>
+          </div>
+          <div className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition group-hover:gap-2">
+            Calculate
+            <span aria-hidden="true">→</span>
+          </div>
+        </GlassCard>
       </Link>
     </motion.div>
   );

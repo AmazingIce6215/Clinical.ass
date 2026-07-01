@@ -7,7 +7,7 @@ import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { searchLibrary } from "@/lib/case-library";
 import { teachingSubjects } from "@/lib/teaching-subjects";
 import { getSubjectStatsMap, getUserStats } from "@/lib/teaching-stats";
-
+import { cn } from "@/lib/utils";
 
 export default function TeachingPage() {
   const saved = useMemo(() => searchLibrary("", "teaching"), []);
@@ -21,88 +21,140 @@ export default function TeachingPage() {
     <AppShell
       backHref="/"
       title="Teaching Mode"
-      subtitle="3 unique patients per session — MCQs with explanations"
+      subtitle="Case-based learning that feels like a modern study dashboard"
     >
-      {totalAttempted > 0 && (
-        <section className="mb-4 sm:mb-6">
-          <Link href="/stats">
-            <GlassCard hover className="cursor-pointer">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-sm font-semibold text-accent">View Your Learning Stats →</p>
-                  <p className="mt-0.5 text-xs text-muted">
-                    {totalAttempted} question{totalAttempted !== 1 ? "s" : ""} answered
-                  </p>
-                </div>
-                <span className="text-xl sm:text-2xl">📊</span>
+      <div className="mx-auto w-full max-w-6xl space-y-6">
+        <GlassCard className="glass-card--hero">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="shell-kicker">Adaptive learning</p>
+              <h1 className="shell-heading mt-3 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+                Train your pattern recognition with a cleaner, calmer study flow.
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-muted sm:text-base">
+                Each session gives you three fresh patients. The layout is built to keep momentum,
+                reduce friction, and let the explanation do the teaching.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[22rem]">
+              <div className="metric-tile">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Questions</p>
+                <p className="metric-value mt-2">{totalAttempted}</p>
               </div>
+              <div className="metric-tile">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Saved cases</p>
+                <p className="metric-value mt-2">{saved.length}</p>
+              </div>
+            </div>
+          </div>
+        </GlassCard>
+
+        {totalAttempted > 0 && (
+          <Link href="/stats">
+            <GlassCard hover className="glass-card--action flex items-center justify-between gap-4">
+              <div>
+                <p className="shell-kicker">Learning progress</p>
+                <p className="mt-2 text-lg font-semibold tracking-[-0.03em]">
+                  View your performance analytics
+                </p>
+                <p className="mt-1 text-sm text-muted">
+                  {totalAttempted} question{totalAttempted !== 1 ? "s" : ""} answered
+                </p>
+              </div>
+              <span className="ui-pill ui-pill--accent">Open stats</span>
             </GlassCard>
           </Link>
-        </section>
-      )}
+        )}
 
-      {saved.length > 0 && (
-        <section className="mb-6 sm:mb-10">
-          <div className="mb-3 flex items-center justify-between sm:mb-4">
-            <h2 className="text-base font-semibold sm:text-lg">★ Saved in library</h2>
-            <Link href="/library?mode=teaching" className="text-xs text-accent hover:underline sm:text-sm">
-              View all
-            </Link>
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 sm:gap-3">
-            {saved.slice(0, 5).map((c) => (
-              <Link key={c.id} href={`/library?id=${c.id}`}>
-                <GlassCard hover className="min-w-[180px] cursor-pointer sm:min-w-[220px]">
-                  <p className="text-xs text-muted">{c.subject}</p>
-                  <p className="mt-1 text-sm font-medium">{c.title}</p>
-                </GlassCard>
+        {saved.length > 0 && (
+          <section className="space-y-3">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="shell-kicker">Saved in library</p>
+                <h2 className="shell-heading mt-1 text-2xl font-semibold tracking-[-0.04em]">
+                  Continue where you left off
+                </h2>
+              </div>
+              <Link href="/library?mode=teaching" className="ui-pill ui-pill--accent">
+                View all saved
               </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <h2 className="mb-4 text-lg font-semibold">Choose a subject</h2>
-      <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {teachingSubjects.map((subject) => {
-          const s = subjectStatsMap[subject.id];
-          const hasData = s.attempted > 0;
-          return (
-            <StaggerItem key={subject.id}>
-              <Link href={`/teaching/${subject.id}`}>
-                <GlassCard hover className="group h-full cursor-pointer">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-3xl">{subject.icon}</span>
-                    {hasData && (
-                      <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                          s.accuracy >= 70
-                            ? "bg-emerald-500/10 text-emerald-500"
-                            : s.accuracy >= 40
-                              ? "bg-amber-500/10 text-amber-500"
-                              : "bg-red-500/10 text-red-500"
-                        }`}
-                      >
-                        {s.accuracy}%
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="mt-3 text-lg font-semibold transition-colors group-hover:text-accent">
-                    {subject.name}
-                  </h2>
-                  <p className="mt-2 text-sm text-muted">{subject.description}</p>
-                  {hasData && (
-                    <p className="mt-2 text-xs text-muted">
-                      {s.attempted} question{s.attempted !== 1 ? "s" : ""} · {s.correct} correct
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {saved.slice(0, 5).map((c) => (
+                <Link key={c.id} href={`/library?id=${c.id}`}>
+                  <GlassCard hover className="min-w-[220px]">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
+                      {c.subject}
                     </p>
-                  )}
-                  <p className="mt-4 text-xs font-medium text-accent">Generate new session →</p>
-                </GlassCard>
-              </Link>
-            </StaggerItem>
-          );
-        })}
-      </StaggerContainer>
+                    <p className="mt-3 text-base font-semibold tracking-[-0.03em]">{c.title}</p>
+                    <p className="mt-2 text-sm text-muted">Open the saved teaching case</p>
+                  </GlassCard>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="space-y-4">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="shell-kicker">Subjects</p>
+              <h2 className="shell-heading mt-2 text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
+                Choose a subject
+              </h2>
+            </div>
+            <p className="hidden max-w-sm text-sm leading-6 text-muted sm:block">
+              Each subject builds around high-frequency clinical patterns so the questions stay relevant
+              and practical.
+            </p>
+          </div>
+
+          <StaggerContainer className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {teachingSubjects.map((subject) => {
+              const s = subjectStatsMap[subject.id];
+              const hasData = s.attempted > 0;
+              return (
+                <StaggerItem key={subject.id}>
+                  <Link href={`/teaching/${subject.id}`}>
+                    <GlassCard hover className="module-card glass-card--action h-full">
+                      <div className="flex items-start justify-between gap-4">
+                        <span className="module-card__icon text-2xl">{subject.icon}</span>
+                        {hasData && (
+                          <span
+                            className={cn(
+                              "ui-pill",
+                              s.accuracy >= 70
+                                ? "border-emerald-500/30 text-emerald-500"
+                                : s.accuracy >= 40
+                                  ? "border-amber-500/30 text-amber-500"
+                                  : "border-red-500/30 text-red-500",
+                            )}
+                          >
+                            {s.accuracy}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="module-card__title">{subject.name}</h3>
+                        <p className="module-card__desc">{subject.description}</p>
+                        {hasData && (
+                          <p className="text-xs text-muted">
+                            {s.attempted} question{s.attempted !== 1 ? "s" : ""} · {s.correct} correct
+                          </p>
+                        )}
+                      </div>
+                      <span className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
+                        Generate session
+                        <span aria-hidden="true">→</span>
+                      </span>
+                    </GlassCard>
+                  </Link>
+                </StaggerItem>
+              );
+            })}
+          </StaggerContainer>
+        </section>
+      </div>
     </AppShell>
   );
 }

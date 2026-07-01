@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
 
 const primaryBtnClass =
-  "inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-glow transition disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground shadow-glow transition duration-300 disabled:cursor-not-allowed disabled:opacity-50";
 const secondaryBtnClass =
-  "inline-flex items-center justify-center gap-2 rounded-xl border border-border/80 bg-surface/60 px-5 py-3 text-sm font-medium backdrop-blur-md transition hover:border-accent/30 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-2xl border border-border/80 bg-surface/65 px-5 py-3 text-sm font-medium shadow-sm backdrop-blur-md transition duration-300 hover:border-accent/35 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function AppShell({
   children,
@@ -30,57 +30,73 @@ export function AppShell({
 
   return (
     <div className="relative min-h-dvh overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-mesh opacity-70" />
-      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-6xl flex-col px-4 pb-8 pt-6 sm:px-6 lg:px-8">
-        <header className="relative z-20 mb-8 flex items-center justify-between gap-4">
+      <div className="pointer-events-none absolute inset-0 bg-mesh opacity-90" />
+      <div className="app-shell-grid pointer-events-none absolute inset-0 opacity-35" />
+      <span className="app-shell-orb app-shell-orb--one" aria-hidden="true" />
+      <span className="app-shell-orb app-shell-orb--two" aria-hidden="true" />
+      <span className="app-shell-orb app-shell-orb--three" aria-hidden="true" />
+
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-4 pb-8 pt-5 sm:px-6 lg:px-8">
+        <header className="relative z-20 mb-6 flex flex-col gap-4 border-b border-border/40 pb-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             {showBack ? (
               onBack ? (
                 <button
                   type="button"
                   onClick={onBack}
-                  className="relative z-30 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-surface/80 backdrop-blur-md transition hover:border-accent/40 hover:bg-surface"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-surface/80 text-lg text-muted shadow-sm backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:border-accent/35 hover:text-accent"
                   aria-label="Go back"
                 >
-                  <span className="text-lg text-muted">←</span>
+                  ←
                 </button>
               ) : (
                 <Link
                   href={backHref!}
-                  className="relative z-30 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-surface/80 backdrop-blur-md transition hover:border-accent/40 hover:bg-surface"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-surface/80 text-lg text-muted shadow-sm backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:border-accent/35 hover:text-accent"
                   aria-label="Go back"
                 >
-                  <span className="text-lg text-muted">←</span>
+                  ←
                 </Link>
               )
-            ) : null}
+            ) : (
+              <Link href="/" className="group flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border/60 bg-surface/80 text-base font-bold text-accent shadow-sm backdrop-blur-md transition duration-300 group-hover:-translate-y-0.5">
+                  C
+                </div>
+                <div className="min-w-0">
+                  <p className="shell-heading truncate text-sm font-semibold">Clinical.ass</p>
+                  <p className="shell-subtle truncate text-xs">Precision clinical reasoning workspace</p>
+                </div>
+              </Link>
+            )}
+
             {(title || subtitle) && (
               <div className="min-w-0">
-                {title && <p className="truncate text-sm font-medium max-sm:text-xs">{title}</p>}
-                {subtitle && <p className="truncate text-xs text-muted max-sm:text-[10px]">{subtitle}</p>}
+                {title && <p className="shell-heading truncate text-base font-semibold sm:text-lg">{title}</p>}
+                {subtitle && <p className="shell-subtle truncate text-xs sm:text-sm">{subtitle}</p>}
               </div>
             )}
           </div>
-          <div className="relative z-30 flex shrink-0 items-center gap-2 max-sm:-ml-4">
+
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             {session && pathname !== "/library" && (
-              <Link
-                href="/library"
-                className="rounded-full border border-border/60 bg-surface/70 px-3 py-1.5 text-[11px] font-medium text-muted backdrop-blur-md transition hover:border-accent/40 hover:text-accent"
-              >
+              <Link href="/library" className="ui-pill hover:border-accent/30 hover:text-foreground">
                 Library
               </Link>
             )}
             {session && pathname !== "/stats" && (
-              <Link
-                href="/stats"
-                className="rounded-full border border-border/60 bg-surface/70 px-3 py-1.5 text-[11px] font-medium text-muted backdrop-blur-md transition hover:border-accent/40 hover:text-accent"
-              >
+              <Link href="/stats" className="ui-pill hover:border-accent/30 hover:text-foreground">
                 Stats
               </Link>
             )}
-
+            {session && pathname !== "/settings" && (
+              <Link href="/settings" className="ui-pill hover:border-accent/30 hover:text-foreground">
+                Settings
+              </Link>
+            )}
           </div>
         </header>
+
         {children}
       </div>
     </div>
@@ -108,7 +124,8 @@ export function GlassCard({
   return (
     <Comp
       className={cn(
-        "glass-card rounded-2xl border border-border/70 bg-surface/80 p-6 shadow-soft backdrop-blur-xl",
+        "glass-card rounded-[1.5rem] p-6",
+        hover && "transition-transform duration-300",
         className,
       )}
       {...motionProps}

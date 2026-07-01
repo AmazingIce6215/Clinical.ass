@@ -39,13 +39,8 @@ export default function CalculatorsPage() {
   const filtered = useMemo(() => {
     let list = getAllCalculators();
 
-    if (showFavoritesOnly) {
-      list = list.filter((c) => favorites.includes(c.slug));
-    }
-
-    if (activeCategory !== "all") {
-      list = list.filter((c) => c.category === activeCategory);
-    }
+    if (showFavoritesOnly) list = list.filter((c) => favorites.includes(c.slug));
+    if (activeCategory !== "all") list = list.filter((c) => c.category === activeCategory);
 
     const q = query.toLowerCase().trim();
     if (q) {
@@ -61,23 +56,56 @@ export default function CalculatorsPage() {
     return list;
   }, [query, activeCategory, showFavoritesOnly, favorites]);
 
+  const total = getAllCalculators().length;
+
   return (
     <AppShell
       backHref="/"
       title="Clinical Calculators"
-      subtitle="Evidence-based scoring tools for clinical decision support"
+      subtitle="Evidence-based scoring tools with a cleaner, faster browsing experience"
     >
-      <div className="mx-auto w-full max-w-5xl">
-        <div className="mb-4 space-y-3 sm:mb-6 sm:space-y-4">
-          <div className="flex items-center gap-2 sm:gap-3">
+      <div className="mx-auto w-full max-w-6xl space-y-6">
+        <GlassCard className="glass-card--hero">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="shell-kicker">High-yield tools</p>
+              <h1 className="shell-heading mt-3 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+                Fast, polished access to the scores that matter on the wards.
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-muted sm:text-base">
+                Search, filter, and save the calculators you rely on. Everything is laid out to feel
+                more like a premium clinical dashboard than a utility list.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[26rem]">
+              <div className="metric-tile">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Tools</p>
+                <p className="metric-value mt-2">{total}</p>
+              </div>
+              <div className="metric-tile">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Favorites</p>
+                <p className="metric-value mt-2">{favorites.length}</p>
+              </div>
+              <div className="metric-tile">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Focus mode</p>
+                <p className="metric-value mt-2">{showFavoritesOnly ? "On" : "Off"}</p>
+              </div>
+            </div>
+          </div>
+        </GlassCard>
+
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted sm:left-3.5 sm:text-sm">🔍</span>
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search calculators..."
-        className="mb-6 w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-2.5 text-sm outline-none focus:border-accent/50"
-      />
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted">
+                🔍
+              </span>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search calculators..."
+                className="w-full rounded-2xl border border-border/80 bg-surface/75 px-11 py-3 text-sm outline-none transition placeholder:text-muted/55 focus:border-accent/45 focus:ring-2 focus:ring-accent/15"
+              />
             </div>
             <button
               type="button"
@@ -86,20 +114,16 @@ export default function CalculatorsPage() {
                 setActiveCategory("all");
               }}
               className={cn(
-                "shrink-0 rounded-xl border px-3 py-2.5 text-xs font-medium transition sm:px-4 sm:py-3 sm:text-sm",
-                showFavoritesOnly
-                  ? "border-accent bg-accent/10 text-accent"
-                  : "border-border/80 bg-surface/60 text-muted hover:border-accent/30 hover:text-accent",
+                "ui-pill justify-center px-4 py-3",
+                showFavoritesOnly && "ui-pill--accent border-accent/30 text-foreground",
               )}
             >
               {showFavoritesOnly ? "★ Favorites" : "☆ Favorites"}
-              {favorites.length > 0 && (
-                <span className="ml-1 text-xs text-muted sm:ml-1.5">({favorites.length})</span>
-              )}
+              {favorites.length > 0 && <span>({favorites.length})</span>}
             </button>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+          <div className="flex flex-wrap gap-2">
             {categories.map((cat) => (
               <button
                 key={cat.id}
@@ -109,13 +133,12 @@ export default function CalculatorsPage() {
                   setShowFavoritesOnly(false);
                 }}
                 className={cn(
-                  "rounded-full border px-2.5 py-1 text-[11px] font-medium transition sm:px-3.5 sm:py-1.5 sm:text-xs",
-                  activeCategory === cat.id
-                    ? "border-accent bg-accent/10 text-accent"
-                    : "border-border/60 bg-surface/50 text-muted hover:border-accent/30 hover:text-foreground",
+                  "ui-pill transition",
+                  activeCategory === cat.id && "ui-pill--accent border-accent/30 text-foreground",
                 )}
               >
-                {cat.icon} {cat.label}
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
               </button>
             ))}
           </div>
@@ -129,12 +152,12 @@ export default function CalculatorsPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <GlassCard className="py-12 text-center">
-                <p className="text-2xl mb-2">🔍</p>
-                <p className="font-medium text-foreground">No calculators found</p>
-                <p className="mt-1 text-sm text-muted">
+              <GlassCard className="py-14 text-center">
+                <p className="text-2xl">🔍</p>
+                <p className="mt-3 text-lg font-semibold">No calculators found</p>
+                <p className="mt-2 text-sm text-muted">
                   {showFavoritesOnly
-                    ? "You haven't added any favorites yet. Tap ☆ on any calculator to add it."
+                    ? "You haven't added any favorites yet. Tap the star on any calculator."
                     : "Try a different search or category."}
                 </p>
               </GlassCard>
@@ -145,7 +168,7 @@ export default function CalculatorsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
             >
               {filtered.map((calc) => (
                 <CalculatorCard
