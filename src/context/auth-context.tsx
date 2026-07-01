@@ -23,9 +23,9 @@ import { setStatsUserId } from "@/lib/teaching-stats";
 interface AuthContextValue {
   session: AuthSession | null;
   ready: boolean;
-  create: (firstName: string, pin: string) => Promise<string | null>;
-  unlock: (firstName: string, pin?: string) => Promise<string | null>;
-  resetPin: (firstName: string, newPin: string) => Promise<string | null>;
+  create: (firstName: string, email: string, password: string) => Promise<string | null>;
+  unlock: (email: string, password: string) => Promise<string | null>;
+  resetPin: (email: string) => Promise<string | null>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   goAnonymous: () => void;
@@ -49,8 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatsUserId(session?.userId ?? null);
   }, [session]);
 
-  const create = useCallback(async (firstName: string, pin: string) => {
-    const result = await createProfile(firstName, pin);
+  const create = useCallback(async (firstName: string, email: string, password: string) => {
+    const result = await createProfile(firstName, email, password);
     if (result.error) return result.error;
     localStorage.removeItem("clinicalass_onboarded");
     setSession(result.session!);
@@ -59,8 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return null;
   }, []);
 
-  const unlock = useCallback(async (firstName: string, pin?: string) => {
-    const result = await unlockProfile(firstName, pin);
+  const unlock = useCallback(async (email: string, password: string) => {
+    const result = await unlockProfile(email, password);
     if (result.error) return result.error;
     setSession(result.session!);
     setLibraryUserId(result.session!.userId);
@@ -89,12 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatsUserId(s?.userId ?? null);
   }, []);
 
-  const resetPin = useCallback(async (firstName: string, newPin: string) => {
-    const result = await resetPinFn(firstName, newPin);
+  const resetPin = useCallback(async (email: string) => {
+    const result = await resetPinFn(email);
     if (result.error) return result.error;
-    setSession(result.session!);
-    setLibraryUserId(result.session!.userId);
-    setStatsUserId(result.session!.userId);
     return null;
   }, []);
 
@@ -103,11 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [session, ready, create, unlock, resetPin, logout, refresh, goAnonymous],
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

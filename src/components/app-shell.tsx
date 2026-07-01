@@ -61,7 +61,7 @@ export function AppShell({
               </div>
             )}
           </div>
-          <div className="relative z-30 flex shrink-0 items-center gap-2">
+          <div className="relative z-30 flex shrink-0 items-center gap-2 max-sm:-ml-4">
             {session && pathname !== "/library" && (
               <Link
                 href="/library"
