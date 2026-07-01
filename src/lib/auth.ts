@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { getSupabaseEnv } from "@/lib/supabase/env";
 
 export interface ProfileCheck {
   exists: boolean;
@@ -26,9 +27,8 @@ const LEGACY_SESSION_KEY = "dxflow-session";
 
 function isSupabaseConfigured(): boolean {
   if (typeof window === "undefined") return false;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  return Boolean(url && key && !url.includes("your-project-id") && !url.includes("placeholder"));
+  const { url, anonKey } = getSupabaseEnv();
+  return Boolean(url && anonKey && !url.includes("your-project-id") && !url.includes("placeholder"));
 }
 
 function readJson<T>(key: string, fallback: T): T {
@@ -84,6 +84,11 @@ function mapAuthError(message: string): string {
   return message;
 }
 
+export function shouldIgnoreProfileError(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return normalized.includes("relation \"profiles\" does not exist") || normalized.includes("permission denied for table profiles") || normalized.includes("permission denied for relation profiles");
+}
+
 function buildSession(user: {
   id: string;
   email?: string | null;
@@ -135,13 +140,13 @@ export async function getSession(): Promise<AuthSession | null> {
       return null;
     }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("id, email, first_name, created_at")
       .eq("id", authUser.id)
       .maybeSingle();
 
-    if (profile) {
+    if (!profileError && profile) {
       const session = buildSession({
         id: authUser.id,
         email: profile.email ?? authUser.email,
@@ -213,17 +218,15 @@ export async function createProfile(
         { onConflict: "id" },
       );
 
-      if (profileError) {
+      if (profileError && !shouldIgnoreProfileError(profileError.message)) {
         return { error: profileError.message };
       }
-    }
 
-    if (data.session) {
       const session = buildSession({
-        id: data.user!.id,
-        email: data.user!.email,
+        id: data.user.id,
+        email: data.user.email,
         first_name: capitalizeName(name),
-        created_at: data.user!.created_at,
+        created_at: data.user.created_at,
       });
       writeJson(SESSION_KEY, session);
       return { session };
@@ -274,7 +277,7 @@ export async function unlockProfile(
 
     if (error) return { error: mapAuthError(error.message) };
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("id, email, first_name, created_at")
       .eq("id", data.user.id)
@@ -282,9 +285,9 @@ export async function unlockProfile(
 
     const session = buildSession({
       id: data.user.id,
-      email: profile?.email ?? data.user.email,
-      first_name: profile?.first_name ?? (data.user.user_metadata?.first_name as string | undefined),
-      created_at: profile?.created_at ?? data.user.created_at,
+      email: !profileError && profile?.email ? profile.email : data.user.email,
+      first_name: !profileError && profile?.first_name ? profile.first_name : (data.user.user_metadata?.first_name as string | undefined),
+      created_at: !profileError && profile?.created_at ? profile.created_at : data.user.created_at,
     });
     writeJson(SESSION_KEY, session);
     return { session };
