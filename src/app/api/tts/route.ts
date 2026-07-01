@@ -1,10 +1,7 @@
 import { EdgeTTS } from "@andresaya/edge-tts";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
-
-const execFileAsync = promisify(execFile);
 
 function getPiperConfig() {
   const piperBin = process.env.PIPER_BIN || process.env.PIPER_PATH;
@@ -31,14 +28,34 @@ async function synthesizeWithPiper(text: string, voice?: string) {
     args.push("--speaker", voice);
   }
 
-  await execFileAsync(piperBin, args, {
-    input: stdinText,
-    maxBuffer: 10 * 1024 * 1024,
-  });
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn(piperBin, args, { stdio: ["pipe", "pipe", "pipe"] });
+      let stderr = "";
 
-  const audio = await fs.readFile(outPath);
-  await fs.rm(outDir, { recursive: true, force: true });
-  return audio;
+      child.stderr.on("data", (chunk) => {
+        stderr += chunk.toString();
+      });
+
+      child.on("error", reject);
+      child.on("close", (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(stderr || `Piper exited with code ${code ?? "unknown"}`));
+      });
+
+      if (child.stdin.writable) {
+        child.stdin.end(`${stdinText}\n`);
+      } else {
+        child.kill();
+        reject(new Error("Piper stdin is not writable"));
+      }
+    });
+
+    const audio = await fs.readFile(outPath);
+    return audio;
+  } finally {
+    await fs.rm(outDir, { recursive: true, force: true });
+  }
 }
 
 export const maxDuration = 30;
