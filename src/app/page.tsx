@@ -105,7 +105,7 @@ export default function HomePage() {
                   Calculator
                 </ButtonLink>
                 <ButtonLink href="/case-report" className="px-6 py-3.5">
-                  Case report generator
+                  Case report
                 </ButtonLink>
               </div>
 
