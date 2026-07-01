@@ -89,6 +89,15 @@ export function shouldIgnoreProfileError(message: string): boolean {
   return normalized.includes("relation \"profiles\" does not exist") || normalized.includes("permission denied for table profiles") || normalized.includes("permission denied for relation profiles");
 }
 
+export function normalizeAuthResult(result: unknown): string {
+  if (typeof result === "string") return result;
+  if (result && typeof result === "object") {
+    const maybeError = (result as { error?: unknown }).error;
+    if (typeof maybeError === "string" && maybeError.trim()) return maybeError;
+  }
+  return "We couldn’t complete that request. Please try again.";
+}
+
 function buildSession(user: {
   id: string;
   email?: string | null;

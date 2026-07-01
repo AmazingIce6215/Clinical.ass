@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { PrimaryButton } from "@/components/app-shell";
 import { useAuth } from "@/context/auth-context";
+import { normalizeAuthResult } from "@/lib/auth";
 
 function MessageBox({ message, tone }: { message: string | null; tone: "error" | "success" }) {
   if (!message) return null;
@@ -73,13 +74,16 @@ export function SignInModal() {
     }
 
     setLoading(true);
-    const err = mode === "signup"
+    const result = mode === "signup"
       ? await create(firstName, email, password)
       : await unlock(email, password);
     setLoading(false);
 
-    if (err) {
-      setError(err);
+    const normalized = normalizeAuthResult(result);
+    if (result && typeof result === "object" && "error" in result) {
+      setError(normalized);
+    } else if (result && typeof result === "string" && result.trim()) {
+      setError(normalized);
     } else if (mode === "signup") {
       setSuccess("Welcome aboard. Your account is ready.");
     }
