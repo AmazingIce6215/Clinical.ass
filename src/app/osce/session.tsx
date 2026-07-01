@@ -3,7 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import type { OsceSessionState } from "@/lib/osce/state";
-import { warmVoiceCache, speak, stopSpeaking, isSpeechSynthesisSupported } from "@/lib/voice";
+import {
+  warmVoiceCache,
+  speakNatural,
+  stopSpeaking,
+  stopNaturalVoice,
+  isSpeechSynthesisSupported,
+} from "@/lib/voice";
 import { cn } from "@/lib/utils";
 import { shouldRestartListening } from "@/lib/osce/voice-loop";
 
@@ -77,6 +83,7 @@ export function OsceSession({
     recognitionRef.current?.abort?.();
     recognitionRef.current?.stop();
     recognitionRef.current = null;
+    stopNaturalVoice();
     setVoiceStatus("idle");
   }, []);
 
@@ -84,6 +91,7 @@ export function OsceSession({
     sessionEndingRef.current = true;
     stopVoiceCapture();
     stopSpeaking();
+    stopNaturalVoice();
     setRecordingError(null);
     setVoiceMode(false);
   }, [stopVoiceCapture]);
@@ -238,7 +246,7 @@ export function OsceSession({
       if (voiceModeRef.current) {
         if (sessionEndingRef.current) return;
         setVoiceStatus("speaking");
-        speak(response, () => {
+        void speakNatural(response, () => {
           if (voiceModeRef.current && !sessionEndingRef.current) {
             setVoiceStatus("idle");
             beginListeningRef.current();
@@ -284,7 +292,7 @@ export function OsceSession({
       setLoading(false);
       if (voiceModeRef.current) {
         setVoiceStatus("speaking");
-        speak(response, () => {
+        void speakNatural(response, () => {
           if (voiceModeRef.current) {
             setVoiceStatus("idle");
             beginListening();
@@ -384,7 +392,7 @@ export function OsceSession({
               <div className={cn("max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed sm:max-w-[70%]", msg.role === "user" ? "bg-accent text-accent-foreground" : "border border-border/60 bg-surface/70 text-foreground")}>
                 <p className="whitespace-pre-wrap">{msg.content}</p>
                 {msg.role === "patient" && synthesisSupported && voiceMode && (
-                  <button type="button" onClick={() => { stopSpeaking(); speak(msg.content, () => { if (voiceModeRef.current) beginListening(); }, { sex: patientSexRef.current }); }} className={cn("mt-2 flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium uppercase tracking-wider transition", voiceStatus === "speaking" && i === messages.length - 1 ? "bg-accent/20 text-accent" : "text-muted hover:bg-surface/50 hover:text-accent")} title="Read aloud">
+                  <button type="button" onClick={() => { stopSpeaking(); stopNaturalVoice(); void speakNatural(msg.content, () => { if (voiceModeRef.current) beginListening(); }, { sex: patientSexRef.current }); }} className={cn("mt-2 flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium uppercase tracking-wider transition", voiceStatus === "speaking" && i === messages.length - 1 ? "bg-accent/20 text-accent" : "text-muted hover:bg-surface/50 hover:text-accent")} title="Read aloud">
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M11 5L6 9H2v6h4l5 4V5z" />
                     </svg>

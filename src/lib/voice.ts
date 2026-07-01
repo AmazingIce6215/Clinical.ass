@@ -100,6 +100,7 @@ function cleanText(text: string): string {
 }
 
 let speechCallId = 0;
+let naturalVoiceCallId = 0;
 
 export function stopSpeaking(): void {
   if (speechSynthesis.speaking) speechSynthesis.cancel();
@@ -124,4 +125,51 @@ export function speak(text: string, onEnd?: () => void, options?: { sex?: Sex })
   u.onend = () => { if (callId === speechCallId) onEnd?.(); };
   u.onerror = () => { if (callId === speechCallId) onEnd?.(); };
   speechSynthesis.speak(u);
+}
+
+export async function speakNatural(
+  text: string,
+  onEnd?: () => void,
+  options?: { sex?: Sex; voice?: string; rate?: number; pitch?: number },
+): Promise<void> {
+  const callId = ++naturalVoiceCallId;
+  try {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        voice: options?.voice,
+        rate: options?.rate,
+        pitch: options?.pitch,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(await res.text());
+    }
+
+    const blob = await res.blob();
+    if (callId !== naturalVoiceCallId) return;
+
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      if (callId === naturalVoiceCallId) onEnd?.();
+    };
+    audio.onerror = () => {
+      URL.revokeObjectURL(url);
+      if (callId === naturalVoiceCallId) onEnd?.();
+    };
+    await audio.play();
+  } catch {
+    if (callId === naturalVoiceCallId) {
+      speak(text, onEnd, options);
+    }
+  }
+}
+
+export function stopNaturalVoice(): void {
+  naturalVoiceCallId++;
 }
