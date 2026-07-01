@@ -88,7 +88,7 @@ export default function HomePage() {
                 and moving faster from symptom to safe clinical answer.
               </p>
 
-              <div className="mt-7 flex flex-wrap gap-3">
+              <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <ButtonLink href="/clinical" variant="primary" className="px-6 py-3.5">
                   Start a clinical case
                 </ButtonLink>
