@@ -1,56 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
 import { AppShell, ButtonLink, GlassCard } from "@/components/app-shell";
-import { cn } from "@/lib/utils";
-
-const modules = [
-  {
-    href: "/clinical",
-    title: "Clinical reasoning",
-    icon: "🩺",
-    desc: "Walk through real symptom-led cases with AI differentials, exam steps, and next-step guidance.",
-    accent: "from-teal-500/15 to-cyan-500/10",
-  },
-  {
-    href: "/osce",
-    title: "OSCE examiner",
-    icon: "🎓",
-    desc: "Timed, exam-style stations with a patient voice, live grading, and detailed performance feedback.",
-    accent: "from-sky-500/15 to-indigo-500/10",
-  },
-  {
-    href: "/teaching",
-    title: "Teaching bank",
-    icon: "📚",
-    desc: "Case-based MCQs that build memory, pattern recognition, and clinical judgment over time.",
-    accent: "from-violet-500/15 to-fuchsia-500/10",
-  },
-  {
-    href: "/calculators",
-    title: "Calculators",
-    icon: "📊",
-    desc: "Quick access to the high-yield scores and decision tools you actually use on the wards.",
-    accent: "from-amber-500/15 to-orange-500/10",
-  },
-  {
-    href: "/image-diagnosis",
-    title: "Image diagnosis",
-    icon: "🖼️",
-    desc: "Upload a clinical image and get a structured, image-first diagnostic read.",
-    accent: "from-emerald-500/15 to-lime-500/10",
-  },
-  {
-    href: "/library",
-    title: "Case library",
-    icon: "🗂️",
-    desc: "Return to saved cases, presentations, and teaching sessions whenever you need them.",
-    accent: "from-stone-500/15 to-zinc-500/10",
-  },
-];
 
 function greetingLine(name: string) {
   if (!name) return "Welcome to a sharper clinical workspace";
@@ -60,15 +13,12 @@ function greetingLine(name: string) {
 export default function HomePage() {
   const { session } = useAuth();
   const firstName = session?.firstName?.trim() ?? "";
-  const [showAll, setShowAll] = useState(false);
 
   return (
     <AppShell>
       <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 pb-4 pt-4 sm:gap-10 lg:pt-8">
         <section className="grid gap-6 lg:grid-cols-[1.25fr_0.9fr] lg:items-start">
           <GlassCard className="glass-card--hero p-7 sm:p-9">
-
-
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -105,59 +55,16 @@ export default function HomePage() {
                 </ButtonLink>
               </div>
 
-              <button
-                onClick={() => setShowAll((v) => !v)}
+              <Link
+                href="/explore"
                 className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition hover:gap-2"
               >
-                {showAll ? "Show less" : "See all modules"}
-                <span aria-hidden="true">{showAll ? "↑" : "↓"}</span>
-              </button>
+                See all modules
+                <span aria-hidden="true">→</span>
+              </Link>
             </motion.div>
           </GlassCard>
-
-
         </section>
-
-        <AnimatePresence>
-          {showAll && (
-            <motion.section
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="space-y-4 overflow-hidden"
-            >
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {modules.map((module, index) => (
-                  <motion.div
-                    key={module.href}
-                    initial={{ opacity: 0, y: 18 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.08 * index, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <GlassCard hover className={cn("module-card bg-gradient-to-br", module.accent)}>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="module-card__icon">{module.icon}</div>
-                        <span className="ui-pill">Open</span>
-                      </div>
-                      <div className="space-y-2">
-                        <h3 className="module-card__title">{module.title}</h3>
-                        <p className="module-card__desc">{module.desc}</p>
-                      </div>
-                      <Link
-                        href={module.href}
-                        className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition hover:gap-2"
-                      >
-                        Enter module
-                        <span aria-hidden="true">→</span>
-                      </Link>
-                    </GlassCard>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.section>
-          )}
-        </AnimatePresence>
       </div>
     </AppShell>
   );
