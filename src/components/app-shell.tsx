@@ -37,7 +37,7 @@ export function AppShell({
       <span className="app-shell-orb app-shell-orb--three" aria-hidden="true" />
 
       <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-4 pb-8 pt-5 sm:px-6 lg:px-8">
-        <header className="relative z-20 mb-6 flex flex-col gap-4 border-b border-border/40 pb-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+        <header className="relative z-20 mb-4 flex flex-col gap-3 border-b border-border/40 pb-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             {showBack ? (
               onBack ? (
