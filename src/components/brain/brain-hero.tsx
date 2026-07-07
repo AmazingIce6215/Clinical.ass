@@ -53,22 +53,15 @@ export function BrainHero() {
           ))}
         </div>
 
-        <div className="brain-hero-metrics" aria-label="Clinical workflow highlights">
-          <article className="brain-metric">
-            <span className="brain-metric__label">Neural activity</span>
-            <strong>Analyzing patterns</strong>
-            <p>Layered reasoning signals and case-aware prompts.</p>
-          </article>
-          <article className="brain-metric">
-            <span className="brain-metric__label">Knowledge base</span>
-            <strong>218,430+ concepts</strong>
-            <p>Reference-backed teaching and differential support.</p>
-          </article>
-          <article className="brain-metric">
-            <span className="brain-metric__label">Confidence</span>
-            <strong>High</strong>
-            <p>Fast-path support for safe, structured decisions.</p>
-          </article>
+        <div className="brain-hero-ai-toggle">
+          <span className="brain-metric__label">AI assistance</span>
+          <label className="brain-toggle">
+            <input type="checkbox" className="brain-toggle__input" />
+            <span className="brain-toggle__track">
+              <span className="brain-toggle__thumb" />
+            </span>
+            <span className="brain-toggle__label">On</span>
+          </label>
         </div>
       </motion.div>
 

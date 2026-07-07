@@ -367,28 +367,6 @@ body {
   background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 98%, white), color-mix(in srgb, var(--accent) 88%, #0b2bd3));
 }
 
-.brain-hero-metrics {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: 0.75rem;
-  margin-top: 1.2rem;
-}
-
-@media (min-width: 768px) {
-  .brain-hero-metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.brain-metric {
-  border-radius: 1.2rem;
-  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-  background: color-mix(in srgb, var(--surface) 84%, transparent);
-  padding: 1rem 1rem 0.95rem;
-  box-shadow: 0 14px 34px -26px rgba(2, 12, 27, 0.18);
-}
-
 .brain-metric__label {
   display: block;
   margin-bottom: 0.25rem;
@@ -399,18 +377,81 @@ body {
   color: color-mix(in srgb, var(--accent) 78%, var(--foreground));
 }
 
-.brain-metric strong {
-  display: block;
-  font-size: 1rem;
-  line-height: 1.35;
-  letter-spacing: -0.03em;
+.brain-hero-ai-toggle {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.2rem;
+  border-radius: 1.2rem;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  padding: 0.85rem 1rem;
+  box-shadow: 0 14px 34px -26px rgba(2, 12, 27, 0.18);
 }
 
-.brain-metric p {
-  margin-top: 0.25rem;
-  font-size: 0.88rem;
-  line-height: 1.5;
+.brain-hero-ai-toggle .brain-metric__label {
+  margin-bottom: 0;
+}
+
+.brain-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.brain-toggle__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.brain-toggle__track {
+  position: relative;
+  width: 2.5rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 70%, var(--muted));
+  transition: background 200ms ease;
+}
+
+.brain-toggle__input:checked + .brain-toggle__track {
+  background: var(--accent);
+}
+
+.brain-toggle__thumb {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 999px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 200ms ease;
+}
+
+.brain-toggle__input:checked + .brain-toggle__track .brain-toggle__thumb {
+  transform: translateX(1.15rem);
+}
+
+.brain-toggle__label {
+  font-size: 0.82rem;
+  font-weight: 600;
   color: var(--muted);
+  transition: color 200ms ease;
+}
+
+.brain-toggle__input:checked ~ .brain-toggle__label {
+  color: var(--foreground);
 }
 
 .hero-visual-scene {
