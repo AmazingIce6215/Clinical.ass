@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
+import { HeroVisualScene } from "@/components/brain/hero-visual-scene";
 
 const heroActions = [
   { href: "/clinical", label: "Start a clinical case", tone: "primary" as const },
@@ -69,6 +70,14 @@ export function BrainHero() {
             <p>Fast-path support for safe, structured decisions.</p>
           </article>
         </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.975 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
+      >
+        <HeroVisualScene />
       </motion.div>
     </section>
   );
