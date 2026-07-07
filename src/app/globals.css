@@ -454,6 +454,16 @@ body {
   color: var(--foreground);
 }
 
+.brain-hero-ai-warning {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: color-mix(in srgb, var(--accent) 82%, var(--foreground));
+  text-align: center;
+}
+
 .hero-visual-scene {
   position: relative;
   overflow: hidden;

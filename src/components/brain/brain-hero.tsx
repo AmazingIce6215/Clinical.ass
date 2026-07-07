@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { HeroVisualScene } from "@/components/brain/hero-visual-scene";
 
@@ -23,6 +24,7 @@ function greetingLine(name: string) {
 export function BrainHero() {
   const { session } = useAuth();
   const firstName = session?.firstName?.trim() ?? "";
+  const [aiEnabled, setAiEnabled] = useState(true);
 
   return (
     <section className="brain-hero-grid">
@@ -56,13 +58,32 @@ export function BrainHero() {
         <div className="brain-hero-ai-toggle">
           <span className="brain-metric__label">AI assistance</span>
           <label className="brain-toggle">
-            <input type="checkbox" className="brain-toggle__input" />
+            <input
+              type="checkbox"
+              className="brain-toggle__input"
+              checked={aiEnabled}
+              onChange={(e) => setAiEnabled(e.target.checked)}
+            />
             <span className="brain-toggle__track">
               <span className="brain-toggle__thumb" />
             </span>
-            <span className="brain-toggle__label">On</span>
+            <span className="brain-toggle__label">{aiEnabled ? "On" : "Off"}</span>
           </label>
         </div>
+
+        <AnimatePresence>
+          {!aiEnabled && (
+            <motion.p
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.25 }}
+              className="brain-hero-ai-warning"
+            >
+              Think you can manage without me? Good luck.
+            </motion.p>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       <motion.div
