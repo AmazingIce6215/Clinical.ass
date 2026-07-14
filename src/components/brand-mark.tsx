@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 /** Light-mode app mark: purple rounded square with the Orizon symbol. */
 export const LOGO_LIGHT_SRC = "/images/logo-light.jpg";
-/** Dark-mode app mark: gradient symbol on a dark square. */
+/** Dark-mode app mark: gradient symbol on deep navy. */
 export const LOGO_DARK_SRC = "/images/logo-dark.jpg";
 
 export function BrandLogo({
@@ -13,14 +13,16 @@ export function BrandLogo({
   size?: number;
   className?: string;
 }) {
+  const shared = cn("shrink-0 rounded-[9px] object-cover", className);
+
   return (
-    <span className={cn("relative inline-grid shrink-0", className)} style={{ width: size, height: size }}>
+    <>
       <img
         src={LOGO_LIGHT_SRC}
         alt=""
         width={size}
         height={size}
-        className="col-start-1 row-start-1 h-full w-full rounded-[9px] object-cover dark:hidden"
+        className={cn(shared, "dark:hidden")}
         aria-hidden="true"
       />
       <img
@@ -28,10 +30,10 @@ export function BrandLogo({
         alt=""
         width={size}
         height={size}
-        className="col-start-1 row-start-1 hidden h-full w-full rounded-[9px] object-cover dark:block"
+        className={cn(shared, "hidden dark:block")}
         aria-hidden="true"
       />
-    </span>
+    </>
   );
 }
 
