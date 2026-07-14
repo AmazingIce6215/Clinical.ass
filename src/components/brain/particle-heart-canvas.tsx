@@ -40,6 +40,75 @@ type HeartSceneProps = {
   reducedMotion: boolean;
 };
 
+type OrbitTrailData = {
+  linePositions: Float32Array;
+  lineColors: Float32Array;
+  pointPositions: Float32Array;
+  pointColors: Float32Array;
+};
+
+function orbitColor(x: number) {
+  const side = THREE.MathUtils.clamp((x + 1.4) / 2.8, 0, 1);
+  const center = 1 - Math.abs(side * 2 - 1);
+  return [
+    THREE.MathUtils.lerp(0.02, 1, side) + center * 0.1,
+    THREE.MathUtils.lerp(0.72, 0.04, side),
+    THREE.MathUtils.lerp(1, 0.72, side) + center * 0.08,
+  ] as const;
+}
+
+function buildOrbitTrailData(lowPower: boolean): OrbitTrailData {
+  const loops = lowPower ? 4 : 7;
+  const segments = lowPower ? 72 : 112;
+  const linePositions: number[] = [];
+  const lineColors: number[] = [];
+  const pointPositions: number[] = [];
+  const pointColors: number[] = [];
+
+  const createPoint = (loop: number, segment: number) => {
+    const phase = loop * 1.731;
+    const angle = (segment / segments) * Math.PI * 2;
+    const radiusX = 1.21 + (loop % 3) * 0.075;
+    const radiusY = 0.88 + ((loop + 1) % 3) * 0.065;
+    const wobble = Math.sin(angle * (3 + (loop % 2)) + phase) * 0.075;
+    const point = new THREE.Vector3(
+      Math.cos(angle) * (radiusX + wobble),
+      Math.sin(angle) * (radiusY + wobble * 0.55) - 0.02,
+      Math.sin(angle * 2 + phase) * (0.24 + loop * 0.018),
+    );
+    point.applyEuler(
+      new THREE.Euler(
+        -0.28 + loop * 0.085,
+        Math.sin(phase) * 0.28,
+        -0.22 + loop * 0.074,
+      ),
+    );
+    return point;
+  };
+
+  const pushPoint = (point: THREE.Vector3, positions: number[], colors: number[]) => {
+    positions.push(point.x, point.y, point.z);
+    colors.push(...orbitColor(point.x));
+  };
+
+  for (let loop = 0; loop < loops; loop += 1) {
+    for (let segment = 0; segment < segments; segment += 1) {
+      const current = createPoint(loop, segment);
+      const next = createPoint(loop, segment + 1);
+      pushPoint(current, linePositions, lineColors);
+      pushPoint(next, linePositions, lineColors);
+      pushPoint(current, pointPositions, pointColors);
+    }
+  }
+
+  return {
+    linePositions: new Float32Array(linePositions),
+    lineColors: new Float32Array(lineColors),
+    pointPositions: new Float32Array(pointPositions),
+    pointColors: new Float32Array(pointColors),
+  };
+}
+
 function HeartScene({
   controllerRef,
   particleCount,
@@ -47,6 +116,7 @@ function HeartScene({
   reducedMotion,
 }: HeartSceneProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const orbitGroupRef = useRef<THREE.Group>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const beatTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const emphasisTimelineRef = useRef<gsap.core.Timeline | null>(null);
@@ -56,6 +126,10 @@ function HeartScene({
   const { camera, clock, gl, raycaster } = useThree();
   const particleData = useMemo(
     () => buildHeartParticleData(particleCount),
+    [particleCount],
+  );
+  const orbitData = useMemo(
+    () => buildOrbitTrailData(particleCount < 5000),
     [particleCount],
   );
   const interactionPlane = useMemo(
@@ -106,7 +180,6 @@ function HeartScene({
   );
 
   const playEmphasisBeat = useCallback(() => {
-    if (reducedMotion) return;
     const material = materialRef.current;
     if (!material) return;
 
@@ -117,7 +190,7 @@ function HeartScene({
         onComplete: () => beatTimelineRef.current?.restart(),
       })
       .to(material.uniforms.uBeatScale, {
-        value: 1.07,
+        value: reducedMotion ? 1.05 : 1.09,
         duration: 0.11,
         ease: "power2.out",
       })
@@ -140,7 +213,6 @@ function HeartScene({
         pointerRef.current.active = false;
       },
       rippleAt(clientX, clientY) {
-        if (reducedMotion) return;
         const point = projectClientPoint(clientX, clientY);
         const material = materialRef.current;
         if (!point || !material) return;
@@ -152,22 +224,17 @@ function HeartScene({
         playEmphasisBeat();
       },
     }),
-    [clock, playEmphasisBeat, projectClientPoint, reducedMotion],
+    [clock, playEmphasisBeat, projectClientPoint],
   );
 
   useEffect(() => {
     const material = materialRef.current;
     if (!material) return undefined;
 
-    if (reducedMotion) {
-      material.uniforms.uBeatScale.value = 1;
-      return undefined;
-    }
-
     const beat = gsap
       .timeline({ repeat: -1 })
       .to(material.uniforms.uBeatScale, {
-        value: 1.045,
+        value: reducedMotion ? 1.032 : 1.062,
         duration: 0.11,
         ease: "power2.out",
       })
@@ -177,7 +244,7 @@ function HeartScene({
         ease: "power2.inOut",
       })
       .to(material.uniforms.uBeatScale, {
-        value: 1.025,
+        value: reducedMotion ? 1.018 : 1.034,
         duration: 0.1,
         ease: "power2.out",
       })
@@ -216,7 +283,15 @@ function HeartScene({
       group.rotation.x = 0.015 + Math.sin(elapsed * 0.16) * 0.012;
     }
 
-    if (!reducedMotion && pointerRef.current.active) {
+    const orbitGroup = orbitGroupRef.current;
+    if (orbitGroup) {
+      const orbitSpeed = reducedMotion ? 0.008 : 0.026;
+      orbitGroup.rotation.z = elapsed * orbitSpeed;
+      orbitGroup.rotation.x = Math.sin(elapsed * 0.13) * 0.055;
+      orbitGroup.rotation.y = Math.sin(elapsed * 0.1) * 0.09;
+    }
+
+    if (pointerRef.current.active) {
       const projected = projectClientPoint(
         pointerRef.current.clientX,
         pointerRef.current.clientY,
@@ -227,8 +302,7 @@ function HeartScene({
     const mouseDamping = 1 - Math.exp(-delta * 11);
     const strengthDamping = 1 - Math.exp(-delta * 9);
     smoothedMouse.lerp(targetMouse, mouseDamping);
-    const targetStrength =
-      !reducedMotion && pointerRef.current.active ? 1 : 0;
+    const targetStrength = pointerRef.current.active ? 1 : 0;
     mouseStrengthRef.current +=
       (targetStrength - mouseStrengthRef.current) * strengthDamping;
     material.uniforms.uMouse.value.copy(smoothedMouse);
@@ -236,7 +310,54 @@ function HeartScene({
   });
 
   return (
-    <group ref={groupRef}>
+    <>
+      <group ref={orbitGroupRef}>
+        <lineSegments frustumCulled={false}>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              args={[orbitData.linePositions, 3]}
+            />
+            <bufferAttribute
+              attach="attributes-color"
+              args={[orbitData.lineColors, 3]}
+            />
+          </bufferGeometry>
+          <lineBasicMaterial
+            vertexColors
+            transparent
+            opacity={0.36}
+            blending={THREE.AdditiveBlending}
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </lineSegments>
+        <points frustumCulled={false}>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              args={[orbitData.pointPositions, 3]}
+            />
+            <bufferAttribute
+              attach="attributes-color"
+              args={[orbitData.pointColors, 3]}
+            />
+          </bufferGeometry>
+          <pointsMaterial
+            vertexColors
+            size={0.018}
+            sizeAttenuation
+            transparent
+            opacity={0.76}
+            blending={THREE.AdditiveBlending}
+            depthTest={false}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </points>
+      </group>
+      <group ref={groupRef}>
       <points frustumCulled={false}>
         <bufferGeometry>
           <bufferAttribute
@@ -255,6 +376,10 @@ function HeartScene({
             attach="attributes-aColorMix"
             args={[particleData.colorMixes, 1]}
           />
+          <bufferAttribute
+            attach="attributes-aEdge"
+            args={[particleData.edgeFactors, 1]}
+          />
         </bufferGeometry>
         <shaderMaterial
           ref={materialRef}
@@ -262,13 +387,14 @@ function HeartScene({
           vertexShader={particleHeartVertexShader}
           fragmentShader={particleHeartFragmentShader}
           transparent
-          blending={THREE.NormalBlending}
-          depthTest
+          blending={THREE.AdditiveBlending}
+          depthTest={false}
           depthWrite={false}
           toneMapped={false}
         />
       </points>
-    </group>
+      </group>
+    </>
   );
 }
 
@@ -295,7 +421,7 @@ export function ParticleHeartCanvas({
   return (
     <Canvas
       className="heart-particle-canvas"
-      camera={{ position: [0, 0, 4.1], fov: 38, near: 0.1, far: 20 }}
+      camera={{ position: [0, 0, 4.25], fov: 38, near: 0.1, far: 20 }}
       dpr={[1, profile.maxDpr]}
       fallback={fallback}
       frameloop="always"

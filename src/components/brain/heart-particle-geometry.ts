@@ -1,7 +1,7 @@
 import { createNoise3D } from "simplex-noise";
 
-export const DESKTOP_HEART_PARTICLES = 3600;
-export const LOW_POWER_HEART_PARTICLES = 1800;
+export const DESKTOP_HEART_PARTICLES = 5200;
+export const LOW_POWER_HEART_PARTICLES = 2600;
 
 export type HeartPerformanceSignals = {
   width: number;
@@ -21,6 +21,7 @@ export type HeartParticleData = {
   seeds: Float32Array;
   sizes: Float32Array;
   colorMixes: Float32Array;
+  edgeFactors: Float32Array;
 };
 
 export function getHeartPerformanceProfile(
@@ -74,13 +75,17 @@ export function buildHeartParticleData(
   const seeds = new Float32Array(count);
   const sizes = new Float32Array(count);
   const colorMixes = new Float32Array(count);
+  const edgeFactors = new Float32Array(count);
   const scale = 0.073;
   const radialCenterY = -2;
 
   for (let index = 0; index < count; index += 1) {
     const t = random() * Math.PI * 2;
     const boundary = heartBoundary(t);
-    const radial = Math.sqrt(random());
+    const boundaryLayer = random() < 0.44;
+    const radial = boundaryLayer
+      ? 0.84 + Math.pow(random(), 0.28) * 0.16
+      : Math.sqrt(random()) * 0.92;
     const centerWeightedY =
       radialCenterY + (boundary.y - radialCenterY) * radial;
     const organicNoise = noise3D(
@@ -101,12 +106,14 @@ export function buildHeartParticleData(
       centerWeightedY * scale + 0.09 + edgeJitter * 0.7;
     positions[positionIndex + 2] = z;
     seeds[index] = random();
-    sizes[index] = 0.72 + random() * 0.82;
+    sizes[index] =
+      (boundaryLayer ? 0.94 : 0.62) + random() * (boundaryLayer ? 0.8 : 0.72);
+    edgeFactors[index] = radial;
     colorMixes[index] = Math.min(
       1,
       Math.max(0, 0.48 + organicNoise * 0.24 + z * 0.34 + random() * 0.12),
     );
   }
 
-  return { positions, seeds, sizes, colorMixes };
+  return { positions, seeds, sizes, colorMixes, edgeFactors };
 }

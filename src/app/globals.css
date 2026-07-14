@@ -475,6 +475,20 @@ body {
   box-shadow: none;
   cursor: default;
   touch-action: manipulation;
+  isolation: isolate;
+}
+
+.hero-visual-scene::before {
+  position: absolute;
+  inset: -8% -14%;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(circle at 36% 48%, rgba(0, 122, 255, 0.22), transparent 34%),
+    radial-gradient(circle at 66% 48%, rgba(255, 24, 161, 0.24), transparent 35%),
+    radial-gradient(ellipse at center, rgba(8, 5, 30, 0.9), rgba(8, 5, 30, 0.58) 45%, transparent 72%);
+  filter: blur(8px);
 }
 
 .heart-particle-canvas {
@@ -483,7 +497,7 @@ body {
   width: 100% !important;
   height: 100% !important;
   background: transparent !important;
-  z-index: 1;
+  z-index: 2;
 }
 
 .heart-visual-fallback {
@@ -492,12 +506,12 @@ body {
   display: grid;
   place-items: center;
   pointer-events: none;
-  opacity: 0.42;
-  z-index: 0;
+  opacity: 0.72;
+  z-index: 1;
 }
 
 .heart-visual-fallback svg {
-  width: min(68%, 20rem);
+  width: min(86%, 26rem);
   overflow: visible;
 }
 

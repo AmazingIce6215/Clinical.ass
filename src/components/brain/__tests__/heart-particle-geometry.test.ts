@@ -15,6 +15,7 @@ describe("heart particle geometry", () => {
     expect(first.seeds).toHaveLength(512);
     expect(first.sizes).toHaveLength(512);
     expect(first.colorMixes).toHaveLength(512);
+    expect(first.edgeFactors).toHaveLength(512);
 
     const zValues: number[] = [];
     for (let index = 0; index < first.positions.length; index += 3) {
