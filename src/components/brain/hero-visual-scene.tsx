@@ -189,8 +189,11 @@ export function HeroVisualScene() {
   const controllerRef = useRef<HeartCanvasController | null>(null);
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTapRef = useRef({ time: 0, x: 0, y: 0 });
   const [revealed, setRevealed] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
+  const [fallbackMounted, setFallbackMounted] = useState(true);
 
   const clearPendingClick = useCallback(() => {
     if (clickTimerRef.current !== null) {
@@ -199,7 +202,33 @@ export function HeroVisualScene() {
     }
   }, []);
 
-  useEffect(() => clearPendingClick, [clearPendingClick]);
+  useEffect(
+    () => () => {
+      clearPendingClick();
+      if (fallbackTimerRef.current !== null) {
+        clearTimeout(fallbackTimerRef.current);
+      }
+    },
+    [clearPendingClick],
+  );
+
+  const handleCanvasReadyChange = useCallback((ready: boolean) => {
+    if (fallbackTimerRef.current !== null) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+
+    setCanvasReady(ready);
+    if (!ready) {
+      setFallbackMounted(true);
+      return;
+    }
+
+    fallbackTimerRef.current = setTimeout(() => {
+      setFallbackMounted(false);
+      fallbackTimerRef.current = null;
+    }, 180);
+  }, []);
 
   const revealAt = useCallback(
     (clientX: number, clientY: number) => {
@@ -263,6 +292,7 @@ export function HeroVisualScene() {
       className={cn(
         "hero-visual-scene",
         revealed && "hero-visual-scene--revealed",
+        canvasReady && "hero-visual-scene--canvas-ready",
         prefersReducedMotion && "hero-visual-scene--reduced",
       )}
       role="group"
@@ -306,11 +336,11 @@ export function HeroVisualScene() {
           Practice cardiology
         </Link>
       </article>
-      <HeartFallbackGraphic />
+      {fallbackMounted ? <HeartFallbackGraphic /> : null}
       <ParticleHeartCanvas
         controllerRef={controllerRef}
-        fallback={null}
         reducedMotion={prefersReducedMotion}
+        onReadyChange={handleCanvasReadyChange}
       />
     </div>
   );

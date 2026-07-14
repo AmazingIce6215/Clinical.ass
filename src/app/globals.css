@@ -501,7 +501,7 @@ body {
   pointer-events: none;
   opacity: 0.72;
   z-index: 1;
-  transition: opacity 520ms ease;
+  transition: opacity 180ms ease;
 }
 
 .heart-visual-fallback svg {
@@ -509,6 +509,7 @@ body {
   overflow: visible;
 }
 
+.hero-visual-scene--canvas-ready .heart-visual-fallback,
 .hero-visual-scene--revealed .heart-visual-fallback {
   opacity: 0;
 }

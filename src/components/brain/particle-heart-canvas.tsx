@@ -8,15 +8,11 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
-  type ReactNode,
   type Ref,
   type RefObject,
 } from "react";
 import { createNoise3D } from "simplex-noise";
 import * as THREE from "three";
-import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import {
   buildHeartParticleData,
   getHeartPerformanceProfile,
@@ -39,8 +35,8 @@ export type HeartCanvasController = {
 
 type ParticleHeartCanvasProps = {
   controllerRef: Ref<HeartCanvasController>;
-  fallback: ReactNode;
   reducedMotion: boolean;
+  onReadyChange: (ready: boolean) => void;
 };
 
 type HeartSceneProps = {
@@ -63,6 +59,7 @@ type HeartLayerProps = {
   data: HeartParticleData;
   materialRef: RefObject<THREE.ShaderMaterial | null>;
   uniforms: Record<string, THREE.IUniform>;
+  blending: THREE.Blending;
 };
 
 function mulberry32(seed: number) {
@@ -165,9 +162,10 @@ function createHaloTexture() {
   if (!context) return null;
 
   const gradient = context.createRadialGradient(96, 96, 4, 96, 96, 96);
-  gradient.addColorStop(0, "rgba(22, 0, 5, 0.82)");
-  gradient.addColorStop(0.48, "rgba(16, 0, 4, 0.55)");
-  gradient.addColorStop(0.76, "rgba(10, 0, 3, 0.18)");
+  gradient.addColorStop(0, "rgba(70, 0, 13, 0.97)");
+  gradient.addColorStop(0.52, "rgba(44, 0, 9, 0.75)");
+  gradient.addColorStop(0.76, "rgba(28, 0, 6, 0.24)");
+  gradient.addColorStop(0.92, "rgba(5, 0, 2, 0)");
   gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
   context.fillStyle = gradient;
   context.fillRect(0, 0, 192, 192);
@@ -178,7 +176,12 @@ function createHaloTexture() {
   return texture;
 }
 
-function HeartParticleLayer({ data, materialRef, uniforms }: HeartLayerProps) {
+function HeartParticleLayer({
+  data,
+  materialRef,
+  uniforms,
+  blending,
+}: HeartLayerProps) {
   return (
     <points frustumCulled={false}>
       <bufferGeometry>
@@ -202,7 +205,7 @@ function HeartParticleLayer({ data, materialRef, uniforms }: HeartLayerProps) {
         vertexShader={particleHeartVertexShader}
         fragmentShader={particleHeartFragmentShader}
         transparent
-        blending={THREE.AdditiveBlending}
+        blending={blending}
         depthTest
         depthWrite={false}
         toneMapped={false}
@@ -261,25 +264,6 @@ function syncHeartMaterial(
   }
 }
 
-function BloomComposer({ strength }: { strength: number }) {
-  const { camera, gl, scene, size } = useThree();
-  const composer = useMemo(() => {
-    const nextComposer = new EffectComposer(gl);
-    nextComposer.addPass(new RenderPass(scene, camera));
-    nextComposer.addPass(
-      new UnrealBloomPass(new THREE.Vector2(1, 1), strength, 0.55, 0.22),
-    );
-    return nextComposer;
-  }, [camera, gl, scene, strength]);
-
-  useEffect(() => {
-    composer.setSize(size.width, size.height);
-  }, [composer, size.height, size.width]);
-
-  useFrame((_, delta) => composer.render(delta), 1);
-  return null;
-}
-
 function HeartScene({
   controllerRef,
   particleCount,
@@ -336,7 +320,7 @@ function HeartScene({
   const smoothedMouse = useMemo(() => new THREE.Vector3(), []);
 
   const interiorUniforms = useMemo(
-    () => createHeartUniforms(pixelRatio, 0.66, 0),
+    () => createHeartUniforms(pixelRatio, 0.9, 0),
     [pixelRatio],
   );
   const rimUniforms = useMemo(
@@ -519,6 +503,13 @@ function HeartScene({
     mouseStrengthRef.current +=
       (targetStrength - mouseStrengthRef.current) * strengthDamping;
 
+    if (groupRef.current && animation.dissolve < 0.05) {
+      const yawAmplitude = reducedMotion ? 0.06 : 0.16;
+      const yawFrequency = reducedMotion ? 0.12 : 0.31;
+      groupRef.current.rotation.y =
+        Math.sin(elapsed * yawFrequency) * yawAmplitude;
+    }
+
     syncHeartMaterial(
       interiorMaterialRef.current,
       elapsed,
@@ -555,7 +546,7 @@ function HeartScene({
   return (
     <>
       {haloTexture ? (
-        <sprite position={[0, 0, -0.72]} scale={[3.25, 2.8, 1]}>
+        <sprite position={[0, 0, -0.72]} scale={[3.0, 2.65, 1]}>
           <spriteMaterial
             ref={haloMaterialRef}
             map={haloTexture}
@@ -620,23 +611,67 @@ function HeartScene({
           data={interiorData}
           materialRef={interiorMaterialRef}
           uniforms={interiorUniforms}
+          blending={THREE.NormalBlending}
         />
         <HeartParticleLayer
           data={rimData}
           materialRef={rimMaterialRef}
           uniforms={rimUniforms}
+          blending={THREE.AdditiveBlending}
         />
       </group>
-
-      {lowPower ? null : <BloomComposer strength={0.78} />}
     </>
   );
 }
 
+function CanvasReadiness({
+  onReadyChange,
+}: Pick<ParticleHeartCanvasProps, "onReadyChange">) {
+  const { gl } = useThree();
+  const renderedFramesRef = useRef(0);
+  const readyRef = useRef(false);
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+
+    const markUnavailable = () => {
+      renderedFramesRef.current = 0;
+      readyRef.current = false;
+      onReadyChange(false);
+    };
+    const handleContextLost = (event: Event) => {
+      event.preventDefault();
+      markUnavailable();
+    };
+
+    canvas.addEventListener("webglcontextlost", handleContextLost);
+    canvas.addEventListener("webglcontextrestored", markUnavailable);
+
+    return () => {
+      canvas.removeEventListener("webglcontextlost", handleContextLost);
+      canvas.removeEventListener("webglcontextrestored", markUnavailable);
+    };
+  }, [gl, onReadyChange]);
+
+  useFrame(() => {
+    if (readyRef.current) return;
+
+    if (renderedFramesRef.current === 0) {
+      renderedFramesRef.current = 1;
+      return;
+    }
+
+    readyRef.current = true;
+    onReadyChange(true);
+  });
+
+  return null;
+}
+
 export function ParticleHeartCanvas({
   controllerRef,
-  fallback,
   reducedMotion,
+  onReadyChange,
 }: ParticleHeartCanvasProps) {
   const profile = useMemo(
     () =>
@@ -658,7 +693,7 @@ export function ParticleHeartCanvas({
       className="heart-particle-canvas"
       camera={{ position: [0, 0, 4.25], fov: 38, near: 0.1, far: 20 }}
       dpr={[1, profile.maxDpr]}
-      fallback={fallback}
+      fallback={null}
       frameloop="always"
       gl={{
         alpha: true,
@@ -671,6 +706,7 @@ export function ParticleHeartCanvas({
         renderer.toneMappingExposure = 1.05;
       }}
     >
+      <CanvasReadiness onReadyChange={onReadyChange} />
       <HeartScene
         controllerRef={controllerRef}
         particleCount={profile.particleCount}

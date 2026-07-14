@@ -39,7 +39,7 @@ export const particleHeartVertexShader = /* glsl */ `
       sin(uTime * (aFrequency * 0.83) + aPhase * 1.31),
       cos(uTime * (aFrequency * 1.17) + aPhase * 0.79)
     );
-    vec3 displaced = aBasePosition + jitter * mix(0.007, 0.011, uRim);
+    vec3 displaced = aBasePosition + jitter * mix(0.032, 0.045, uRim);
     float glow = 0.0;
 
     float mouseDistance = distance(displaced, uMouse);
@@ -51,12 +51,12 @@ export const particleHeartVertexShader = /* glsl */ `
 
     for (int index = 0; index < 3; index++) {
       float age = uTime - uRippleStartTimes[index];
-      float active = step(0.0, age) * step(age, 1.45);
+      float rippleActive = step(0.0, age) * step(age, 1.45);
       float radius = age * 2.2;
       float distanceFromOrigin = distance(aBasePosition, uRippleOrigins[index]);
       float band =
         1.0 - smoothstep(0.0, 0.14, abs(distanceFromOrigin - radius));
-      band *= exp(-age * 1.05) * active;
+      band *= exp(-age * 1.05) * rippleActive;
       vec3 rippleDirection = safeDirection(
         aBasePosition - uRippleOrigins[index],
         aSeed
@@ -118,7 +118,7 @@ export const particleHeartFragmentShader = /* glsl */ `
       0.66 + vDepth * 0.17 + vRim * 0.58 + vGlow * 0.78 +
       vPulse * 0.42 + vTwinkle * (0.16 + vRim * 0.38);
     float alpha = spriteAlpha *
-      (0.22 + vDepth * 0.12 + vRim * 0.4 + vGlow * 0.16) *
+      (0.34 + vDepth * 0.12 + vRim * 0.4 + vGlow * 0.16) *
       mix(0.4, 1.0, vTwinkle) * uIntensity * vOpacity;
 
     gl_FragColor = vec4(color * brightness, alpha);

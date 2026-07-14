@@ -1,4 +1,10 @@
-import { createEvent, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  createEvent,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { HeroVisualScene } from "@/components/brain/hero-visual-scene";
 
 const mockController = {
@@ -20,11 +26,26 @@ jest.mock("next/dynamic", () => ({
 
     return function MockParticleHeartCanvas({
       controllerRef,
+      onReadyChange,
     }: {
       controllerRef: React.Ref<unknown>;
+      onReadyChange: (ready: boolean) => void;
     }) {
       React.useImperativeHandle(controllerRef, () => mockController);
-      return <div data-testid="particle-heart-canvas" />;
+      return (
+        <div data-testid="particle-heart-canvas">
+          <button
+            type="button"
+            data-testid="canvas-ready"
+            onClick={() => onReadyChange(true)}
+          />
+          <button
+            type="button"
+            data-testid="canvas-unavailable"
+            onClick={() => onReadyChange(false)}
+          />
+        </div>
+      );
     };
   },
 }));
@@ -62,11 +83,32 @@ describe("HeroVisualScene", () => {
       screen.getByRole("group", { name: /interactive red particle heart/i }),
     ).toBeVisible();
     expect(screen.getByTestId("particle-heart-canvas")).toBeVisible();
+    expect(document.querySelector(".heart-visual-fallback")).toBeVisible();
     expect(screen.queryByText(/living field/i)).not.toBeInTheDocument();
     expect(document.querySelector(".heart-case-card")).toHaveAttribute(
       "aria-hidden",
       "true",
     );
+  });
+
+  it("unmounts the fallback after readiness and restores it on context loss", () => {
+    render(<HeroVisualScene />);
+    const scene = screen.getByRole("group", {
+      name: /interactive red particle heart/i,
+    });
+
+    expect(document.querySelector(".heart-visual-fallback")).toBeVisible();
+
+    fireEvent.click(screen.getByTestId("canvas-ready"));
+    expect(scene).toHaveClass("hero-visual-scene--canvas-ready");
+    expect(document.querySelector(".heart-visual-fallback")).toBeInTheDocument();
+
+    act(() => jest.advanceTimersByTime(180));
+    expect(document.querySelector(".heart-visual-fallback")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("canvas-unavailable"));
+    expect(scene).not.toHaveClass("hero-visual-scene--canvas-ready");
+    expect(document.querySelector(".heart-visual-fallback")).toBeVisible();
   });
 
   it("forwards pointer attraction and defers a single-click ripple", () => {
