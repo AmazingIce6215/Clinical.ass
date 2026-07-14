@@ -111,28 +111,32 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-[1fr_320px]" aria-labelledby="all-modules-heading">
-          <div className="min-w-0">
-            <p className="section-label">All modules</p>
-            <h2 id="all-modules-heading" className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">Clinical tools and learning modes</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {moduleGroups.map((group) => (
-                <Surface key={group.id} className="min-w-0 p-4">
-                  <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-muted">{group.label}</h3>
-                  <div className="mt-2 divide-y divide-border">
-                    {modules.filter((module) => module.group === group.id).map((module) => (
-                      <Link key={module.id} href={module.href} className="group flex min-h-14 items-center gap-3 rounded-[8px] px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-                        <ModuleIcon name={module.icon} className="h-[18px] w-[18px] text-brand-strong" />
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-sm font-semibold text-foreground">{module.label}</span>
-                          <span className="block truncate text-xs text-muted">{module.description}</span>
-                        </span>
-                        <ArrowRight aria-hidden="true" className="h-4 w-4 text-muted transition-transform group-hover:translate-x-0.5" />
-                      </Link>
-                    ))}
-                  </div>
-                </Surface>
+        <section aria-labelledby="tools-workspace-heading">
+          <p className="section-label">Tools and workspace</p>
+          <h2 id="tools-workspace-heading" className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
+            Clinical tools and saved work
+          </h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {moduleGroups
+              .filter((group) => group.id === "tools" || group.id === "workspace")
+              .map((group) => (
+                <ModuleGroupCard key={group.id} groupId={group.id} label={group.label} />
               ))}
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_320px]" aria-labelledby="practice-progress-heading">
+          <div className="min-w-0">
+            <p className="section-label">Practice and progress</p>
+            <h2 id="practice-progress-heading" className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">
+              Learning modes and review
+            </h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {moduleGroups
+                .filter((group) => group.id === "practice" || group.id === "progress")
+                .map((group) => (
+                  <ModuleGroupCard key={group.id} groupId={group.id} label={group.label} />
+                ))}
             </div>
           </div>
 
@@ -156,6 +160,32 @@ export default function DashboardPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+function ModuleGroupCard({ groupId, label }: { groupId: (typeof moduleGroups)[number]["id"]; label: string }) {
+  return (
+    <Surface className="min-w-0 p-4">
+      <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-muted">{label}</h3>
+      <div className="mt-2 divide-y divide-border">
+        {modules
+          .filter((module) => module.group === groupId)
+          .map((module) => (
+            <Link
+              key={module.id}
+              href={module.href}
+              className="group flex min-h-14 items-center gap-3 rounded-[8px] px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <ModuleIcon name={module.icon} className="h-[18px] w-[18px] text-brand-strong" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-foreground">{module.label}</span>
+                <span className="block truncate text-xs text-muted">{module.description}</span>
+              </span>
+              <ArrowRight aria-hidden="true" className="h-4 w-4 text-muted transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          ))}
+      </div>
+    </Surface>
   );
 }
 
