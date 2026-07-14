@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "DxFlow — clinical tools for medical students";
+export const alt = "Wardly — clinical tools for medical students";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -20,8 +20,8 @@ export default function OpenGraphImage() {
       <div style={{ display: "flex", width: "100%", border: "1px solid #d9e2e8", borderRadius: 28, background: "#ffffff", overflow: "hidden" }}>
         <div style={{ width: 370, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 48, background: "#153f5b", color: "white" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            <div style={{ width: 72, height: 72, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 16, background: "#ffffff", color: "#153f5b", fontSize: 28, fontWeight: 800 }}>Dx</div>
-            <div style={{ fontSize: 28, fontWeight: 700 }}>DxFlow</div>
+            <div style={{ width: 72, height: 72, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 16, background: "#ffffff", color: "#153f5b", fontSize: 36, fontWeight: 800 }}>W</div>
+            <div style={{ fontSize: 28, fontWeight: 700 }}>Wardly</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 19, color: "#c9e0eb" }}>
             <div>Clinical reasoning</div><div>Image diagnosis</div><div>Case reports</div><div>Practice &amp; calculators</div>

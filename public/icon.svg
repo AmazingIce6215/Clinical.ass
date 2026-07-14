@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DxFlow">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Wardly">
   <rect width="512" height="512" fill="#153f5b"/>
-  <path d="M126 144h92c82 0 132 42 132 112s-50 112-132 112h-92V144Zm88 168c43 0 66-19 66-56s-23-56-66-56h-21v112h21Z" fill="#fff"/>
-  <path d="m309 144 36 51 36-51h66l-69 108 74 116h-68l-40-59-40 59h-66l73-115-68-109h66Z" fill="#71c4b5"/>
+  <path d="M88 128h68l39 168 40-168h42l40 168 39-168h68l-63 256h-66l-39-139-39 139h-66L88 128Z" fill="#fff"/>
+  <path d="M256 247 295 386h66l63-258h-68l-39 168-40-168h-21v119Z" fill="#71c4b5"/>
 </svg>

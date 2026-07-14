@@ -1,6 +1,6 @@
 workflows:
   ios-app:
-    name: Clincalass iOS
+    name: Wardly iOS
     environment:
       vars:
         APP_STORE_APP_ID: ''  # Your Apple App ID — you'll get this from App Store Connect
@@ -16,18 +16,18 @@ workflows:
           xcodebuild -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
-            -archivePath build/Clincalass.xcarchive \
+            -archivePath build/Wardly.xcarchive \
             -allowProvisioningUpdates \
             archive
       - name: Export IPA
         script: |
           xcodebuild -exportArchive \
-            -archivePath ios/App/build/Clincalass.xcarchive \
-            -exportPath ios/App/build/Clincalass.ipa \
+            -archivePath ios/App/build/Wardly.xcarchive \
+            -exportPath ios/App/build/Wardly.ipa \
             -exportOptionsPlist ios/App/exportOptions.plist \
             -allowProvisioningUpdates
     artifacts:
-      - ios/App/build/Clincalass.ipa
+      - ios/App/build/Wardly.ipa
     publishing:
       app_store_connect:
         apple_id: ''  # Your Apple ID email

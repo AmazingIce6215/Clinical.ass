@@ -13,7 +13,7 @@ import { getOsceOverallStats } from "@/lib/osce-stats";
 import { getUserStats } from "@/lib/teaching-stats";
 
 const ONBOARDING_KEY = "clinicalass_onboarded";
-const ONBOARDING_EVENT = "dxflow:onboarding-change";
+const ONBOARDING_EVENT = "wardly:onboarding-change";
 
 function subscribeClient() {
   return () => {};

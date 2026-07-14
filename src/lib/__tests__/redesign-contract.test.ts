@@ -4,7 +4,7 @@ import { getModuleByPath, moduleGroups, modules } from "@/lib/modules";
 
 const root = process.cwd();
 
-describe("DxFlow redesign contract", () => {
+describe("Wardly redesign contract", () => {
   test("uses the central module registry for every workspace section", () => {
     expect(moduleGroups.map((group) => group.label)).toEqual([
       "Tools",
@@ -41,11 +41,20 @@ describe("DxFlow redesign contract", () => {
     const manifest = JSON.parse(
       readFileSync(resolve(root, "public/manifest.json"), "utf8"),
     ) as { name: string; short_name: string };
+    const packageJson = JSON.parse(
+      readFileSync(resolve(root, "package.json"), "utf8"),
+    ) as { name: string };
     const capacitor = readFileSync(resolve(root, "capacitor.config.ts"), "utf8");
+    const infoPlist = readFileSync(resolve(root, "ios/App/App/Info.plist"), "utf8");
+    const appIcon = readFileSync(resolve(root, "src/app/icon.svg"), "utf8");
 
-    expect(manifest.name).toBe("DxFlow");
-    expect(manifest.short_name).toBe("DxFlow");
-    expect(capacitor).toContain("appName: 'DxFlow'");
+    expect(manifest.name).toBe("Wardly");
+    expect(manifest.short_name).toBe("Wardly");
+    expect(packageJson.name).toBe("wardly");
+    expect(capacitor).toContain("appName: 'Wardly'");
+    expect(infoPlist).toContain("<string>Wardly</string>");
+    expect(appIcon).toContain('aria-label="Wardly"');
+    expect(appIcon).not.toContain("DxFlow");
     expect(capacitor).toContain("appId: 'com.clincalass.app'");
     expect(capacitor).toContain("https://clinicalass.vercel.app");
   });

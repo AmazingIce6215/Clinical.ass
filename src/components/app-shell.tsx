@@ -34,15 +34,15 @@ function BrandMark({ compact = false }: { compact?: boolean }) {
     <Link
       href="/dashboard"
       className="inline-flex min-h-11 items-center gap-3 rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-      aria-label="DxFlow dashboard"
+      aria-label="Wardly dashboard"
     >
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[9px] bg-brand text-sm font-bold tracking-[-0.04em] text-white">
-        Dx
+        W
       </span>
       {!compact ? (
         <span>
           <span className="block text-[15px] font-semibold tracking-[-0.02em] text-foreground">
-            DxFlow
+            Wardly
           </span>
           <span className="block text-[11px] text-muted">Clinical toolkit for students</span>
         </span>
@@ -435,7 +435,7 @@ export function AppShell({
             {children}
           </main>
           <footer className="mt-10 border-t border-border pt-4 text-xs leading-5 text-muted">
-            DxFlow supports supervised clinical learning and formative practice. It is not a substitute for clinical judgement, senior review, or local protocols.
+            Wardly supports supervised clinical learning and formative practice. It is not a substitute for clinical judgement, senior review, or local protocols.
           </footer>
         </div>
       </div>

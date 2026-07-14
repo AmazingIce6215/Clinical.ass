@@ -24,7 +24,7 @@ export function LandingActions({ compact = false, inverted = false }: { compact?
       <div className="flex items-center gap-2">
         <Link href="/sign-in" className="hidden min-h-11 items-center px-2 text-sm font-semibold text-foreground sm:inline-flex">Sign in</Link>
         <button type="button" onClick={enterGuest} disabled={!ready} className="inline-flex min-h-11 items-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-semibold text-accent-foreground disabled:opacity-60">
-          Try DxFlow <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          Try Wardly <ArrowRight aria-hidden="true" className="h-4 w-4" />
         </button>
       </div>
     );

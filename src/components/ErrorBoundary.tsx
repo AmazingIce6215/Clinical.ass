@@ -19,7 +19,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("DxFlow interface error:", error, errorInfo);
+    console.error("Wardly interface error:", error, errorInfo);
   }
 
   render() {

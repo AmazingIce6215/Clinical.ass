@@ -1,6 +1,6 @@
 {
-  "name": "DxFlow",
-  "short_name": "DxFlow",
+  "name": "Wardly",
+  "short_name": "Wardly",
   "description": "Clinical reasoning, image diagnosis, case reporting, and learning tools for medical students",
   "start_url": "/",
   "display": "standalone",

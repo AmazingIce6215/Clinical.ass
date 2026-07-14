@@ -4,13 +4,13 @@ import { PublicPageShell } from "@/components/public-page-shell";
 
 export const metadata: Metadata = {
   title: "Privacy policy",
-  description: "How DxFlow handles account details, device-local learning data, AI requests, uploads, and feedback.",
+  description: "How Wardly handles account details, device-local learning data, AI requests, uploads, and feedback.",
 };
 
 const sections = [
   {
     title: "Account and profile information",
-    body: "When hosted authentication is enabled, email/password authentication and basic profile information are processed and stored by Supabase. When hosted authentication is not enabled, DxFlow uses a device-local account fallback. A guest session does not require an email address.",
+    body: "When hosted authentication is enabled, email/password authentication and basic profile information are processed and stored by Supabase. When hosted authentication is not enabled, Wardly uses a device-local account fallback. A guest session does not require an email address.",
   },
   {
     title: "Saved cases and learning progress",
@@ -18,11 +18,11 @@ const sections = [
   },
   {
     title: "Clinical text and generated cases",
-    body: "Information entered into Clinical, Classic, Teaching, and OSCE modules is sent through DxFlow server routes to configured AI providers, including Groq or Google Gemini, to generate a response. DxFlow does not intentionally persist these request bodies in an application database, but infrastructure and model providers may process operational logs under their own policies.",
+    body: "Information entered into Clinical, Classic, Teaching, and OSCE modules is sent through Wardly server routes to configured AI providers, including Groq or Google Gemini, to generate a response. Wardly does not intentionally persist these request bodies in an application database, but infrastructure and model providers may process operational logs under their own policies.",
   },
   {
     title: "Uploaded images",
-    body: "Images submitted for educational analysis pass through a DxFlow server route to Google Gemini. Do not upload names, identifiers, faces, labels, or other information that could identify a patient. Uploaded images are not added to the DxFlow case library by the application.",
+    body: "Images submitted for educational analysis pass through a Wardly server route to Google Gemini. Do not upload names, identifiers, faces, labels, or other information that could identify a patient. Uploaded images are not added to the Wardly case library by the application.",
   },
   {
     title: "Clinical calculators",
@@ -40,7 +40,7 @@ const sections = [
 
 export default function PrivacyPolicyPage() {
   return (
-    <PublicPageShell eyebrow="Privacy" title="How DxFlow handles your data" description="This policy describes the current implementation. It separates account data, device-local learning data, and information sent to third-party model providers.">
+    <PublicPageShell eyebrow="Privacy" title="How Wardly handles your data" description="This policy describes the current implementation. It separates account data, device-local learning data, and information sent to third-party model providers.">
       <div className="grid gap-4 md:grid-cols-2">
         {sections.map((section) => (
           <section key={section.title} className="rounded-[14px] border border-border bg-surface p-5 shadow-card">

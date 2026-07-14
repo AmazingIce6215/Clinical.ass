@@ -26,9 +26,9 @@ export default function HomePage() {
     <div className="min-h-dvh bg-background">
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-h-11 items-center gap-3 rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="DxFlow home">
-            <span className="grid h-9 w-9 place-items-center rounded-[9px] bg-brand text-sm font-bold text-white">Dx</span>
-            <span className="text-base font-semibold tracking-[-0.025em] text-foreground">DxFlow</span>
+          <Link href="/" className="flex min-h-11 items-center gap-3 rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Wardly home">
+            <span className="grid h-9 w-9 place-items-center rounded-[9px] bg-brand text-sm font-bold text-white">W</span>
+            <span className="text-base font-semibold tracking-[-0.025em] text-foreground">Wardly</span>
           </Link>
           <nav className="hidden items-center gap-6 text-sm text-muted md:flex" aria-label="Public navigation">
             <a href="#modules" className="hover:text-foreground">Modules</a>
@@ -144,13 +144,13 @@ export default function HomePage() {
                 Clear about what the product can—and cannot—do.
               </h2>
               <p className="mt-4 text-sm leading-7 text-muted">
-                DxFlow is a learning tool. AI-generated material can be incomplete or wrong and should always be checked against current guidance, local protocols, and senior clinical judgement.
+                Wardly is a learning tool. AI-generated material can be incomplete or wrong and should always be checked against current guidance, local protocols, and senior clinical judgement.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <TrustPoint icon={ShieldCheck} title="Educational scope">Not intended for emergencies, diagnosis, or direct patient-care decisions.</TrustPoint>
               <TrustPoint icon={Database} title="Data clarity">Saved cases and learning progress remain device-local in the current product.</TrustPoint>
-              <TrustPoint icon={LockKeyhole} title="Provider disclosure">AI requests pass through DxFlow server routes to configured model providers.</TrustPoint>
+              <TrustPoint icon={LockKeyhole} title="Provider disclosure">AI requests pass through Wardly server routes to configured model providers.</TrustPoint>
             </div>
           </div>
         </section>
@@ -168,7 +168,7 @@ export default function HomePage() {
 
       <footer className="border-t border-border bg-surface">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-xs text-muted sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-          <p>© {new Date().getFullYear()} DxFlow. Educational use only.</p>
+          <p>© {new Date().getFullYear()} Wardly. Educational use only.</p>
           <div className="flex flex-wrap gap-5">
             <Link href="/privacy-policy" className="hover:text-foreground">Privacy</Link>
             <Link href="/about-developer" className="hover:text-foreground">Help and feedback</Link>
@@ -183,7 +183,7 @@ export default function HomePage() {
 function ProductSpecimen() {
   const steps = ["Presenting concern", "Focused history", "Examination", "Differential"];
   return (
-    <div className="rounded-[18px] border border-border bg-background p-3 shadow-panel" aria-label="DxFlow clinical case interface preview">
+    <div className="rounded-[18px] border border-border bg-background p-3 shadow-panel" aria-label="Wardly clinical case interface preview">
       <div className="rounded-[14px] border border-border bg-surface">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div>

@@ -60,7 +60,7 @@ export function SignInPanel() {
     }
 
     if (mode === "signup" && firstName.trim().length < 2) {
-      setError("Enter the name you would like DxFlow to display.");
+      setError("Enter the name you would like Wardly to display.");
       return;
     }
     if (!email.trim() || !password) {
@@ -102,7 +102,7 @@ export function SignInPanel() {
         <div>
           <p className="section-label">Secure access</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-[-0.035em] text-foreground">
-            {mode === "signin" ? "Sign in to DxFlow" : mode === "signup" ? "Create your account" : "Reset your password"}
+            {mode === "signin" ? "Sign in to Wardly" : mode === "signup" ? "Create your account" : "Reset your password"}
           </h1>
           <p className="mt-2 text-sm leading-6 text-muted">
             {mode === "signup"

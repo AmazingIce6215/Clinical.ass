@@ -35,9 +35,9 @@ export async function POST(request: Request) {
 
     const resend = new Resend(apiKey);
     await resend.emails.send({
-      from: "DxFlow <onboarding@resend.dev>",
+      from: "Wardly <onboarding@resend.dev>",
       to: toEmail,
-      subject: "New DxFlow feedback",
+      subject: "New Wardly feedback",
       text: `Message:\n${message.trim()}\n\n---\nSent at: ${timestamp} UTC`,
     });
 
