@@ -18,6 +18,7 @@ import { useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type R
 import { cn } from "@/lib/utils";
 import { getModuleByPath, moduleGroups, modules } from "@/lib/modules";
 import { ModuleIcon } from "@/components/ui/icons";
+import { BrandMark } from "@/components/brand-mark";
 import { useAuth } from "@/context/auth-context";
 
 const buttonBase =
@@ -28,28 +29,6 @@ const buttonStyles = {
   secondary:
     "border border-border bg-surface text-foreground hover:border-accent/30 hover:bg-surface-subtle",
 };
-
-function BrandMark({ compact = false }: { compact?: boolean }) {
-  return (
-    <Link
-      href="/dashboard"
-      className="inline-flex min-h-11 items-center gap-3 rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-      aria-label="Orizon dashboard"
-    >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[9px] bg-brand text-sm font-bold tracking-[-0.04em] text-white">
-        O
-      </span>
-      {!compact ? (
-        <span>
-          <span className="block text-[15px] font-semibold tracking-[-0.02em] text-foreground">
-            Orizon
-          </span>
-          <span className="block text-[11px] text-muted">Clinical toolkit for students</span>
-        </span>
-      ) : null}
-    </Link>
-  );
-}
 
 function NavLink({
   href,

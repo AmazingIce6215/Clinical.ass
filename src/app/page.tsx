@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { LandingActions } from "@/components/landing/landing-actions";
 import { ModuleIcon } from "@/components/ui/icons";
 import { modules } from "@/lib/modules";
@@ -26,10 +27,7 @@ export default function HomePage() {
     <div className="min-h-dvh bg-background">
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex min-h-11 items-center gap-3 rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-label="Orizon home">
-            <span className="grid h-9 w-9 place-items-center rounded-[9px] bg-brand text-sm font-bold text-white">O</span>
-            <span className="text-base font-semibold tracking-[-0.025em] text-foreground">Orizon</span>
-          </Link>
+          <BrandMark href="/" showTagline={false} />
           <nav className="hidden items-center gap-6 text-sm text-muted md:flex" aria-label="Public navigation">
             <a href="#modules" className="hover:text-foreground">Modules</a>
             <a href="#how-it-works" className="hover:text-foreground">Capabilities</a>
