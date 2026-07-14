@@ -85,14 +85,13 @@ function NavLink({
 }
 
 function AccountMenu({ compact = false }: { compact?: boolean }) {
-  const router = useRouter();
   const { session, logout } = useAuth();
   const displayName = session?.firstName?.trim() || "Guest learner";
   const initial = displayName.charAt(0).toUpperCase();
 
   const handleLogout = async () => {
     await logout();
-    router.push("/");
+    window.location.replace("/");
   };
 
   return (

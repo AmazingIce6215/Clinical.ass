@@ -112,12 +112,12 @@ export default function DashboardPage() {
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[1fr_320px]" aria-labelledby="all-modules-heading">
-          <div>
+          <div className="min-w-0">
             <p className="section-label">All modules</p>
             <h2 id="all-modules-heading" className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">Everything in one workspace</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {moduleGroups.map((group) => (
-                <Surface key={group.id} className="p-4">
+                <Surface key={group.id} className="min-w-0 p-4">
                   <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-muted">{group.label}</h3>
                   <div className="mt-2 divide-y divide-border">
                     {modules.filter((module) => module.group === group.id).map((module) => (
