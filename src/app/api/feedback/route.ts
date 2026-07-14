@@ -35,9 +35,9 @@ export async function POST(request: Request) {
 
     const resend = new Resend(apiKey);
     await resend.emails.send({
-      from: "Wardly <onboarding@resend.dev>",
+      from: "Orizon <onboarding@resend.dev>",
       to: toEmail,
-      subject: "New Wardly feedback",
+      subject: "New Orizon feedback",
       text: `Message:\n${message.trim()}\n\n---\nSent at: ${timestamp} UTC`,
     });
 

@@ -4,7 +4,7 @@ import { getModuleByPath, moduleGroups, modules } from "@/lib/modules";
 
 const root = process.cwd();
 
-describe("Wardly redesign contract", () => {
+describe("Orizon redesign contract", () => {
   test("uses the central module registry for every workspace section", () => {
     expect(moduleGroups.map((group) => group.label)).toEqual([
       "Tools",
@@ -48,13 +48,13 @@ describe("Wardly redesign contract", () => {
     const infoPlist = readFileSync(resolve(root, "ios/App/App/Info.plist"), "utf8");
     const appIcon = readFileSync(resolve(root, "src/app/icon.svg"), "utf8");
 
-    expect(manifest.name).toBe("Wardly");
-    expect(manifest.short_name).toBe("Wardly");
-    expect(packageJson.name).toBe("wardly");
-    expect(capacitor).toContain("appName: 'Wardly'");
-    expect(infoPlist).toContain("<string>Wardly</string>");
-    expect(appIcon).toContain('aria-label="Wardly"');
-    expect(appIcon).not.toContain("DxFlow");
+    expect(manifest.name).toBe("Orizon");
+    expect(manifest.short_name).toBe("Orizon");
+    expect(packageJson.name).toBe("orizon");
+    expect(capacitor).toContain("appName: 'Orizon'");
+    expect(infoPlist).toContain("<string>Orizon</string>");
+    expect(appIcon).toContain('aria-label="Orizon"');
+    expect(appIcon).not.toContain("Wardly");
     expect(capacitor).toContain("appId: 'com.clincalass.app'");
     expect(capacitor).toContain("https://clinicalass.vercel.app");
   });

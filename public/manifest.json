@@ -1,6 +1,6 @@
 {
-  "name": "Wardly",
-  "short_name": "Wardly",
+  "name": "Orizon",
+  "short_name": "Orizon",
   "description": "Clinical reasoning, image diagnosis, case reporting, and learning tools for medical students",
   "start_url": "/",
   "display": "standalone",

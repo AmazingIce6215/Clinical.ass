@@ -5,18 +5,18 @@ import { PublicPageShell } from "@/components/public-page-shell";
 
 export const metadata: Metadata = {
   title: "About and feedback",
-  description: "Learn how Wardly is maintained and send product feedback without including patient information.",
+  description: "Learn how Orizon is maintained and send product feedback without including patient information.",
 };
 
 const principles: Array<{ icon: LucideIcon; title: string; description: string }> = [
-  { icon: BookOpenCheck, title: "Built for clinical learning", description: "Wardly combines structured encounter tools, case reporting, and formative practice for medical students." },
+  { icon: BookOpenCheck, title: "Built for clinical learning", description: "Orizon combines structured encounter tools, case reporting, and formative practice for medical students." },
   { icon: ShieldCheck, title: "Educational scope", description: "Generated content can be wrong and must be checked against authoritative guidance and senior review." },
   { icon: Code2, title: "Maintenance priorities", description: "Feedback helps direct work on reliability, clarity, accessibility, and workflow quality." },
 ];
 
 export default function AboutDeveloperPage() {
   return (
-    <PublicPageShell eyebrow="About the project" title="A medical student-built clinical learning project" description="Wardly is maintained by Rivindu, a medical student building structured tools for supervised clinical learning and practice. It is not affiliated with a university, hospital, professional body, or examination board.">
+    <PublicPageShell eyebrow="About the project" title="A medical student-built clinical learning project" description="Orizon is maintained by Rivindu, a medical student building structured tools for supervised clinical learning and practice. It is not affiliated with a university, hospital, professional body, or examination board.">
       <div className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
         <div className="space-y-4">
           {principles.map(({ icon: Icon, title, description }) => (

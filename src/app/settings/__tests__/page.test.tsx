@@ -55,7 +55,7 @@ describe("SettingsPage account persistence", () => {
 
     expect(mockUpdateProfile).toHaveBeenCalledWith({ first_name: "Jamie Student" });
     expect(mockRefresh).toHaveBeenCalledTimes(1);
-    expect(await screen.findByText(/synced to your Wardly account/i)).toBeInTheDocument();
+    expect(await screen.findByText(/synced to your Orizon account/i)).toBeInTheDocument();
   });
 
   it("shows the recovery form and submits a confirmed new password", async () => {

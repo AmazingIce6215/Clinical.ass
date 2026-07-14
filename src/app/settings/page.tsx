@@ -59,7 +59,7 @@ export default function SettingsPage() {
       tone: "info",
       title: "Profile updated",
       body: session?.accountType === "hosted"
-        ? "Your display name has been synced to your Wardly account."
+        ? "Your display name has been synced to your Orizon account."
         : "Your display name has been saved on this device.",
     });
   };
@@ -109,7 +109,7 @@ export default function SettingsPage() {
   return (
     <AppShell title="Settings" subtitle="Profile, security, and appearance">
       <div className="mx-auto max-w-4xl space-y-8">
-        <PageHeader eyebrow="Account" title="Settings" description="Manage the identity shown in Wardly, request a password reset, and choose a stable display theme." />
+        <PageHeader eyebrow="Account" title="Settings" description="Manage the identity shown in Orizon, request a password reset, and choose a stable display theme." />
 
         {message ? <Notice title={message.title} tone={message.tone}>{message.body}</Notice> : null}
 
@@ -166,7 +166,7 @@ export default function SettingsPage() {
         </div>
 
         <Surface className="p-5 sm:p-6">
-          <div><p className="section-label">Appearance</p><h2 className="mt-2 text-lg font-semibold text-foreground">Display theme</h2><p className="mt-1 text-sm text-muted">Wardly uses one fixed clinical palette so status colours and contrast stay consistent.</p></div>
+          <div><p className="section-label">Appearance</p><h2 className="mt-2 text-lg font-semibold text-foreground">Display theme</h2><p className="mt-1 text-sm text-muted">Orizon uses one fixed clinical palette so status colours and contrast stay consistent.</p></div>
           <div className="mt-5 grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Display theme">
             {themes.map((option) => {
               const Icon = option.icon;

@@ -8,32 +8,32 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://clinicalass.vercel.app"),
   title: {
-    default: "Wardly — Clinical tools for medical students",
-    template: "%s | Wardly",
+    default: "Orizon — Clinical tools for medical students",
+    template: "%s | Orizon",
   },
   description:
     "AI-assisted clinical reasoning, image diagnosis, case reporting, OSCE practice, and evidence-aware calculators for medical students.",
   manifest: "/manifest.json",
-  applicationName: "Wardly",
+  applicationName: "Orizon",
   category: "education",
   openGraph: {
     type: "website",
-    siteName: "Wardly",
-    title: "Wardly — Clinical tools for medical students",
+    siteName: "Orizon",
+    title: "Orizon — Clinical tools for medical students",
     description:
       "Structure patient findings, review clinical images, prepare case reports, and strengthen clinical reasoning in one focused workspace.",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Wardly clinical tools for medical students" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Orizon clinical tools for medical students" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Wardly — Clinical tools for medical students",
+    title: "Orizon — Clinical tools for medical students",
     description: "Clinical reasoning, image diagnosis, case reporting, and focused learning tools for medical students.",
     images: ["/opengraph-image"],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Wardly",
+    title: "Orizon",
   },
 };
 

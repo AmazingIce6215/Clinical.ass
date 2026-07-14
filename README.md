@@ -1,4 +1,4 @@
-# Wardly
+# Orizon
 
 Structured clinical learning for medical students and junior clinicians — guided workups, case-based teaching, OSCE practice, image review, and common scoring tools.
 
@@ -31,7 +31,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Disclaimer
 
-**For educational use only.** Not a substitute for clinical judgement, senior review, or local protocols. Do not use Wardly as the basis for patient-care decisions.
+**For educational use only.** Not a substitute for clinical judgement, senior review, or local protocols. Do not use Orizon as the basis for patient-care decisions.
 
 ## Tech stack
 

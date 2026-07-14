@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.clincalass.app',
-  appName: 'Wardly',
+  appName: 'Orizon',
   server: {
     url: 'https://clinicalass.vercel.app',
     cleartext: true,

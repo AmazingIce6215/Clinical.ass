@@ -51,7 +51,7 @@ export function FeedbackForm() {
         <form onSubmit={handleSend} className="mt-5 space-y-4">
           <label className="block">
             <span className="text-sm font-semibold text-foreground">Your message</span>
-            <textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={5} maxLength={4000} placeholder="Describe what happened, what you expected, or what would make Wardly more useful." className="mt-1.5 w-full resize-y rounded-[10px] border border-border bg-surface px-3.5 py-3 text-sm leading-6 outline-none placeholder:text-muted/65 focus:border-accent focus:ring-2 focus:ring-accent/15" />
+            <textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={5} maxLength={4000} placeholder="Describe what happened, what you expected, or what would make Orizon more useful." className="mt-1.5 w-full resize-y rounded-[10px] border border-border bg-surface px-3.5 py-3 text-sm leading-6 outline-none placeholder:text-muted/65 focus:border-accent focus:ring-2 focus:ring-accent/15" />
           </label>
           {error ? <Notice title="Message not sent" tone="danger">{error}</Notice> : null}
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">

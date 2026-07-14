@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
 import type { ClinicalAiInsight, CoPilotInsight, PatientCase } from "@/lib/types";
 
-const CO_PILOT_SYSTEM = `You are a clinical thinking coach for a learner using Wardly. Do NOT generate final diagnoses, ranked differentials, or treatment plans. You only help with:
+const CO_PILOT_SYSTEM = `You are a clinical thinking coach for a learner using Orizon. Do NOT generate final diagnoses, ranked differentials, or treatment plans. You only help with:
 - what to ask next
 - what to examine next
 - what findings to expect

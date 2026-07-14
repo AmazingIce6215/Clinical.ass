@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Wardly">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Orizon">
   <rect width="512" height="512" fill="#153f5b"/>
-  <path d="M88 128h68l39 168 40-168h42l40 168 39-168h68l-63 256h-66l-39-139-39 139h-66L88 128Z" fill="#fff"/>
-  <path d="M256 247 295 386h66l63-258h-68l-39 168-40-168h-21v119Z" fill="#71c4b5"/>
+  <circle cx="256" cy="256" r="142" fill="none" stroke="#fff" stroke-width="54"/>
+  <path d="M356 155a142 142 0 0 1 0 202" fill="none" stroke="#71c4b5" stroke-width="54" stroke-linecap="round"/>
 </svg>
