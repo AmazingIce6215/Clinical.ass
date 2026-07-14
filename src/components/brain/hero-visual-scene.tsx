@@ -1,360 +1,344 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
-import { cn } from "@/lib/utils";
+import { gsap } from "gsap";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+} from "react";
+import { useReducedMotion } from "framer-motion";
+import type { HeartCanvasController } from "@/components/brain/particle-heart-canvas";
 
-type ModuleNode = {
-  id: string;
-  icon: string;
-  angle: number;
+const GESTURE_DELAY_MS = 290;
+const DOUBLE_TAP_DISTANCE_PX = 28;
+
+const ParticleHeartCanvas = dynamic(
+  () =>
+    import("@/components/brain/particle-heart-canvas").then(
+      (module) => module.ParticleHeartCanvas,
+    ),
+  {
+    ssr: false,
+    loading: () => <HeartFallbackGraphic loading />,
+  },
+);
+
+type PendingTap = {
+  clientX: number;
+  clientY: number;
+  startedAt: number;
+  timer: number;
 };
 
-type PulseNode = {
-  id: string;
-  left: string;
-  top: string;
-  delay: number;
-  size: number;
-};
-
-type Particle = {
-  id: number;
-  left: string;
-  top: string;
-  size: number;
-  driftX: number;
-  driftY: number;
-  duration: number;
-  delay: number;
-  opacity: number;
-};
-
-const MODULES: ModuleNode[] = [
-  { id: "clinical", icon: "🩺", angle: -90 },
-  { id: "osce", icon: "🎓", angle: -30 },
-  { id: "teaching", icon: "📚", angle: 30 },
-  { id: "image", icon: "🖼️", angle: 90 },
-  { id: "calculators", icon: "📊", angle: 150 },
-  { id: "library", icon: "🗂️", angle: 210 },
-];
-
-const ORBIT_RADIUS = 8.75;
-
-const PULSE_NODES: PulseNode[] = [
-  { id: "p1", left: "34%", top: "28%", delay: 0.2, size: 10 },
-  { id: "p2", left: "52%", top: "22%", delay: 1.1, size: 9 },
-  { id: "p3", left: "66%", top: "38%", delay: 0.7, size: 10 },
-  { id: "p4", left: "62%", top: "58%", delay: 1.6, size: 8 },
-  { id: "p5", left: "42%", top: "68%", delay: 0.9, size: 9 },
-  { id: "p6", left: "28%", top: "52%", delay: 1.8, size: 10 },
-];
-
-const NETWORK_PATHS = [
-  "M200 200C200 148 248 118 292 118",
-  "M200 200C248 200 292 168 318 132",
-  "M200 200C248 228 292 248 318 268",
-  "M200 200C200 252 152 282 108 282",
-  "M200 200C152 200 108 232 82 268",
-  "M200 200C152 172 108 152 82 132",
-];
-
-const CAPTION_MESSAGES = [
-  "Reviewing the clinical picture…",
-  "Cross-checking findings…",
-  "Building the differential…",
-  "Thinking it through…",
-  "Putting it together…",
-];
-
-function buildParticles(count: number): Particle[] {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index,
-    left: `${10 + ((index * 11) % 78)}%`,
-    top: `${14 + ((index * 17) % 68)}%`,
-    size: 2 + ((index * 7) % 5),
-    driftX: ((index % 2 === 0 ? 1 : -1) * (8 + ((index * 3) % 18))) / 10,
-    driftY: ((index % 3 === 0 ? -1 : 1) * (10 + ((index * 5) % 22))) / 10,
-    duration: 14 + (index % 5) * 2,
-    delay: (index % 7) * 0.7,
-    opacity: 0.35 + ((index % 4) * 0.1),
-  }));
-}
-
-function nodePosition(angleDeg: number) {
-  const rad = (angleDeg * Math.PI) / 180;
-  const x = 50 + ORBIT_RADIUS * Math.cos(rad);
-  const y = 50 + ORBIT_RADIUS * Math.sin(rad);
-  return { left: `${x}%`, top: `${y}%` };
-}
-
-function RotatingCaption({ messages }: { messages: readonly string[] }) {
-  const prefersReducedMotion = useReducedMotion();
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setIndex((current) => (current + 1) % messages.length);
-    }, 2800);
-    return () => window.clearInterval(interval);
-  }, [messages.length]);
+function HeartFallbackGraphic({
+  faded = false,
+  loading = false,
+}: {
+  faded?: boolean;
+  loading?: boolean;
+}) {
+  const patternId = useId().replace(/:/g, "");
 
   return (
-    <div className="hero-visual-caption" aria-live="polite">
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={messages[index]}
-          initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -6 }}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.35, ease: "easeInOut" }}
+    <div
+      className={`heart-visual-fallback${faded ? " heart-visual-fallback--faded" : ""}`}
+      data-testid={loading ? "heart-loading-fallback" : "heart-webgl-fallback"}
+      aria-hidden="true"
+    >
+      <span className="heart-visual-fallback__halo" />
+      <svg viewBox="0 0 120 108" role="presentation">
+        <defs>
+          <pattern
+            id={patternId}
+            width="6"
+            height="6"
+            patternUnits="userSpaceOnUse"
+          >
+            <circle cx="2" cy="2" r="1.25" fill="#58d5ff" />
+            <circle cx="5" cy="5" r="0.8" fill="#4f6fff" opacity="0.72" />
+          </pattern>
+        </defs>
+        <path
+          d="M60 101C52 87 12 67 12 35C12 15 27 6 43 7C52 8 58 14 60 22C63 14 69 8 78 7C95 5 108 17 108 35C108 67 68 87 60 101Z"
+          fill={`url(#${patternId})`}
+        />
+      </svg>
+    </div>
+  );
+}
+
+function CaseOfTheDayCard({
+  cardRef,
+  onBack,
+  revealed,
+}: {
+  cardRef: React.RefObject<HTMLDivElement | null>;
+  onBack: () => void;
+  revealed: boolean;
+}) {
+  return (
+    <div
+      ref={cardRef}
+      className="heart-case-card"
+      aria-hidden={!revealed}
+      aria-live="polite"
+    >
+      <button
+        type="button"
+        className="heart-case-card__back"
+        onClick={onBack}
+        tabIndex={revealed ? 0 : -1}
+      >
+        <span aria-hidden="true">←</span>
+        Reform heart
+      </button>
+
+      <div className="heart-case-card__content">
+        <div className="heart-case-card__eyebrow">
+          <span className="heart-case-card__signal" aria-hidden="true" />
+          Case of the day · Cardiology
+        </div>
+        <h2>The rhythm changed before the room did.</h2>
+        <p>
+          A 67-year-old develops sudden palpitations, light-headedness, and
+          shortness of breath. The pulse is fast and irregular, but blood
+          pressure remains stable. What should you assess first?
+        </p>
+
+        <div className="heart-case-card__vitals" aria-label="Patient vital signs">
+          <span><small>HR</small> 148</span>
+          <span><small>BP</small> 112/70</span>
+          <span><small>SpO₂</small> 95%</span>
+        </div>
+
+        <Link
+          href="/teaching/cardiology"
+          className="heart-case-card__cta"
+          tabIndex={revealed ? 0 : -1}
         >
-          {messages[index]}
-        </motion.p>
-      </AnimatePresence>
+          Practice cardiology
+          <span aria-hidden="true">↗</span>
+        </Link>
+        <p className="heart-case-card__footnote">
+          Educational scenario · approximately 3 minutes
+        </p>
+      </div>
     </div>
   );
 }
 
 export function HeroVisualScene() {
-  const prefersReducedMotion = useReducedMotion();
-  const [activeModule, setActiveModule] = useState(MODULES[0].id);
-  const [activePulses, setActivePulses] = useState<string[]>([]);
-  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  const prefersReducedMotion = Boolean(useReducedMotion());
+  const [revealed, setRevealed] = useState(false);
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const backButtonFocusTimerRef = useRef<number | null>(null);
+  const sceneFocusTimerRef = useRef<number | null>(null);
+  const pendingTapRef = useRef<PendingTap | null>(null);
+  const controllerRef = useRef<HeartCanvasController | null>(null);
+  const cardTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
-  const particles = useMemo(() => buildParticles(16), []);
-  const activeIcon = MODULES.find((module) => module.id === activeModule)?.icon ?? MODULES[0].icon;
+  const clearPendingTap = useCallback(() => {
+    if (!pendingTapRef.current) return;
+    window.clearTimeout(pendingTapRef.current.timer);
+    pendingTapRef.current = null;
+  }, []);
 
-  useEffect(() => {
-    if (prefersReducedMotion) return;
+  const revealCase = useCallback(
+    (clientX?: number, clientY?: number, fromKeyboard = false) => {
+      clearPendingTap();
+      controllerRef.current?.pointerLeave();
+      controllerRef.current?.setDissolveOrigin(clientX, clientY);
+      setRevealed(true);
 
-    const interval = window.setInterval(() => {
-      setActiveModule((current) => {
-        const index = MODULES.findIndex((module) => module.id === current);
-        return MODULES[(index + 1) % MODULES.length].id;
-      });
-    }, 3200);
+      if (fromKeyboard) {
+        if (backButtonFocusTimerRef.current != null) {
+          window.clearTimeout(backButtonFocusTimerRef.current);
+        }
+        backButtonFocusTimerRef.current = window.setTimeout(() => {
+          cardRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+        }, prefersReducedMotion ? 220 : 920);
+      }
+    },
+    [clearPendingTap, prefersReducedMotion],
+  );
 
-    return () => window.clearInterval(interval);
+  const reformHeart = useCallback(() => {
+    clearPendingTap();
+    setRevealed(false);
+    if (sceneFocusTimerRef.current != null) {
+      window.clearTimeout(sceneFocusTimerRef.current);
+    }
+    sceneFocusTimerRef.current = window.setTimeout(() => {
+      sceneRef.current?.focus();
+    }, prefersReducedMotion ? 220 : 920);
+  }, [clearPendingTap, prefersReducedMotion]);
+
+  useLayoutEffect(() => {
+    const card = cardRef.current;
+    if (!card) return undefined;
+
+    const context = gsap.context(() => {
+      gsap.set(card, { opacity: 0, filter: "blur(12px)", y: 10 });
+      cardTimelineRef.current = gsap
+        .timeline({ paused: true })
+        .to(
+          card,
+          {
+            opacity: 1,
+            filter: "blur(0px)",
+            y: 0,
+            duration: prefersReducedMotion ? 0.2 : 0.36,
+            ease: "power2.out",
+          },
+          prefersReducedMotion ? 0 : 0.54,
+        );
+    }, sceneRef);
+
+    return () => {
+      cardTimelineRef.current?.kill();
+      cardTimelineRef.current = null;
+      context.revert();
+    };
   }, [prefersReducedMotion]);
 
   useEffect(() => {
-    if (prefersReducedMotion) return;
+    if (revealed) cardTimelineRef.current?.play();
+    else cardTimelineRef.current?.reverse();
+  }, [revealed]);
 
-    const timers: number[] = [];
-    let cancelled = false;
+  useEffect(() => {
+    return () => {
+      clearPendingTap();
+      if (backButtonFocusTimerRef.current != null) {
+        window.clearTimeout(backButtonFocusTimerRef.current);
+      }
+      if (sceneFocusTimerRef.current != null) {
+        window.clearTimeout(sceneFocusTimerRef.current);
+      }
+    };
+  }, [clearPendingTap]);
 
-    const scheduleNode = (node: PulseNode) => {
-      const run = () => {
-        if (cancelled) return;
+  const handlePointerMove = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (revealed) return;
+      controllerRef.current?.pointerMove(event.clientX, event.clientY);
+    },
+    [revealed],
+  );
 
-        setActivePulses((current) => (current.includes(node.id) ? current : [...current, node.id]));
+  const handlePointerUp = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (revealed || (event.pointerType === "mouse" && event.button !== 0)) {
+        return;
+      }
 
-        const clearTimer = window.setTimeout(() => {
-          setActivePulses((current) => current.filter((pulseId) => pulseId !== node.id));
-        }, 560 + Math.random() * 260);
-
-        timers.push(clearTimer);
-
-        const nextTimer = window.setTimeout(run, 1200 + Math.random() * 2400);
-        timers.push(nextTimer);
+      const currentTap = {
+        clientX: event.clientX,
+        clientY: event.clientY,
+        startedAt: performance.now(),
       };
+      const pendingTap = pendingTapRef.current;
 
-      const initialTimer = window.setTimeout(run, 500 + node.delay * 600);
-      timers.push(initialTimer);
-    };
+      if (pendingTap) {
+        const distance = Math.hypot(
+          currentTap.clientX - pendingTap.clientX,
+          currentTap.clientY - pendingTap.clientY,
+        );
+        const elapsed = currentTap.startedAt - pendingTap.startedAt;
 
-    PULSE_NODES.forEach(scheduleNode);
+        if (elapsed <= GESTURE_DELAY_MS && distance <= DOUBLE_TAP_DISTANCE_PX) {
+          clearPendingTap();
+          revealCase(currentTap.clientX, currentTap.clientY);
+          return;
+        }
 
-    return () => {
-      cancelled = true;
-      timers.forEach((timer) => window.clearTimeout(timer));
-    };
-  }, [prefersReducedMotion]);
+        window.clearTimeout(pendingTap.timer);
+        controllerRef.current?.rippleAt(pendingTap.clientX, pendingTap.clientY);
+      }
 
-  useEffect(() => {
-    if (prefersReducedMotion) return;
+      const timer = window.setTimeout(() => {
+        controllerRef.current?.rippleAt(currentTap.clientX, currentTap.clientY);
+        pendingTapRef.current = null;
+      }, GESTURE_DELAY_MS);
 
-    const reset = () => setParallax({ x: 0, y: 0 });
-    const target = document.querySelector<HTMLElement>("[data-hero-visual]");
+      pendingTapRef.current = { ...currentTap, timer };
+    },
+    [clearPendingTap, revealCase, revealed],
+  );
 
-    if (!target) return undefined;
-
-    const handleMove = (event: PointerEvent) => {
-      const rect = target.getBoundingClientRect();
-      const x = ((event.clientX - rect.left) / rect.width - 0.5) * 16;
-      const y = ((event.clientY - rect.top) / rect.height - 0.5) * -16;
-      setParallax({ x, y });
-    };
-
-    target.addEventListener("pointermove", handleMove);
-    target.addEventListener("pointerleave", reset);
-
-    return () => {
-      target.removeEventListener("pointermove", handleMove);
-      target.removeEventListener("pointerleave", reset);
-    };
-  }, [prefersReducedMotion]);
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (revealed || (event.key !== "Enter" && event.key !== " ")) return;
+      event.preventDefault();
+      const rect = sceneRef.current?.getBoundingClientRect();
+      revealCase(
+        rect ? rect.left + rect.width / 2 : undefined,
+        rect ? rect.top + rect.height / 2 : undefined,
+        true,
+      );
+    },
+    [revealCase, revealed],
+  );
 
   return (
-    <div data-hero-visual className="hero-visual-scene" aria-hidden="true">
-      <div className="hero-visual-scene__backdrop" />
-      <div className="hero-visual-scene__grid" />
-      <div className="hero-visual-scene__glow hero-visual-scene__glow--a" />
-      <div className="hero-visual-scene__glow hero-visual-scene__glow--b" />
+    <div
+      ref={sceneRef}
+      className="hero-visual-scene"
+      data-state={revealed ? "case" : "heart"}
+      role={revealed ? "group" : "button"}
+      tabIndex={revealed ? -1 : 0}
+      aria-label={
+        revealed
+          ? "Case of the day"
+          : "Interactive particle heart. Click for a pulse, double-click to reveal the case of the day, or press Enter."
+      }
+      aria-pressed={revealed ? undefined : false}
+      onKeyDown={handleKeyDown}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={() => controllerRef.current?.pointerLeave()}
+      onPointerCancel={() => controllerRef.current?.pointerLeave()}
+      onPointerUp={handlePointerUp}
+    >
+      <div className="hero-visual-scene__backdrop" aria-hidden="true" />
+      <div className="hero-visual-scene__grid" aria-hidden="true" />
+      <div className="hero-visual-scene__aurora" aria-hidden="true" />
 
-      <div className="hero-visual-orbit-wrap">
-        <div
-          className="hero-visual-core"
-          style={
-            {
-              "--parallax-x": `${parallax.x}px`,
-              "--parallax-y": `${parallax.y}px`,
-            } as React.CSSProperties
-          }
-        >
-          <svg className="hero-visual-network" viewBox="0 0 400 400" fill="none">
-            <defs>
-              <linearGradient id="heroVisualStroke" x1="80" y1="80" x2="320" y2="320" gradientUnits="userSpaceOnUse">
-                <stop stopColor="rgba(29, 78, 216, 0.28)" />
-                <stop offset="0.52" stopColor="rgba(59, 130, 246, 0.9)" />
-                <stop offset="1" stopColor="rgba(14, 165, 233, 0.45)" />
-              </linearGradient>
-            </defs>
-            {NETWORK_PATHS.map((d) => (
-              <path key={d} d={d} stroke="url(#heroVisualStroke)" strokeWidth="1.25" strokeOpacity="0.55" />
-            ))}
-            <circle cx="200" cy="200" r="72" stroke="rgba(79, 112, 221, 0.14)" strokeWidth="1" />
-          </svg>
+      <CaseOfTheDayCard
+        cardRef={cardRef}
+        onBack={reformHeart}
+        revealed={revealed}
+      />
 
-          <div className="hero-visual-ring" />
-          <div className="hero-visual-ring hero-visual-ring--inner" />
-
-          <motion.div
-            className="hero-visual-orbit"
-            animate={prefersReducedMotion ? undefined : { rotate: 360 }}
-            transition={
-              prefersReducedMotion
-                ? undefined
-                : { duration: 140, repeat: Number.POSITIVE_INFINITY, ease: "linear" }
-            }
-          >
-            {MODULES.map((module) => {
-              const position = nodePosition(module.angle);
-              const isActive = module.id === activeModule;
-
-              return (
-                <motion.span
-                  key={module.id}
-                  className={cn("hero-visual-node", isActive && "hero-visual-node--active")}
-                  style={position}
-                  animate={
-                    prefersReducedMotion
-                      ? undefined
-                      : {
-                          rotate: -360,
-                          scale: isActive ? [1.08, 1.14, 1.08] : [1, 1.03, 1],
-                        }
-                  }
-                  transition={
-                    prefersReducedMotion
-                      ? undefined
-                      : {
-                          rotate: { duration: 140, repeat: Number.POSITIVE_INFINITY, ease: "linear" },
-                          scale: {
-                            duration: isActive ? 1.8 : 4.5,
-                            repeat: Number.POSITIVE_INFINITY,
-                            ease: "easeInOut",
-                          },
-                        }
-                  }
-                >
-                  {module.icon}
-                </motion.span>
-              );
-            })}
-          </motion.div>
-
-          <div className="hero-visual-hub">
-            <span className="hero-visual-hub__halo" />
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={activeIcon}
-                initial={{ opacity: 0, scale: 0.7 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.7 }}
-                transition={{ duration: prefersReducedMotion ? 0 : 0.28 }}
-              >
-                {activeIcon}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-
-          {PULSE_NODES.map((node) => {
-            const isActive = activePulses.includes(node.id);
-
-            return (
-              <motion.span
-                key={node.id}
-                className={cn("hero-visual-pulse", isActive && "hero-visual-pulse--active")}
-                style={{ left: node.left, top: node.top, width: node.size, height: node.size }}
-                animate={
-                  prefersReducedMotion
-                    ? undefined
-                    : {
-                        scale: isActive ? [1, 1.65, 1] : [1, 1.04, 1],
-                        opacity: isActive ? [0.55, 1, 0.55] : [0.45, 0.72, 0.45],
-                      }
-                }
-                transition={
-                  prefersReducedMotion
-                    ? undefined
-                    : {
-                        duration: isActive ? 0.95 : 5.5 + node.delay,
-                        repeat: Number.POSITIVE_INFINITY,
-                        ease: "easeInOut",
-                      }
-                }
-              />
-            );
-          })}
-
-          {particles.map((particle) => (
-            <motion.span
-              key={particle.id}
-              className="hero-visual-particle"
-              style={{
-                left: particle.left,
-                top: particle.top,
-                width: particle.size,
-                height: particle.size,
-                opacity: particle.opacity,
-              }}
-              animate={
-                prefersReducedMotion
-                  ? undefined
-                  : {
-                      x: [0, particle.driftX * 12, 0],
-                      y: [0, particle.driftY * 12, 0],
-                      opacity: [particle.opacity * 0.6, particle.opacity, particle.opacity * 0.6],
-                    }
-              }
-              transition={
-                prefersReducedMotion
-                  ? undefined
-                  : {
-                      duration: particle.duration,
-                      repeat: Number.POSITIVE_INFINITY,
-                      delay: particle.delay,
-                      ease: "easeInOut",
-                    }
-              }
-            />
-          ))}
-        </div>
+      <div className="heart-canvas-layer" aria-hidden="true">
+        <ParticleHeartCanvas
+          controllerRef={controllerRef}
+          fallback={<HeartFallbackGraphic faded={revealed} />}
+          mode={revealed ? "case" : "heart"}
+          reducedMotion={prefersReducedMotion}
+        />
       </div>
 
-      <RotatingCaption messages={CAPTION_MESSAGES} />
+      <div className="heart-visual-status" aria-hidden="true">
+        <span />
+        Living field
+      </div>
+
+      <div className="heart-visual-caption" aria-hidden="true">
+        <p className="heart-visual-caption__mouse">
+          Move to attract · click to pulse · double-click to reveal
+        </p>
+        <p className="heart-visual-caption__touch">
+          Tap to pulse · double-tap to reveal
+        </p>
+      </div>
     </div>
   );
 }
