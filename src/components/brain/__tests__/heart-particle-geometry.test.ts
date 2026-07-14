@@ -16,6 +16,9 @@ describe("heart particle geometry", () => {
     expect(first.sizes).toHaveLength(512);
     expect(first.colorMixes).toHaveLength(512);
     expect(first.edgeFactors).toHaveLength(512);
+    expect(first.colors).toHaveLength(512 * 3);
+    expect(first.phases).toHaveLength(512);
+    expect(first.frequencies).toHaveLength(512);
 
     const zValues: number[] = [];
     for (let index = 0; index < first.positions.length; index += 3) {
@@ -33,6 +36,15 @@ describe("heart particle geometry", () => {
     }
 
     expect(Math.max(...zValues) - Math.min(...zValues)).toBeGreaterThan(0.75);
+  });
+
+  it("builds a tight, brighter rim population separately from the fill", () => {
+    const fill = buildHeartParticleData(256, 11, "interior");
+    const rim = buildHeartParticleData(256, 12, "rim");
+
+    expect(Math.min(...rim.edgeFactors)).toBeGreaterThan(0.95);
+    expect(Math.max(...fill.edgeFactors)).toBeLessThan(0.91);
+    expect(Array.from(rim.positions)).not.toEqual(Array.from(fill.positions));
   });
 
   it("selects the desktop and guarded performance tiers", () => {

@@ -1,9 +1,20 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useId, useRef, type PointerEvent } from "react";
+import Link from "next/link";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+} from "react";
 import { useReducedMotion } from "framer-motion";
 import type { HeartCanvasController } from "@/components/brain/particle-heart-canvas";
+import { cn } from "@/lib/utils";
 
 const ParticleHeartCanvas = dynamic(
   () =>
@@ -176,24 +187,125 @@ function HeartFallbackGraphic() {
 export function HeroVisualScene() {
   const prefersReducedMotion = Boolean(useReducedMotion());
   const controllerRef = useRef<HeartCanvasController | null>(null);
+  const sceneRef = useRef<HTMLDivElement | null>(null);
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTapRef = useRef({ time: 0, x: 0, y: 0 });
+  const [revealed, setRevealed] = useState(false);
+
+  const clearPendingClick = useCallback(() => {
+    if (clickTimerRef.current !== null) {
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => clearPendingClick, [clearPendingClick]);
+
+  const revealAt = useCallback(
+    (clientX: number, clientY: number) => {
+      if (revealed) return;
+      clearPendingClick();
+      setRevealed(true);
+      controllerRef.current?.dissolveAt(clientX, clientY);
+    },
+    [clearPendingClick, revealed],
+  );
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    controllerRef.current?.rippleAt(event.clientX, event.clientY);
+    if (revealed || (event.pointerType === "mouse" && event.button !== 0)) return;
+
+    const now = performance.now();
+    const lastTap = lastTapRef.current;
+    const tapDistance = Math.hypot(
+      event.clientX - lastTap.x,
+      event.clientY - lastTap.y,
+    );
+    if (
+      event.pointerType !== "mouse" &&
+      now - lastTap.time < 300 &&
+      tapDistance < 28
+    ) {
+      lastTapRef.current.time = 0;
+      revealAt(event.clientX, event.clientY);
+      return;
+    }
+
+    lastTapRef.current = { time: now, x: event.clientX, y: event.clientY };
+    clearPendingClick();
+    clickTimerRef.current = setTimeout(() => {
+      controllerRef.current?.rippleAt(event.clientX, event.clientY);
+      clickTimerRef.current = null;
+    }, 260);
+  };
+
+  const handleDoubleClick = (event: MouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    revealAt(event.clientX, event.clientY);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (revealed || (event.key !== "Enter" && event.key !== " ")) return;
+    event.preventDefault();
+    const rect = sceneRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    revealAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  };
+
+  const handleBack = () => {
+    clearPendingClick();
+    setRevealed(false);
+    controllerRef.current?.reform();
   };
 
   return (
     <div
-      className="hero-visual-scene"
-      role="img"
+      ref={sceneRef}
+      className={cn(
+        "hero-visual-scene",
+        revealed && "hero-visual-scene--revealed",
+        prefersReducedMotion && "hero-visual-scene--reduced",
+      )}
+      role="group"
       aria-label="Interactive red particle heart"
+      tabIndex={0}
       onPointerMove={(event) =>
+        !revealed &&
         controllerRef.current?.pointerMove(event.clientX, event.clientY)
       }
       onPointerLeave={() => controllerRef.current?.pointerLeave()}
       onPointerCancel={() => controllerRef.current?.pointerLeave()}
       onPointerUp={handlePointerUp}
+      onDoubleClick={handleDoubleClick}
+      onKeyDown={handleKeyDown}
     >
+      <article className="heart-case-card" aria-hidden={!revealed}>
+        <button
+          type="button"
+          className="heart-case-card__back"
+          onClick={handleBack}
+          tabIndex={revealed ? 0 : -1}
+        >
+          <span aria-hidden="true">←</span> Back to heart
+        </button>
+        <p className="heart-case-card__eyebrow">Case of the day · Cardiology</p>
+        <h2>Sudden palpitations with breathlessness</h2>
+        <p>
+          A 72-year-old patient presents with sudden palpitations, dyspnoea,
+          light-headedness, and an irregular tachycardia.
+        </p>
+        <div className="heart-case-card__vitals" aria-label="Vital signs">
+          <span>HR 146 irregular</span>
+          <span>BP 104/68</span>
+          <span>SpO₂ 94%</span>
+        </div>
+        <Link
+          href="/teaching/cardiology"
+          className="heart-case-card__cta"
+          tabIndex={revealed ? 0 : -1}
+        >
+          Practice cardiology
+        </Link>
+      </article>
       <HeartFallbackGraphic />
       <ParticleHeartCanvas
         controllerRef={controllerRef}

@@ -10,21 +10,31 @@ import {
   useRef,
   type ReactNode,
   type Ref,
+  type RefObject,
 } from "react";
+import { createNoise3D } from "simplex-noise";
 import * as THREE from "three";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import {
   buildHeartParticleData,
   getHeartPerformanceProfile,
+  type HeartParticleData,
 } from "@/components/brain/heart-particle-geometry";
 import {
   particleHeartFragmentShader,
   particleHeartVertexShader,
+  tendrilFragmentShader,
+  tendrilVertexShader,
 } from "@/components/brain/particle-heart-shaders";
 
 export type HeartCanvasController = {
   pointerMove: (clientX: number, clientY: number) => void;
   pointerLeave: () => void;
   rippleAt: (clientX: number, clientY: number) => void;
+  dissolveAt: (clientX: number, clientY: number) => void;
+  reform: () => void;
 };
 
 type ParticleHeartCanvasProps = {
@@ -37,101 +47,284 @@ type HeartSceneProps = {
   controllerRef: Ref<HeartCanvasController>;
   particleCount: number;
   pixelRatio: number;
+  lowPower: boolean;
   reducedMotion: boolean;
 };
 
-type OrbitTrailData = {
+type TendrilData = {
+  positions: Float32Array;
+  progress: Float32Array;
+  phases: Float32Array;
+  sizes: Float32Array;
   linePositions: Float32Array;
-  lineColors: Float32Array;
-  pointPositions: Float32Array;
-  pointColors: Float32Array;
 };
 
-function orbitColor(x: number) {
-  const side = THREE.MathUtils.clamp((x + 1.4) / 2.8, 0, 1);
-  const center = 1 - Math.abs(side * 2 - 1);
-  return [
-    THREE.MathUtils.lerp(0.82, 1, side) + center * 0.04,
-    THREE.MathUtils.lerp(0.015, 0.095, side) + center * 0.02,
-    THREE.MathUtils.lerp(0.035, 0.07, side),
-  ] as const;
+type HeartLayerProps = {
+  data: HeartParticleData;
+  materialRef: RefObject<THREE.ShaderMaterial | null>;
+  uniforms: Record<string, THREE.IUniform>;
+};
+
+function mulberry32(seed: number) {
+  let value = seed >>> 0;
+  return () => {
+    value += 0x6d2b79f5;
+    let next = value;
+    next = Math.imul(next ^ (next >>> 15), next | 1);
+    next ^= next + Math.imul(next ^ (next >>> 7), next | 61);
+    return ((next ^ (next >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
-function buildOrbitTrailData(lowPower: boolean): OrbitTrailData {
-  const loops = lowPower ? 4 : 7;
-  const segments = lowPower ? 72 : 112;
+function heartBoundary(t: number) {
+  const sinT = Math.sin(t);
+  return new THREE.Vector3(
+    16 * sinT * sinT * sinT * 0.073,
+    (13 * Math.cos(t) -
+      5 * Math.cos(2 * t) -
+      2 * Math.cos(3 * t) -
+      Math.cos(4 * t)) *
+      0.073 +
+      0.09,
+    0,
+  );
+}
+
+function buildTendrilData(lowPower: boolean): TendrilData {
+  const random = mulberry32(0x54454e44);
+  const noise3D = createNoise3D(random);
+  const pathCount = lowPower ? 4 : 6;
+  const samplesPerPath = lowPower ? 68 : 104;
+  const startParameters = [0.18, 0.48, 0.82, 1.16, 1.52, 1.84];
+  const positions: number[] = [];
+  const progress: number[] = [];
+  const phases: number[] = [];
+  const sizes: number[] = [];
   const linePositions: number[] = [];
-  const lineColors: number[] = [];
-  const pointPositions: number[] = [];
-  const pointColors: number[] = [];
 
-  const createPoint = (loop: number, segment: number) => {
-    const phase = loop * 1.731;
-    const angle = (segment / segments) * Math.PI * 2;
-    const radiusX = 1.21 + (loop % 3) * 0.075;
-    const radiusY = 0.88 + ((loop + 1) % 3) * 0.065;
-    const wobble = Math.sin(angle * (3 + (loop % 2)) + phase) * 0.075;
-    const point = new THREE.Vector3(
-      Math.cos(angle) * (radiusX + wobble),
-      Math.sin(angle) * (radiusY + wobble * 0.55) - 0.02,
-      Math.sin(angle * 2 + phase) * (0.24 + loop * 0.018),
-    );
-    point.applyEuler(
-      new THREE.Euler(
-        -0.28 + loop * 0.085,
-        Math.sin(phase) * 0.28,
-        -0.22 + loop * 0.074,
-      ),
-    );
-    return point;
-  };
+  for (let pathIndex = 0; pathIndex < pathCount; pathIndex += 1) {
+    const startT = startParameters[pathIndex] * Math.PI;
+    const start = heartBoundary(startT);
+    const outward = new THREE.Vector3(start.x, start.y - 0.02, 0).normalize();
+    const tangent = new THREE.Vector3(-outward.y, outward.x, 0);
+    const controls: THREE.Vector3[] = [];
 
-  const pushPoint = (point: THREE.Vector3, positions: number[], colors: number[]) => {
-    positions.push(point.x, point.y, point.z);
-    colors.push(...orbitColor(point.x));
-  };
+    for (let controlIndex = 0; controlIndex < 7; controlIndex += 1) {
+      const distance = controlIndex * (0.16 + pathIndex * 0.006);
+      const curl = noise3D(pathIndex * 0.71, controlIndex * 0.43, 0.27) *
+        (0.09 + controlIndex * 0.035);
+      const depth = noise3D(pathIndex * 0.37, controlIndex * 0.29, 1.17) *
+        (0.08 + controlIndex * 0.045);
+      controls.push(
+        start
+          .clone()
+          .addScaledVector(outward, distance)
+          .addScaledVector(tangent, curl)
+          .add(new THREE.Vector3(0, 0, depth)),
+      );
+    }
 
-  for (let loop = 0; loop < loops; loop += 1) {
-    for (let segment = 0; segment < segments; segment += 1) {
-      const current = createPoint(loop, segment);
-      const next = createPoint(loop, segment + 1);
-      pushPoint(current, linePositions, lineColors);
-      pushPoint(next, linePositions, lineColors);
-      pushPoint(current, pointPositions, pointColors);
+    const curve = new THREE.CatmullRomCurve3(controls, false, "catmullrom", 0.46);
+    let previous = curve.getPoint(0);
+    for (let sample = 0; sample < samplesPerPath; sample += 1) {
+      const t = sample / Math.max(1, samplesPerPath - 1);
+      const point = curve.getPoint(t);
+      positions.push(point.x, point.y, point.z);
+      progress.push(t);
+      phases.push(pathIndex / pathCount);
+      sizes.push(0.7 + random() * 0.8);
+
+      if (sample > 0) {
+        linePositions.push(
+          previous.x,
+          previous.y,
+          previous.z,
+          point.x,
+          point.y,
+          point.z,
+        );
+      }
+      previous = point;
     }
   }
 
   return {
+    positions: new Float32Array(positions),
+    progress: new Float32Array(progress),
+    phases: new Float32Array(phases),
+    sizes: new Float32Array(sizes),
     linePositions: new Float32Array(linePositions),
-    lineColors: new Float32Array(lineColors),
-    pointPositions: new Float32Array(pointPositions),
-    pointColors: new Float32Array(pointColors),
   };
+}
+
+function createHaloTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 192;
+  canvas.height = 192;
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+
+  const gradient = context.createRadialGradient(96, 96, 4, 96, 96, 96);
+  gradient.addColorStop(0, "rgba(22, 0, 5, 0.82)");
+  gradient.addColorStop(0.48, "rgba(16, 0, 4, 0.55)");
+  gradient.addColorStop(0.76, "rgba(10, 0, 3, 0.18)");
+  gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 192, 192);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function HeartParticleLayer({ data, materialRef, uniforms }: HeartLayerProps) {
+  return (
+    <points frustumCulled={false}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[data.positions, 3]} />
+        <bufferAttribute
+          attach="attributes-aBasePosition"
+          args={[data.positions, 3]}
+        />
+        <bufferAttribute attach="attributes-aColor" args={[data.colors, 3]} />
+        <bufferAttribute attach="attributes-aSeed" args={[data.seeds, 1]} />
+        <bufferAttribute attach="attributes-aSize" args={[data.sizes, 1]} />
+        <bufferAttribute attach="attributes-aPhase" args={[data.phases, 1]} />
+        <bufferAttribute
+          attach="attributes-aFrequency"
+          args={[data.frequencies, 1]}
+        />
+      </bufferGeometry>
+      <shaderMaterial
+        ref={materialRef}
+        uniforms={uniforms}
+        vertexShader={particleHeartVertexShader}
+        fragmentShader={particleHeartFragmentShader}
+        transparent
+        blending={THREE.AdditiveBlending}
+        depthTest
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </points>
+  );
+}
+
+type HeartAnimationState = {
+  beatScale: number;
+  dissolve: number;
+  opacity: number;
+};
+
+function createHeartUniforms(pixelRatio: number, intensity: number, rim: number) {
+  return {
+    uTime: { value: 0 },
+    uBeatScale: { value: 1 },
+    uMouse: { value: new THREE.Vector3() },
+    uMouseStrength: { value: 0 },
+    uPixelRatio: { value: pixelRatio },
+    uOpacity: { value: 1 },
+    uDissolve: { value: 0 },
+    uDissolveOrigin: { value: new THREE.Vector3() },
+    uRippleOrigins: {
+      value: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()],
+    },
+    uRippleStartTimes: { value: [-100, -100, -100] },
+    uIntensity: { value: intensity },
+    uRim: { value: rim },
+  };
+}
+
+function syncHeartMaterial(
+  material: THREE.ShaderMaterial | null,
+  elapsed: number,
+  animation: HeartAnimationState,
+  mouse: THREE.Vector3,
+  mouseStrength: number,
+  rippleOrigins: THREE.Vector3[],
+  rippleStartTimes: number[],
+  dissolveOrigin: THREE.Vector3,
+) {
+  if (!material) return;
+  const uniforms = material.uniforms;
+  uniforms.uTime.value = elapsed;
+  uniforms.uBeatScale.value = animation.beatScale;
+  uniforms.uMouse.value.copy(mouse);
+  uniforms.uMouseStrength.value = mouseStrength;
+  uniforms.uOpacity.value = animation.opacity;
+  uniforms.uDissolve.value = animation.dissolve;
+  uniforms.uDissolveOrigin.value.copy(dissolveOrigin);
+  for (let index = 0; index < 3; index += 1) {
+    uniforms.uRippleOrigins.value[index].copy(rippleOrigins[index]);
+    uniforms.uRippleStartTimes.value[index] = rippleStartTimes[index];
+  }
+}
+
+function BloomComposer({ strength }: { strength: number }) {
+  const { camera, gl, scene, size } = useThree();
+  const composer = useMemo(() => {
+    const nextComposer = new EffectComposer(gl);
+    nextComposer.addPass(new RenderPass(scene, camera));
+    nextComposer.addPass(
+      new UnrealBloomPass(new THREE.Vector2(1, 1), strength, 0.55, 0.22),
+    );
+    return nextComposer;
+  }, [camera, gl, scene, strength]);
+
+  useEffect(() => {
+    composer.setSize(size.width, size.height);
+  }, [composer, size.height, size.width]);
+
+  useFrame((_, delta) => composer.render(delta), 1);
+  return null;
 }
 
 function HeartScene({
   controllerRef,
   particleCount,
   pixelRatio,
+  lowPower,
   reducedMotion,
 }: HeartSceneProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const orbitGroupRef = useRef<THREE.Group>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const interiorMaterialRef = useRef<THREE.ShaderMaterial>(null);
+  const rimMaterialRef = useRef<THREE.ShaderMaterial>(null);
+  const haloMaterialRef = useRef<THREE.SpriteMaterial>(null);
+  const tendrilLineMaterialRef = useRef<THREE.LineBasicMaterial>(null);
+  const tendrilMaterialRef = useRef<THREE.ShaderMaterial>(null);
   const beatTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const emphasisTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const dissolveTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const rippleSlotRef = useRef(0);
   const pointerRef = useRef({ clientX: 0, clientY: 0, active: false });
   const mouseStrengthRef = useRef(0);
+  const animationStateRef = useRef<HeartAnimationState>({
+    beatScale: 1,
+    dissolve: 0,
+    opacity: 1,
+  });
+  const rippleOriginsRef = useRef([
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+    new THREE.Vector3(),
+  ]);
+  const rippleStartTimesRef = useRef([-100, -100, -100]);
+  const dissolveOriginRef = useRef(new THREE.Vector3());
   const { camera, clock, gl, raycaster } = useThree();
-  const particleData = useMemo(
-    () => buildHeartParticleData(particleCount),
-    [particleCount],
+
+  const interiorCount = Math.round(particleCount * 0.42);
+  const rimCount = particleCount - interiorCount;
+  const interiorData = useMemo(
+    () => buildHeartParticleData(interiorCount, 0x48454152, "interior"),
+    [interiorCount],
   );
-  const orbitData = useMemo(
-    () => buildOrbitTrailData(particleCount < 5000),
-    [particleCount],
+  const rimData = useMemo(
+    () => buildHeartParticleData(rimCount, 0x52494d21, "rim"),
+    [rimCount],
   );
+  const tendrilData = useMemo(() => buildTendrilData(lowPower), [lowPower]);
+  const haloTexture = useMemo(() => createHaloTexture(), []);
   const interactionPlane = useMemo(
     () => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
     [],
@@ -141,17 +334,20 @@ function HeartScene({
   const localHit = useMemo(() => new THREE.Vector3(), []);
   const targetMouse = useMemo(() => new THREE.Vector3(), []);
   const smoothedMouse = useMemo(() => new THREE.Vector3(), []);
-  const uniforms = useMemo(
+
+  const interiorUniforms = useMemo(
+    () => createHeartUniforms(pixelRatio, 0.66, 0),
+    [pixelRatio],
+  );
+  const rimUniforms = useMemo(
+    () => createHeartUniforms(pixelRatio, 1.42, 1),
+    [pixelRatio],
+  );
+  const tendrilUniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uBeatScale: { value: 1 },
-      uMouse: { value: new THREE.Vector3() },
-      uMouseStrength: { value: 0 },
       uPixelRatio: { value: pixelRatio },
-      uRippleOrigins: {
-        value: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()],
-      },
-      uRippleStartTimes: { value: [-100, -100, -100] },
+      uDissolve: { value: 0 },
     }),
     [pixelRatio],
   );
@@ -160,7 +356,6 @@ function HeartScene({
     (clientX: number, clientY: number) => {
       const group = groupRef.current;
       if (!group) return null;
-
       const rect = gl.domElement.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return null;
 
@@ -170,7 +365,6 @@ function HeartScene({
       );
       raycaster.setFromCamera(pointerNdc, camera);
       if (!raycaster.ray.intersectPlane(interactionPlane, planeHit)) return null;
-
       group.updateWorldMatrix(true, false);
       localHit.copy(planeHit);
       group.worldToLocal(localHit);
@@ -180,22 +374,17 @@ function HeartScene({
   );
 
   const playEmphasisBeat = useCallback(() => {
-    const material = materialRef.current;
-    if (!material) return;
-
     beatTimelineRef.current?.pause();
     emphasisTimelineRef.current?.kill();
     emphasisTimelineRef.current = gsap
-      .timeline({
-        onComplete: () => beatTimelineRef.current?.restart(),
-      })
-      .to(material.uniforms.uBeatScale, {
-        value: reducedMotion ? 1.05 : 1.09,
+      .timeline({ onComplete: () => beatTimelineRef.current?.restart() })
+      .to(animationStateRef.current, {
+        beatScale: reducedMotion ? 1.045 : 1.09,
         duration: 0.11,
         ease: "power2.out",
       })
-      .to(material.uniforms.uBeatScale, {
-        value: 1,
+      .to(animationStateRef.current, {
+        beatScale: 1,
         duration: 0.17,
         ease: "power2.inOut",
       });
@@ -205,93 +394,116 @@ function HeartScene({
     controllerRef,
     () => ({
       pointerMove(clientX, clientY) {
-        pointerRef.current.clientX = clientX;
-        pointerRef.current.clientY = clientY;
-        pointerRef.current.active = true;
+        pointerRef.current = { clientX, clientY, active: true };
       },
       pointerLeave() {
         pointerRef.current.active = false;
       },
       rippleAt(clientX, clientY) {
+        if (animationStateRef.current.dissolve > 0.05) return;
         const point = projectClientPoint(clientX, clientY);
-        const material = materialRef.current;
-        if (!point || !material) return;
-
+        if (!point) return;
         const slot = rippleSlotRef.current;
-        material.uniforms.uRippleOrigins.value[slot].copy(point);
-        material.uniforms.uRippleStartTimes.value[slot] = clock.getElapsedTime();
+        rippleOriginsRef.current[slot].copy(point);
+        rippleStartTimesRef.current[slot] = clock.getElapsedTime();
         rippleSlotRef.current = (slot + 1) % 3;
         playEmphasisBeat();
       },
+      dissolveAt(clientX, clientY) {
+        const point = projectClientPoint(clientX, clientY);
+        if (point) dissolveOriginRef.current.copy(point);
+        else dissolveOriginRef.current.set(0, 0, 0);
+        rippleStartTimesRef.current.fill(-100);
+        beatTimelineRef.current?.pause();
+        emphasisTimelineRef.current?.kill();
+        dissolveTimelineRef.current?.kill();
+        dissolveTimelineRef.current = gsap
+          .timeline()
+          .to(
+            animationStateRef.current,
+            {
+              dissolve: 1,
+              duration: reducedMotion ? 0.32 : 0.9,
+              ease: "power2.out",
+            },
+            0,
+          )
+          .to(
+            animationStateRef.current,
+            {
+              opacity: 0,
+              duration: reducedMotion ? 0.26 : 0.82,
+              ease: "power2.out",
+            },
+            0,
+          );
+      },
+      reform() {
+        dissolveTimelineRef.current?.kill();
+        dissolveTimelineRef.current = gsap
+          .timeline({ onComplete: () => beatTimelineRef.current?.restart() })
+          .to(
+            animationStateRef.current,
+            {
+              dissolve: 0,
+              duration: reducedMotion ? 0.3 : 0.86,
+              ease: "power2.inOut",
+            },
+            0,
+          )
+          .to(
+            animationStateRef.current,
+            {
+              opacity: 1,
+              duration: reducedMotion ? 0.24 : 0.76,
+              ease: "power2.out",
+            },
+            reducedMotion ? 0 : 0.08,
+          );
+      },
     }),
-    [clock, playEmphasisBeat, projectClientPoint],
+    [clock, playEmphasisBeat, projectClientPoint, reducedMotion],
   );
 
   useEffect(() => {
-    const material = materialRef.current;
-    if (!material) return undefined;
-
     const beat = gsap
       .timeline({ repeat: -1 })
-      .to(material.uniforms.uBeatScale, {
-        value: reducedMotion ? 1.032 : 1.062,
+      .to(animationStateRef.current, {
+        beatScale: reducedMotion ? 1.035 : 1.07,
         duration: 0.11,
         ease: "power2.out",
       })
-      .to(material.uniforms.uBeatScale, {
-        value: 1,
+      .to(animationStateRef.current, {
+        beatScale: 1,
         duration: 0.13,
-        ease: "power2.inOut",
+        ease: "power1.inOut",
       })
-      .to(material.uniforms.uBeatScale, {
-        value: reducedMotion ? 1.018 : 1.034,
+      .to(animationStateRef.current, {
+        beatScale: reducedMotion ? 1.018 : 1.035,
         duration: 0.1,
         ease: "power2.out",
       })
-      .to(material.uniforms.uBeatScale, {
-        value: 1,
-        duration: 0.14,
-        ease: "power2.inOut",
+      .to(animationStateRef.current, {
+        beatScale: 1,
+        duration: 0.12,
+        ease: "power1.inOut",
       })
-      .to({}, { duration: 0.56 });
-
+      .to({}, { duration: 0.7 });
     beatTimelineRef.current = beat;
+
     return () => {
       beat.kill();
+      emphasisTimelineRef.current?.kill();
+      dissolveTimelineRef.current?.kill();
       beatTimelineRef.current = null;
     };
   }, [reducedMotion]);
 
-  useEffect(() => {
-    return () => {
-      emphasisTimelineRef.current?.kill();
-    };
-  }, []);
-
   useFrame((state, delta) => {
-    const material = materialRef.current;
-    if (!material) return;
-
     const elapsed = state.clock.getElapsedTime();
-    material.uniforms.uTime.value = elapsed;
+    const animation = animationStateRef.current;
 
-    const group = groupRef.current;
-    if (group) {
-      const swaySpeed = reducedMotion ? 0.1 : 0.22;
-      const swayAmount = reducedMotion ? 0.035 : 0.12;
-      group.rotation.y = -0.06 + Math.sin(elapsed * swaySpeed) * swayAmount;
-      group.rotation.x = 0.015 + Math.sin(elapsed * 0.16) * 0.012;
-    }
-
-    const orbitGroup = orbitGroupRef.current;
-    if (orbitGroup) {
-      const orbitSpeed = reducedMotion ? 0.008 : 0.026;
-      orbitGroup.rotation.z = elapsed * orbitSpeed;
-      orbitGroup.rotation.x = Math.sin(elapsed * 0.13) * 0.055;
-      orbitGroup.rotation.y = Math.sin(elapsed * 0.1) * 0.09;
-    }
-
-    if (pointerRef.current.active) {
+    if (pointerRef.current.active && animation.dissolve < 0.05) {
       const projected = projectClientPoint(
         pointerRef.current.clientX,
         pointerRef.current.clientY,
@@ -302,98 +514,121 @@ function HeartScene({
     const mouseDamping = 1 - Math.exp(-delta * 11);
     const strengthDamping = 1 - Math.exp(-delta * 9);
     smoothedMouse.lerp(targetMouse, mouseDamping);
-    const targetStrength = pointerRef.current.active ? 1 : 0;
+    const targetStrength =
+      pointerRef.current.active && animation.dissolve < 0.05 ? 1 : 0;
     mouseStrengthRef.current +=
       (targetStrength - mouseStrengthRef.current) * strengthDamping;
-    material.uniforms.uMouse.value.copy(smoothedMouse);
-    material.uniforms.uMouseStrength.value = mouseStrengthRef.current;
+
+    syncHeartMaterial(
+      interiorMaterialRef.current,
+      elapsed,
+      animation,
+      smoothedMouse,
+      mouseStrengthRef.current,
+      rippleOriginsRef.current,
+      rippleStartTimesRef.current,
+      dissolveOriginRef.current,
+    );
+    syncHeartMaterial(
+      rimMaterialRef.current,
+      elapsed,
+      animation,
+      smoothedMouse,
+      mouseStrengthRef.current,
+      rippleOriginsRef.current,
+      rippleStartTimesRef.current,
+      dissolveOriginRef.current,
+    );
+    if (tendrilMaterialRef.current) {
+      tendrilMaterialRef.current.uniforms.uTime.value = elapsed;
+      tendrilMaterialRef.current.uniforms.uDissolve.value = animation.dissolve;
+    }
+
+    if (haloMaterialRef.current) {
+      haloMaterialRef.current.opacity = 0.92 * (1 - animation.dissolve);
+    }
+    if (tendrilLineMaterialRef.current) {
+      tendrilLineMaterialRef.current.opacity = 0.18 * (1 - animation.dissolve);
+    }
   });
 
   return (
     <>
-      <group ref={orbitGroupRef}>
-        <lineSegments frustumCulled={false}>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              args={[orbitData.linePositions, 3]}
-            />
-            <bufferAttribute
-              attach="attributes-color"
-              args={[orbitData.lineColors, 3]}
-            />
-          </bufferGeometry>
-          <lineBasicMaterial
-            vertexColors
+      {haloTexture ? (
+        <sprite position={[0, 0, -0.72]} scale={[3.25, 2.8, 1]}>
+          <spriteMaterial
+            ref={haloMaterialRef}
+            map={haloTexture}
             transparent
-            opacity={0.36}
-            blending={THREE.AdditiveBlending}
+            opacity={0.92}
             depthTest={false}
             depthWrite={false}
             toneMapped={false}
           />
-        </lineSegments>
-        <points frustumCulled={false}>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              args={[orbitData.pointPositions, 3]}
-            />
-            <bufferAttribute
-              attach="attributes-color"
-              args={[orbitData.pointColors, 3]}
-            />
-          </bufferGeometry>
-          <pointsMaterial
-            vertexColors
-            size={0.018}
-            sizeAttenuation
-            transparent
-            opacity={0.76}
-            blending={THREE.AdditiveBlending}
-            depthTest={false}
-            depthWrite={false}
-            toneMapped={false}
+        </sprite>
+      ) : null}
+
+      <lineSegments frustumCulled={false}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[tendrilData.linePositions, 3]}
           />
-        </points>
-      </group>
-      <group ref={groupRef}>
+        </bufferGeometry>
+        <lineBasicMaterial
+          ref={tendrilLineMaterialRef}
+          color="#b71c2e"
+          transparent
+          opacity={0.18}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </lineSegments>
+
       <points frustumCulled={false}>
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            args={[particleData.positions, 3]}
+            args={[tendrilData.positions, 3]}
           />
           <bufferAttribute
-            attach="attributes-aSeed"
-            args={[particleData.seeds, 1]}
+            attach="attributes-aProgress"
+            args={[tendrilData.progress, 1]}
           />
           <bufferAttribute
-            attach="attributes-aSize"
-            args={[particleData.sizes, 1]}
+            attach="attributes-aPhase"
+            args={[tendrilData.phases, 1]}
           />
-          <bufferAttribute
-            attach="attributes-aColorMix"
-            args={[particleData.colorMixes, 1]}
-          />
-          <bufferAttribute
-            attach="attributes-aEdge"
-            args={[particleData.edgeFactors, 1]}
-          />
+          <bufferAttribute attach="attributes-aSize" args={[tendrilData.sizes, 1]} />
         </bufferGeometry>
         <shaderMaterial
-          ref={materialRef}
-          uniforms={uniforms}
-          vertexShader={particleHeartVertexShader}
-          fragmentShader={particleHeartFragmentShader}
+          ref={tendrilMaterialRef}
+          uniforms={tendrilUniforms}
+          vertexShader={tendrilVertexShader}
+          fragmentShader={tendrilFragmentShader}
           transparent
           blending={THREE.AdditiveBlending}
-          depthTest={false}
+          depthTest
           depthWrite={false}
           toneMapped={false}
         />
       </points>
+
+      <group ref={groupRef}>
+        <HeartParticleLayer
+          data={interiorData}
+          materialRef={interiorMaterialRef}
+          uniforms={interiorUniforms}
+        />
+        <HeartParticleLayer
+          data={rimData}
+          materialRef={rimMaterialRef}
+          uniforms={rimUniforms}
+        />
       </group>
+
+      {lowPower ? null : <BloomComposer strength={0.78} />}
     </>
   );
 }
@@ -427,15 +662,20 @@ export function ParticleHeartCanvas({
       frameloop="always"
       gl={{
         alpha: true,
-        antialias: true,
+        antialias: !profile.lowPower,
         powerPreference: "high-performance",
       }}
-      onCreated={({ gl: renderer }) => renderer.setClearColor(0x000000, 0)}
+      onCreated={({ gl: renderer }) => {
+        renderer.setClearColor(0x000000, 0);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.05;
+      }}
     >
       <HeartScene
         controllerRef={controllerRef}
         particleCount={profile.particleCount}
         pixelRatio={pixelRatio}
+        lowPower={profile.lowPower}
         reducedMotion={reducedMotion}
       />
     </Canvas>
