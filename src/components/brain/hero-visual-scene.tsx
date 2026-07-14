@@ -36,10 +36,10 @@ function HeartFallbackGraphic() {
             x2="142"
             y2="70"
           >
-            <stop offset="0" stopColor="#08c8ff" />
-            <stop offset="0.38" stopColor="#4f46ff" />
-            <stop offset="0.58" stopColor="#a329ff" />
-            <stop offset="1" stopColor="#ff2fa8" />
+            <stop offset="0" stopColor="#b40024" />
+            <stop offset="0.38" stopColor="#ef002f" />
+            <stop offset="0.68" stopColor="#ff1748" />
+            <stop offset="1" stopColor="#ff554d" />
           </linearGradient>
           <pattern
             id={patternId}
@@ -186,7 +186,7 @@ export function HeroVisualScene() {
     <div
       className="hero-visual-scene"
       role="img"
-      aria-label="Interactive neon particle heart"
+      aria-label="Interactive red particle heart"
       onPointerMove={(event) =>
         controllerRef.current?.pointerMove(event.clientX, event.clientY)
       }

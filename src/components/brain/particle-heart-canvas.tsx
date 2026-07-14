@@ -51,9 +51,9 @@ function orbitColor(x: number) {
   const side = THREE.MathUtils.clamp((x + 1.4) / 2.8, 0, 1);
   const center = 1 - Math.abs(side * 2 - 1);
   return [
-    THREE.MathUtils.lerp(0.02, 1, side) + center * 0.1,
-    THREE.MathUtils.lerp(0.72, 0.04, side),
-    THREE.MathUtils.lerp(1, 0.72, side) + center * 0.08,
+    THREE.MathUtils.lerp(0.82, 1, side) + center * 0.04,
+    THREE.MathUtils.lerp(0.015, 0.095, side) + center * 0.02,
+    THREE.MathUtils.lerp(0.035, 0.07, side),
   ] as const;
 }
 

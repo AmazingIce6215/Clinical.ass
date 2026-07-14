@@ -52,7 +52,7 @@ describe("HeroVisualScene", () => {
     render(<HeroVisualScene />);
 
     expect(
-      screen.getByRole("img", { name: /interactive neon particle heart/i }),
+      screen.getByRole("img", { name: /interactive red particle heart/i }),
     ).toBeVisible();
     expect(screen.getByTestId("particle-heart-canvas")).toBeVisible();
     expect(screen.queryByText(/living field/i)).not.toBeInTheDocument();
@@ -62,7 +62,7 @@ describe("HeroVisualScene", () => {
   it("forwards pointer attraction and click ripples immediately", () => {
     render(<HeroVisualScene />);
     const scene = screen.getByRole("img", {
-      name: /interactive neon particle heart/i,
+      name: /interactive red particle heart/i,
     });
 
     pointerEvent("pointerMove", scene, 120, 160);

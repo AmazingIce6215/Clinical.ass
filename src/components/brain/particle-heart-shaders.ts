@@ -94,17 +94,16 @@ export const particleHeartFragmentShader = /* glsl */ `
     float spriteAlpha = 1.0 - smoothstep(0.32, 0.5, pointDistance);
     if (spriteAlpha < 0.04) discard;
 
-    vec3 electricBlue = vec3(0.02, 0.2, 1.0);
-    vec3 cyan = vec3(0.0, 0.78, 1.0);
-    vec3 violet = vec3(0.46, 0.12, 1.0);
-    vec3 magenta = vec3(0.96, 0.02, 0.62);
-    vec3 hotPink = vec3(1.0, 0.16, 0.72);
+    vec3 deepCrimson = vec3(0.58, 0.0, 0.025);
+    vec3 heartRed = vec3(1.0, 0.012, 0.045);
+    vec3 hotRed = vec3(1.0, 0.12, 0.08);
 
-    vec3 leftColor = mix(electricBlue, cyan, 0.45 + vDepth * 0.42);
-    vec3 rightColor = mix(magenta, hotPink, vDepth * 0.72);
-    vec3 color = mix(leftColor, rightColor, vSide);
-    float centerViolet = 1.0 - abs(vSide * 2.0 - 1.0);
-    color = mix(color, violet, centerViolet * (0.34 + vColorMix * 0.18));
+    vec3 color = mix(
+      deepCrimson,
+      heartRed,
+      0.36 + vDepth * 0.42 + vColorMix * 0.14
+    );
+    color = mix(color, hotRed, vSide * 0.16 + vDepth * 0.12);
     color = mix(color, vec3(1.0), vEdge * (0.28 + vDepth * 0.22));
 
     float shimmer = 0.82 + 0.18 * sin(
