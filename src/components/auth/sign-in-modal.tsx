@@ -20,16 +20,16 @@ export function SignInPanel() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { session, ready, create, unlock, resetPin, goAnonymous } = useAuth();
+  const next = safeNext(searchParams.get("next"));
+  const callbackError = searchParams.get("error");
   const [mode, setMode] = useState<AuthMode>("signin");
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(callbackError);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const next = safeNext(searchParams.get("next"));
-
   useEffect(() => {
     if (ready && session) router.replace(next);
   }, [next, ready, router, session]);

@@ -14,6 +14,7 @@ import {
   createProfile,
   unlockProfile,
   resetPin as resetPinFn,
+  updatePassword as updatePasswordFn,
   createAnonymousSession,
   type AuthSession,
 } from "@/lib/auth";
@@ -27,6 +28,7 @@ interface AuthContextValue {
   create: (firstName: string, email: string, password: string) => Promise<string | null>;
   unlock: (email: string, password: string) => Promise<string | null>;
   resetPin: (email: string) => Promise<string | null>;
+  updatePassword: (password: string) => Promise<string | null>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   goAnonymous: () => void;
@@ -39,10 +41,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    getSession().then((s) => {
-      setSession(s);
-      setReady(true);
-    });
+    let active = true;
+
+    void getSession()
+      .then((nextSession) => {
+        if (active) setSession(nextSession);
+      })
+      .catch(() => {
+        if (active) setSession(null);
+      })
+      .finally(() => {
+        if (active) setReady(true);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -102,9 +116,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return null;
   }, []);
 
+  const updatePassword = useCallback(async (password: string) => {
+    const result = await updatePasswordFn(password);
+    if (result.error) return result.error;
+    return null;
+  }, []);
+
   const value = useMemo(
-    () => ({ session, ready, create, unlock, resetPin, logout, refresh, goAnonymous }),
-    [session, ready, create, unlock, resetPin, logout, refresh, goAnonymous],
+    () => ({ session, ready, create, unlock, resetPin, updatePassword, logout, refresh, goAnonymous }),
+    [session, ready, create, unlock, resetPin, updatePassword, logout, refresh, goAnonymous],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

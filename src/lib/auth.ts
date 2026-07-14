@@ -11,6 +11,7 @@ export interface AuthSession {
   firstName: string;
   email?: string;
   createdAt: number;
+  accountType?: "hosted" | "guest" | "device";
 }
 
 interface StoredProfile {
@@ -87,11 +88,7 @@ function mapAuthError(message: string): string {
 export function shouldIgnoreProfileError(message: string): boolean {
   const normalized = message.toLowerCase();
   return (
-    normalized.includes("relation \"profiles\" does not exist") ||
-    normalized.includes("permission denied for table profiles") ||
-    normalized.includes("permission denied for relation profiles") ||
-    normalized.includes("new row violates row-level security policy") ||
-    normalized.includes("violates row-level security policy")
+    normalized.includes("relation \"profiles\" does not exist")
   );
 }
 
@@ -115,7 +112,29 @@ function buildSession(user: {
     firstName: user.first_name?.trim() || user.email?.split("@")[0] || "Student",
     email: user.email ?? undefined,
     createdAt: user.created_at ? new Date(user.created_at).getTime() : Date.now(),
+    accountType: "hosted",
   } satisfies AuthSession;
+}
+
+function getStoredSession(): AuthSession | null {
+  const session = readJson<AuthSession | null>(SESSION_KEY, null);
+  if (!session) return null;
+
+  if (session.accountType) return session;
+
+  return {
+    ...session,
+    accountType: session.email ? "device" : "guest",
+  };
+}
+
+function writeSession(session: AuthSession) {
+  writeJson(SESSION_KEY, session);
+}
+
+export function getAuthCallbackUrl(next: string): string {
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+  return `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`;
 }
 
 export async function checkProfile(email: string): Promise<ProfileCheck> {
@@ -137,8 +156,9 @@ export function createAnonymousSession(): AuthSession {
     userId: crypto.randomUUID(),
     firstName: "",
     createdAt: Date.now(),
+    accountType: "guest",
   };
-  writeJson(SESSION_KEY, session);
+  writeSession(session);
   return session;
 }
 
@@ -146,12 +166,16 @@ export async function getSession(): Promise<AuthSession | null> {
   if (isSupabaseConfigured()) {
     const supabase = createClient();
     const { data: sessionData, error } = await supabase.auth.getSession();
-    if (error) return null;
+    if (error) {
+      const storedSession = getStoredSession();
+      return storedSession?.accountType === "guest" ? storedSession : null;
+    }
 
     const authUser = sessionData.session?.user;
     if (!authUser) {
-      const session = readJson<AuthSession | null>(SESSION_KEY, null);
-      if (session) return session;
+      const session = getStoredSession();
+      if (session?.accountType === "guest") return session;
+      if (typeof window !== "undefined") localStorage.removeItem(SESSION_KEY);
       return null;
     }
 
@@ -168,7 +192,7 @@ export async function getSession(): Promise<AuthSession | null> {
         first_name: profile.first_name,
         created_at: profile.created_at,
       });
-      writeJson(SESSION_KEY, session);
+      writeSession(session);
       return session;
     }
 
@@ -178,19 +202,21 @@ export async function getSession(): Promise<AuthSession | null> {
       first_name: (authUser.user_metadata?.first_name as string | undefined) ?? undefined,
       created_at: authUser.created_at,
     });
-    writeJson(SESSION_KEY, fallback);
+    writeSession(fallback);
     return fallback;
   }
 
-  const session = readJson<AuthSession | null>(SESSION_KEY, null);
+  const session = getStoredSession();
   if (session) return session;
 
   const legacy = readJson<AuthSession | null>(LEGACY_SESSION_KEY, null);
   if (legacy) {
-    writeJson(SESSION_KEY, legacy);
+    const migrated = { ...legacy, accountType: legacy.email ? "device" as const : "guest" as const };
+    writeSession(migrated);
     if (typeof window !== "undefined") localStorage.removeItem(LEGACY_SESSION_KEY);
+    return migrated;
   }
-  return legacy;
+  return null;
 }
 
 export async function createProfile(
@@ -215,6 +241,7 @@ export async function createProfile(
       email: normalizedEmail,
       password,
       options: {
+        emailRedirectTo: getAuthCallbackUrl("/dashboard"),
         data: {
           first_name: capitalizeName(name),
         },
@@ -223,32 +250,19 @@ export async function createProfile(
 
     if (error) return { error: mapAuthError(error.message) };
 
-    if (data.user) {
-      const { error: profileError } = await supabase.from("profiles").upsert(
-        {
-          id: data.user.id,
-          email: normalizedEmail,
-          first_name: capitalizeName(name),
-        },
-        { onConflict: "id" },
-      );
-
-      if (profileError && !shouldIgnoreProfileError(profileError.message)) {
-        return { error: profileError.message };
-      }
-
+    if (data.user && data.session) {
       const session = buildSession({
         id: data.user.id,
         email: data.user.email,
         first_name: capitalizeName(name),
         created_at: data.user.created_at,
       });
-      writeJson(SESSION_KEY, session);
+      writeSession(session);
       return { session };
     }
 
     return {
-      error: "Account created. Please check your inbox to confirm your email, then sign in.",
+      error: "Check your inbox to confirm your email, then sign in.",
     };
   }
 
@@ -272,8 +286,9 @@ export async function createProfile(
     firstName: profile.firstName,
     email: normalizedEmail,
     createdAt: profile.createdAt,
+    accountType: "device",
   };
-  writeJson(SESSION_KEY, session);
+  writeSession(session);
   return { session };
 }
 
@@ -304,7 +319,7 @@ export async function unlockProfile(
       first_name: !profileError && profile?.first_name ? profile.first_name : (data.user.user_metadata?.first_name as string | undefined),
       created_at: !profileError && profile?.created_at ? profile.created_at : data.user.created_at,
     });
-    writeJson(SESSION_KEY, session);
+    writeSession(session);
     return { session };
   }
 
@@ -319,44 +334,58 @@ export async function unlockProfile(
     firstName: profile.firstName,
     email: profile.email,
     createdAt: profile.createdAt,
+    accountType: "device",
   };
-  writeJson(SESSION_KEY, session);
+  writeSession(session);
   return { session };
 }
 
-export async function updateProfile(data: {
-  first_name?: string;
-  email?: string;
-  pin?: string;
-}): Promise<{ error?: string }> {
+export async function updateProfile(data: { first_name?: string }): Promise<{ error?: string }> {
   const session = await getSession();
   if (!session) return { error: "Not logged in." };
 
+  const name = data.first_name ? normalizeName(data.first_name) : "";
+  if (name && name.length < 2) return { error: "Name must be at least 2 characters." };
+  if (!name) return {};
+
+  const firstName = capitalizeName(name);
+
+  if (session.accountType !== "hosted") {
+    const updatedSession = { ...session, firstName };
+    writeSession(updatedSession);
+
+    if (session.accountType === "device" || (session.email && !session.accountType)) {
+      saveLocalProfiles(getLocalProfiles().map((profile) => (
+        profile.id === session.userId ? { ...profile, firstName } : profile
+      )));
+    }
+
+    return {};
+  }
+
   if (isSupabaseConfigured()) {
     const supabase = createClient();
-
-    const updates: Record<string, unknown> = {};
-    if (data.first_name) {
-      const name = normalizeName(data.first_name);
-      if (name.length < 2) return { error: "Name must be at least 2 characters." };
-      updates.first_name = capitalizeName(name);
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user || userData.user.id !== session.userId) {
+      return { error: "Your sign-in has expired. Please sign in again." };
     }
 
-    if (data.email) {
-      const normalizedEmail = data.email.trim().toLowerCase();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-        return { error: "Please enter a valid email address." };
-      }
-      updates.email = normalizedEmail;
-    }
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .update({ first_name: firstName, updated_at: new Date().toISOString() })
+      .eq("id", userData.user.id)
+      .select("id, email, first_name, created_at")
+      .maybeSingle();
 
-    if (Object.keys(updates).length === 0) return {};
+    if (error) return { error: error.message };
+    if (!profile) return { error: "Your profile could not be found. Please sign in again." };
 
-    const { error } = await supabase.from("profiles").update(updates).eq("id", session.userId);
-    if (error) {
-      if (shouldIgnoreProfileError(error.message)) return {};
-      return { error: error.message };
-    }
+    writeSession(buildSession({
+      id: profile.id,
+      email: profile.email ?? userData.user.email,
+      first_name: profile.first_name,
+      created_at: profile.created_at,
+    }));
   }
 
   return {};
@@ -373,13 +402,30 @@ export async function resetPin(email: string): Promise<{ error?: string }> {
   if (isSupabaseConfigured()) {
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: `${window.location.origin}/settings`,
+      redirectTo: getAuthCallbackUrl("/settings?password-reset=1"),
     });
     if (error) return { error: mapAuthError(error.message) };
     return {};
   }
 
   return { error: "Password-reset email is not available for device-local accounts." };
+}
+
+export async function updatePassword(password: string): Promise<{ error?: string }> {
+  if (password.length < 8) return { error: "Use a password with at least 8 characters." };
+  if (!isSupabaseConfigured()) {
+    return { error: "Password changes are not available for device-local accounts." };
+  }
+
+  const supabase = createClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    return { error: "This recovery link is no longer valid. Request a new password-reset email." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: mapAuthError(error.message) };
+  return {};
 }
 
 export async function logoutUser() {

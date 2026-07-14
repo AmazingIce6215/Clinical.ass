@@ -77,4 +77,17 @@ describe("Wardly redesign contract", () => {
     expect(packageJson.dependencies).not.toHaveProperty("simplex-noise");
     expect(calculatorRegistry).toContain("heart");
   });
+
+  test("keeps Supabase profile writes owner-only and display names non-unique", () => {
+    const migration = readFileSync(
+      resolve(root, "supabase/migrations/00005_fix_auth_profile_security.sql"),
+      "utf8",
+    );
+
+    expect(migration).toContain("drop constraint if exists profiles_first_name_key");
+    expect(migration).toContain("to authenticated");
+    expect(migration).toContain("with check ((select auth.uid()) = id)");
+    expect(migration).toContain("revoke all on table public.profiles from anon");
+    expect(migration).not.toContain("using (true)");
+  });
 });

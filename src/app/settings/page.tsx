@@ -2,7 +2,7 @@
 
 import { Monitor, Moon, ShieldCheck, Sun, UserRound } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Button, Notice, PageHeader, Surface } from "@/components/ui/primitives";
 import { useAuth } from "@/context/auth-context";
@@ -15,11 +15,27 @@ const themes = [
   { key: "system", label: "System", icon: Monitor },
 ] as const;
 
+function subscribeToLocation() {
+  return () => undefined;
+}
+
+function getPasswordRecoverySnapshot() {
+  return new URLSearchParams(window.location.search).get("password-reset") === "1";
+}
+
 export default function SettingsPage() {
-  const { session, refresh, resetPin } = useAuth();
+  const { session, refresh, resetPin, updatePassword } = useAuth();
   const { theme, setTheme } = useTheme();
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordRecoveryComplete, setPasswordRecoveryComplete] = useState(false);
+  const passwordRecoveryFromUrl = useSyncExternalStore(
+    subscribeToLocation,
+    getPasswordRecoverySnapshot,
+    () => false,
+  );
+  const isPasswordRecovery = passwordRecoveryFromUrl && !passwordRecoveryComplete;
   const [message, setMessage] = useState<{ tone: "info" | "danger"; title: string; body: string } | null>(null);
 
   const handleProfileSave = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -39,7 +55,43 @@ export default function SettingsPage() {
       return;
     }
     await refresh();
-    setMessage({ tone: "info", title: "Profile updated", body: "Your display name has been saved." });
+    setMessage({
+      tone: "info",
+      title: "Profile updated",
+      body: session?.accountType === "hosted"
+        ? "Your display name has been synced to your Wardly account."
+        : "Your display name has been saved on this device.",
+    });
+  };
+
+  const handlePasswordUpdate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const password = String(form.get("newPassword") || "");
+    const confirmation = String(form.get("confirmPassword") || "");
+
+    if (password.length < 8) {
+      setMessage({ tone: "danger", title: "Password not changed", body: "Use a password with at least 8 characters." });
+      return;
+    }
+    if (password !== confirmation) {
+      setMessage({ tone: "danger", title: "Password not changed", body: "The password confirmation does not match." });
+      return;
+    }
+
+    setChangingPassword(true);
+    const error = await updatePassword(password);
+    setChangingPassword(false);
+    if (error) {
+      setMessage({ tone: "danger", title: "Password not changed", body: error });
+      return;
+    }
+
+    setPasswordRecoveryComplete(true);
+    window.history.replaceState({}, "", "/settings");
+    formElement.reset();
+    setMessage({ tone: "info", title: "Password updated", body: "Your new password is active. You can use it the next time you sign in." });
   };
 
   const handlePasswordReset = async () => {
@@ -60,6 +112,25 @@ export default function SettingsPage() {
         <PageHeader eyebrow="Account" title="Settings" description="Manage the identity shown in Wardly, request a password reset, and choose a stable display theme." />
 
         {message ? <Notice title={message.title} tone={message.tone}>{message.body}</Notice> : null}
+
+        {isPasswordRecovery ? (
+          <Surface className="border-accent/30 p-5 sm:p-6">
+            <p className="section-label">Password recovery</p>
+            <h2 className="mt-2 text-lg font-semibold text-foreground">Choose a new password</h2>
+            <p className="mt-1 text-sm leading-6 text-muted">This recovery session came from the secure link in your email.</p>
+            <form onSubmit={handlePasswordUpdate} className="mt-5 grid gap-4 sm:max-w-md">
+              <label className="block">
+                <span className="text-sm font-semibold text-foreground">New password</span>
+                <input name="newPassword" type="password" minLength={8} required autoComplete="new-password" className="mt-1.5 w-full rounded-[10px] border border-border bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/15" />
+              </label>
+              <label className="block">
+                <span className="text-sm font-semibold text-foreground">Confirm new password</span>
+                <input name="confirmPassword" type="password" minLength={8} required autoComplete="new-password" className="mt-1.5 w-full rounded-[10px] border border-border bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/15" />
+              </label>
+              <Button type="submit" disabled={changingPassword}>{changingPassword ? "Updating…" : "Update password"}</Button>
+            </form>
+          </Surface>
+        ) : null}
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Surface className="p-5 sm:p-6">
