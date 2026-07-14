@@ -90,6 +90,9 @@ function HeartScene({
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const beatTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const emphasisTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const textureDisposalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const rippleSlotRef = useRef(0);
   const pointerRef = useRef({ clientX: 0, clientY: 0, active: false });
   const mouseStrengthRef = useRef(0);
@@ -238,9 +241,19 @@ function HeartScene({
   }, [reducedMotion]);
 
   useEffect(() => {
+    // Strict Mode replays effects; cancel its provisional cleanup before the
+    // mounted scene gets a chance to render with a disposed GPU texture.
+    if (textureDisposalTimerRef.current !== null) {
+      clearTimeout(textureDisposalTimerRef.current);
+      textureDisposalTimerRef.current = null;
+    }
+
     return () => {
       emphasisTimelineRef.current?.kill();
-      spriteTexture.dispose();
+      textureDisposalTimerRef.current = setTimeout(() => {
+        spriteTexture.dispose();
+        textureDisposalTimerRef.current = null;
+      }, 0);
     };
   }, [spriteTexture]);
 

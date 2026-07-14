@@ -27,7 +27,8 @@ export const particleHeartVertexShader = /* glsl */ `
     float glow = 0.0;
 
     float mouseDistance = distance(displaced, uMouse);
-    float mouseField = smoothstep(0.78, 0.0, mouseDistance) * uMouseStrength;
+    float mouseField =
+      (1.0 - smoothstep(0.0, 0.78, mouseDistance)) * uMouseStrength;
     vec3 mouseDirection = safeDirection(uMouse - displaced, aSeed);
     displaced += mouseDirection * mouseField * (0.1 + 0.035 * aSeed);
     glow += mouseField * 0.22;
@@ -37,7 +38,8 @@ export const particleHeartVertexShader = /* glsl */ `
       float active = step(0.0, age) * step(age, 1.35);
       float radius = age * 2.2;
       float distanceFromOrigin = distance(position, uRippleOrigins[index]);
-      float band = smoothstep(0.14, 0.0, abs(distanceFromOrigin - radius));
+      float band =
+        1.0 - smoothstep(0.0, 0.14, abs(distanceFromOrigin - radius));
       band *= exp(-age * 1.15) * active;
       vec3 rippleDirection = safeDirection(position - uRippleOrigins[index], aSeed);
       displaced += rippleDirection * band * (0.15 + 0.04 * aSeed);
