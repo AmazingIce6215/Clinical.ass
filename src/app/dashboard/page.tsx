@@ -54,11 +54,11 @@ export default function DashboardPage() {
       <div className="space-y-8">
         <PageHeader
           eyebrow="Overview"
-          title={session?.firstName ? `Welcome back, ${session.firstName}` : "Your clinical learning workspace"}
-          description="Choose a focused practice format, continue saved work, or review your recent learning activity."
+          title={session?.firstName ? `Welcome back, ${session.firstName}` : "Clinical tools and practice modes"}
+          description="Open an independent patient-encounter tool, choose a practice mode, or use a standalone clinical aid."
           actions={
             <Link href="/clinical" className="inline-flex min-h-11 items-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-semibold text-accent-foreground">
-              Start a clinical case <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              Open clinical reasoning <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           }
         />
@@ -70,14 +70,14 @@ export default function DashboardPage() {
             </button>
             <div className="max-w-3xl pr-12">
               <Badge tone="info">Getting started</Badge>
-              <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-foreground">Build a repeatable practice rhythm</h2>
-              <p className="mt-2 text-sm leading-6 text-muted">Start with a structured case, use teaching or OSCE mode for retrieval practice, then review saved work and progress. Generated content remains a learning aid.</p>
+              <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-foreground">Choose by context—there is no required sequence</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">DxFlow modes were built for different jobs. Open one directly; using one mode does not require you to continue into another.</p>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               {[
-                ["1", "Choose a case", "Clinical reasoning or a full history presentation."],
-                ["2", "Practise actively", "Answer, speak, calculate, and commit to a decision."],
-                ["3", "Review the output", "Check limitations, sources, and areas to revisit."],
+                ["1", "At a patient encounter", "Organize de-identified findings with Clinical reasoning under supervision."],
+                ["2", "Preparing a case", "Turn a history and examination into a presentation for supervisor review."],
+                ["3", "Practising separately", "Use Teaching or OSCE when you want generated practice and feedback."],
               ].map(([number, title, description]) => (
                 <div key={number} className="rounded-[10px] border border-border bg-surface p-4">
                   <span className="font-mono text-xs font-semibold text-brand-strong">{number.padStart(2, "0")}</span>
@@ -92,13 +92,13 @@ export default function DashboardPage() {
         <section aria-labelledby="recommended-heading">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="section-label">Recommended</p>
-              <h2 id="recommended-heading" className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">Start a focused session</h2>
+              <p className="section-label">Patient encounter</p>
+              <h2 id="recommended-heading" className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">Tools for supervised clinical encounters</h2>
             </div>
-            <span className="hidden text-xs text-muted sm:block">Choose one task and complete the full feedback loop.</span>
+            <span className="hidden text-xs text-muted sm:block">Use independently and keep patient information de-identified.</span>
           </div>
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
-            {modules.filter((module) => module.primary).map((module) => (
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {modules.filter((module) => module.group === "encounter").map((module) => (
               <Link key={module.id} href={module.href} className="group rounded-[14px] border border-border bg-surface p-5 shadow-card transition-colors hover:border-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
                 <div className="flex items-start justify-between">
                   <span className="module-card__icon"><ModuleIcon name={module.icon} className="h-5 w-5" /></span>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
         <section className="grid gap-6 xl:grid-cols-[1fr_320px]" aria-labelledby="all-modules-heading">
           <div className="min-w-0">
             <p className="section-label">All modules</p>
-            <h2 id="all-modules-heading" className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">Everything in one workspace</h2>
+            <h2 id="all-modules-heading" className="mt-1 text-xl font-semibold tracking-[-0.03em] text-foreground">Independent tools, grouped by purpose</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {moduleGroups.map((group) => (
                 <Surface key={group.id} className="min-w-0 p-4">

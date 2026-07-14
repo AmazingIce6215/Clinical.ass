@@ -1,4 +1,4 @@
-export type ModuleGroup = "practice" | "tools" | "workspace" | "progress";
+export type ModuleGroup = "encounter" | "practice" | "tools" | "workspace" | "progress";
 
 export type ModuleIconName =
   | "activity"
@@ -19,12 +19,12 @@ export interface ModuleDefinition {
   description: string;
   group: ModuleGroup;
   icon: ModuleIconName;
-  primary?: boolean;
 }
 
 export const moduleGroups: Array<{ id: ModuleGroup; label: string }> = [
+  { id: "encounter", label: "Patient encounter" },
   { id: "practice", label: "Practice" },
-  { id: "tools", label: "Tools" },
+  { id: "tools", label: "Clinical tools" },
   { id: "workspace", label: "Workspace" },
   { id: "progress", label: "Progress" },
 ];
@@ -35,18 +35,17 @@ export const modules: ModuleDefinition[] = [
     href: "/clinical",
     label: "Clinical reasoning",
     shortLabel: "Clinical",
-    description: "Work through a symptom-led case from triage to a structured differential.",
-    group: "practice",
+    description: "Organize de-identified findings from a supervised patient encounter and review an AI-assisted differential.",
+    group: "encounter",
     icon: "stethoscope",
-    primary: true,
   },
   {
     id: "classic",
     href: "/classic",
     label: "Case presentation",
     shortLabel: "Classic",
-    description: "Take a complete history and produce a ward-round presentation.",
-    group: "practice",
+    description: "Turn a de-identified history and examination into a structured case presentation.",
+    group: "encounter",
     icon: "presentation",
   },
   {
@@ -57,7 +56,6 @@ export const modules: ModuleDefinition[] = [
     description: "Practice generated case questions with explanations and saved progress.",
     group: "practice",
     icon: "graduation",
-    primary: true,
   },
   {
     id: "osce",
@@ -67,14 +65,13 @@ export const modules: ModuleDefinition[] = [
     description: "Run a timed patient interview and receive formative feedback.",
     group: "practice",
     icon: "clipboard",
-    primary: true,
   },
   {
     id: "image-diagnosis",
     href: "/image-diagnosis",
     label: "Image analysis",
     shortLabel: "Images",
-    description: "Review an educational image with a structured AI-assisted interpretation.",
+    description: "Upload a de-identified clinical image for a structured AI-assisted interpretation.",
     group: "tools",
     icon: "image",
   },

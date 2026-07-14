@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { AppShell } from "@/components/app-shell";
 import { LandingActions } from "@/components/landing/landing-actions";
 import DashboardPage from "@/app/dashboard/page";
+import HomePage from "@/app/page";
 
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
@@ -66,9 +67,17 @@ describe("workspace entry and navigation", () => {
   test("renders a useful dashboard without decorative canvas content", () => {
     const { container } = render(<DashboardPage />);
 
-    expect(screen.getByRole("heading", { name: "Your clinical learning workspace" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Start a focused session" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Clinical tools and practice modes" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Tools for supervised clinical encounters" })).toBeInTheDocument();
     expect(screen.getByText("Educational use only", { selector: "p" })).toBeInTheDocument();
     expect(container.querySelector("canvas")).toBeNull();
+  });
+
+  test("describes independent modules without inventing a connected workflow", () => {
+    render(<HomePage />);
+
+    expect(screen.getByRole("heading", { name: "Use the right mode for the job." })).toBeInTheDocument();
+    expect(screen.getByText(/Each module stands on its own/)).toBeInTheDocument();
+    expect(screen.queryByText(/One connected workspace/i)).not.toBeInTheDocument();
   });
 });

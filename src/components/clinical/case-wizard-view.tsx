@@ -35,26 +35,26 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
     />
     <AppShell
       backHref="/dashboard"
-      title={isClassic ? "Classic practice" : "DxFlow Clinical"}
+      title={isClassic ? "Case presentation" : "Clinical reasoning"}
       subtitle={
         isClassic
-          ? "Structured history → educational case presentation"
-          : "Triage → history → examination → investigations → assessment"
+          ? "De-identified history → AI-assisted case presentation"
+          : "De-identified findings → AI-assisted reasoning review"
       }
     >
-      <h1 className="sr-only">{isClassic ? "Classic practice" : "DxFlow Clinical"}</h1>
+      <h1 className="sr-only">{isClassic ? "Case presentation" : "Clinical reasoning"}</h1>
       <p className="mb-3 rounded-xl border border-border bg-surface p-3 text-xs leading-5 text-muted">
-        Educational use only. Do not enter identifiable patient information or rely on generated
-        suggestions as a substitute for supervised clinical judgment.
+        For supervised educational use only. Do not enter identifiable patient information or rely
+        on generated suggestions as a substitute for clinical judgment or senior review.
       </p>
       {!isClassic && (
         <p className="mb-4 text-xs text-muted">
-          Follow the case in order and select multiple findings where appropriate.
+          Enter de-identified findings from the encounter. Generated prompts may help you consider what to clarify.
         </p>
       )}
       {isClassic && (
         <p className="mb-4 text-xs text-muted">
-          Build a systematic history and learning presentation. Skip questions that are not relevant.
+          Build a systematic history and generate a case presentation to review with a supervisor. Skip questions that are not relevant.
         </p>
       )}
       <div className="mb-6">
@@ -97,10 +97,10 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
           <AnimatePresence mode="wait">
             {w.phase === "demographics" && (
               <FadeSlide key="demo">
-                <WizardCard step={1} title="Patient details" subtitle="Start like you would in clinic or on rounds.">
+                <WizardCard step={1} title="Patient details" subtitle="Record only de-identified details from the encounter.">
                   <div className="space-y-5">
                     <TextField
-                      label="Name (or initials)"
+                      label="Initials or placeholder"
                       value={w.patientCase.name}
                       onChange={(v) => w.setPatientCase((p) => ({ ...p, name: v }))}
                       placeholder="e.g. J.S."

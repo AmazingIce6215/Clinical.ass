@@ -44,7 +44,7 @@ function BrandMark({ compact = false }: { compact?: boolean }) {
           <span className="block text-[15px] font-semibold tracking-[-0.02em] text-foreground">
             DxFlow
           </span>
-          <span className="block text-[11px] text-muted">Clinical learning workspace</span>
+          <span className="block text-[11px] text-muted">Clinical tools for students</span>
         </span>
       ) : null}
     </Link>
@@ -435,7 +435,7 @@ export function AppShell({
             {children}
           </main>
           <footer className="mt-10 border-t border-border pt-4 text-xs leading-5 text-muted">
-            DxFlow is for education and formative practice. It is not a substitute for clinical judgement, senior review, or local protocols.
+            DxFlow supports supervised clinical learning and formative practice. It is not a substitute for clinical judgement, senior review, or local protocols.
           </footer>
         </div>
       </div>

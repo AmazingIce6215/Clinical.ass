@@ -99,7 +99,7 @@ function LibraryContent() {
         </div>
 
         {items.length === 0 ? (
-          <EmptyState title={query || filter !== "all" ? "No matching saved items" : "Your library is empty"} description={query || filter !== "all" ? "Try a broader search or another case type." : "Complete a clinical case, presentation, or teaching session and save it to return later."} action={<ButtonLink href="/dashboard" variant="primary">Choose a practice module</ButtonLink>} />
+          <EmptyState title={query || filter !== "all" ? "No matching saved items" : "Your library is empty"} description={query || filter !== "all" ? "Try a broader search or another case type." : "Complete a clinical case, presentation, or teaching session and save it to return later."} action={<ButtonLink href="/dashboard" variant="primary">Choose a module</ButtonLink>} />
         ) : (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {items.map((item) => (

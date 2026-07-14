@@ -24,7 +24,7 @@ export default function HomePage() {
           </Link>
           <nav className="hidden items-center gap-6 text-sm text-muted md:flex" aria-label="Public navigation">
             <a href="#modules" className="hover:text-foreground">Modules</a>
-            <a href="#how-it-works" className="hover:text-foreground">How it works</a>
+            <a href="#how-it-works" className="hover:text-foreground">Use cases</a>
             <a href="#safety" className="hover:text-foreground">Safety</a>
             <Link href="/privacy-policy" className="hover:text-foreground">Privacy</Link>
           </nav>
@@ -37,19 +37,19 @@ export default function HomePage() {
           <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.85fr)] lg:items-center lg:px-8 lg:py-24">
             <div className="max-w-3xl">
               <div className="inline-flex min-h-8 items-center gap-2 rounded-full border border-border bg-surface-subtle px-3 text-xs font-semibold text-brand-strong">
-                <ShieldCheck aria-hidden="true" className="h-4 w-4" /> Built for structured clinical learning
+                <ShieldCheck aria-hidden="true" className="h-4 w-4" /> Built for medical students in clinical training
               </div>
               <h1 className="mt-6 max-w-[13ch] text-5xl font-semibold leading-[0.98] tracking-[-0.055em] text-foreground sm:text-6xl">
-                Clinical practice, with a clearer line of reasoning.
+                Clinical tools for the patient encounter—and the learning around it.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg sm:leading-8">
-                DxFlow brings case workups, OSCE interviews, teaching questions, image review, and common scoring tools into one focused learning workspace.
+                DxFlow gives medical students independent tools for organizing patient findings, preparing case presentations, practising OSCEs, revising with generated questions, reviewing de-identified images, and using common clinical scores.
               </p>
               <div className="mt-8">
                 <LandingActions />
               </div>
               <p className="mt-4 text-xs leading-5 text-muted">
-                Educational use only. Guest practice can stay on this device; account details may be handled through Supabase when configured.
+                Educational use only. Use patient-encounter tools under appropriate supervision and never enter identifiable patient information.
               </p>
             </div>
 
@@ -59,12 +59,12 @@ export default function HomePage() {
 
         <section id="modules" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
           <div className="max-w-2xl">
-            <p className="section-label">One connected workspace</p>
+            <p className="section-label">Independent tools, organized by purpose</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-4xl">
-              Choose the kind of practice you need.
+              Use the right mode for the job.
             </h2>
             <p className="mt-3 text-base leading-7 text-muted">
-              Each module has a defined job. Navigation, saved work, and progress stay consistent throughout the product.
+              Each module stands on its own. There is no required sequence and DxFlow does not assume that work in one mode continues into another.
             </p>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -81,16 +81,16 @@ export default function HomePage() {
         <section id="how-it-works" className="border-y border-border bg-surface">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.75fr_1.25fr] lg:px-8 lg:py-20">
             <div>
-              <p className="section-label">A deliberate workflow</p>
+              <p className="section-label">Different contexts</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-foreground">
-                Practice the process, not just the answer.
+                No fixed flow. Choose by context.
               </h2>
             </div>
             <ol className="grid gap-4 sm:grid-cols-3">
               {[
-                ["01", "Choose a format", "Start a case, OSCE station, teaching session, image review, or calculator."],
-                ["02", "Work step by step", "Keep entered facts, generated suggestions, and deterministic scores visibly distinct."],
-                ["03", "Review and revisit", "Use feedback, saved cases, and progress views to decide what to practise next."],
+                ["01", "During a supervised encounter", "Use Clinical reasoning to organize de-identified findings, or Case presentation to prepare a structured summary for review."],
+                ["02", "For deliberate practice", "Teaching and OSCE are separate practice modes for questions, patient interviews, and formative feedback."],
+                ["03", "When a standalone aid fits", "Open a calculator or image analysis directly. These tools do not depend on completing another module first."],
               ].map(([number, title, description]) => (
                 <li key={number} className="border-l-2 border-brand-soft pl-4">
                   <span className="font-mono text-xs font-semibold text-brand-strong">{number}</span>
@@ -124,8 +124,8 @@ export default function HomePage() {
         <section className="border-t border-border bg-brand text-white">
           <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
             <div>
-              <h2 className="text-2xl font-semibold tracking-[-0.035em]">Start with a structured clinical case.</h2>
-              <p className="mt-2 text-sm text-white/75">No claims of clinical certification. No decorative distractions.</p>
+              <h2 className="text-2xl font-semibold tracking-[-0.035em]">Open the tool that fits the moment.</h2>
+              <p className="mt-2 text-sm text-white/75">Start as a guest and choose any module. No fixed workflow is required.</p>
             </div>
             <LandingActions inverted />
           </div>
@@ -153,8 +153,8 @@ function ProductSpecimen() {
       <div className="rounded-[14px] border border-border bg-surface">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div>
-            <p className="text-xs font-semibold text-foreground">Clinical case workspace</p>
-            <p className="mt-0.5 text-[11px] text-muted">Structured reasoning · Educational case</p>
+            <p className="text-xs font-semibold text-foreground">Clinical reasoning tool</p>
+            <p className="mt-0.5 text-[11px] text-muted">De-identified encounter notes · Supervised use</p>
           </div>
           <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-strong">In progress</span>
         </div>
@@ -183,8 +183,8 @@ function ProductSpecimen() {
               ))}
             </div>
             <div className="mt-5 rounded-[10px] border border-info/25 bg-info-soft p-3">
-              <p className="text-xs font-semibold text-foreground">AI-assisted prompt</p>
-              <p className="mt-1 text-[11px] leading-5 text-muted">Suggestions are learning aids, not clinical instructions.</p>
+              <p className="text-xs font-semibold text-foreground">AI-assisted review</p>
+              <p className="mt-1 text-[11px] leading-5 text-muted">Generated suggestions remain separate from entered patient facts.</p>
             </div>
           </div>
         </div>

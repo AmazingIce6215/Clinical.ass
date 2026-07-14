@@ -109,7 +109,7 @@ export function SignInPanel() {
               ? "An account stores your profile and session. Saved cases and learning statistics currently remain on this device."
               : mode === "reset"
                 ? "We will request a password-reset email for a hosted account. Device-local accounts cannot receive reset email."
-                : "Continue to your clinical learning workspace and device-local progress."}
+                : "Continue to your clinical tools, saved work, and device-local progress."}
           </p>
         </div>
       </div>

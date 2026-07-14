@@ -8,26 +8,26 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://clinicalass.vercel.app"),
   title: {
-    default: "DxFlow — Clinical learning, structured",
+    default: "DxFlow — Clinical tools for medical students",
     template: "%s | DxFlow",
   },
   description:
-    "Structured clinical reasoning, OSCE practice, teaching cases, and evidence-aware tools for medical learners.",
+    "Independent patient-encounter tools, OSCE practice, teaching cases, image review, and clinical calculators for medical students.",
   manifest: "/manifest.json",
   applicationName: "DxFlow",
   category: "education",
   openGraph: {
     type: "website",
     siteName: "DxFlow",
-    title: "DxFlow — Clinical learning, structured",
+    title: "DxFlow — Clinical tools for medical students",
     description:
-      "Practice clinical reasoning, OSCE interviews, case questions, and common scoring tools in one focused workspace.",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "DxFlow clinical learning workspace" }],
+      "Independent tools for supervised patient encounters, case presentations, practice sessions, image review, and common clinical scores.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "DxFlow clinical tools for medical students" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "DxFlow — Clinical learning, structured",
-    description: "A focused clinical learning workspace for medical students and junior clinicians.",
+    title: "DxFlow — Clinical tools for medical students",
+    description: "Independent patient-encounter tools and practice modes for medical students.",
     images: ["/opengraph-image"],
   },
   appleWebApp: {
