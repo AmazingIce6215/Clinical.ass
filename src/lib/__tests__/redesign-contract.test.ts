@@ -7,9 +7,8 @@ const root = process.cwd();
 describe("DxFlow redesign contract", () => {
   test("uses the central module registry for every workspace section", () => {
     expect(moduleGroups.map((group) => group.label)).toEqual([
-      "Patient encounter",
+      "Tools",
       "Practice",
-      "Clinical tools",
       "Workspace",
       "Progress",
     ]);
@@ -25,9 +24,15 @@ describe("DxFlow redesign contract", () => {
         "stats",
       ]),
     );
-    expect(modules.filter((module) => module.group === "encounter").map((module) => module.id)).toEqual([
+    expect(modules.filter((module) => module.group === "tools").map((module) => module.id)).toEqual([
       "clinical",
+      "image-diagnosis",
       "classic",
+      "calculators",
+    ]);
+    expect(modules.filter((module) => module.featured).map((module) => module.id)).toEqual([
+      "clinical",
+      "image-diagnosis",
     ]);
     expect(getModuleByPath("/calculators/heart-score")?.id).toBe("calculators");
   });

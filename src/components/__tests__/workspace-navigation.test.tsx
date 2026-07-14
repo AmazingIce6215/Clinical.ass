@@ -67,17 +67,18 @@ describe("workspace entry and navigation", () => {
   test("renders a useful dashboard without decorative canvas content", () => {
     const { container } = render(<DashboardPage />);
 
-    expect(screen.getByRole("heading", { name: "Clinical tools and practice modes" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Tools for supervised clinical encounters" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Your clinical toolkit" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Core encounter tools" })).toBeInTheDocument();
     expect(screen.getByText("Educational use only", { selector: "p" })).toBeInTheDocument();
     expect(container.querySelector("canvas")).toBeNull();
   });
 
-  test("describes independent modules without inventing a connected workflow", () => {
+  test("presents the core clinical tools without apologetic product copy", () => {
     render(<HomePage />);
 
-    expect(screen.getByRole("heading", { name: "Use the right mode for the job." })).toBeInTheDocument();
-    expect(screen.getByText(/Each module stands on its own/)).toBeInTheDocument();
-    expect(screen.queryByText(/One connected workspace/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Think clearly. See more. Present with confidence." })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Clinical reasoning" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Image diagnosis" })).toBeInTheDocument();
+    expect(screen.queryByText(/independent modules/i)).not.toBeInTheDocument();
   });
 });

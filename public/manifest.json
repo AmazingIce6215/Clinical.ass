@@ -1,7 +1,7 @@
 {
   "name": "DxFlow",
   "short_name": "DxFlow",
-  "description": "Independent clinical tools and practice modes for medical students",
+  "description": "Clinical reasoning, image diagnosis, case reporting, and learning tools for medical students",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f4f7f9",

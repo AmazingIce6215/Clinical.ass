@@ -44,7 +44,7 @@ function BrandMark({ compact = false }: { compact?: boolean }) {
           <span className="block text-[15px] font-semibold tracking-[-0.02em] text-foreground">
             DxFlow
           </span>
-          <span className="block text-[11px] text-muted">Clinical tools for students</span>
+          <span className="block text-[11px] text-muted">Clinical toolkit for students</span>
         </span>
       ) : null}
     </Link>
@@ -188,7 +188,7 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
 
 function MobileNavigation({ pathname }: { pathname: string }) {
   const [open, setOpen] = useState(false);
-  const primary = [modules[0], modules[2], modules[5]];
+  const primary = modules.filter((module) => module.mobilePrimary);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {

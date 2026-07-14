@@ -11,7 +11,7 @@ import { clearLibrary, getLibraryItem, removeFromLibrary, searchLibrary } from "
 import type { CaseMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const MODE_LABELS: Record<CaseMode, string> = { clinical: "Clinical", classic: "Classic", teaching: "Teaching" };
+const MODE_LABELS: Record<CaseMode, string> = { clinical: "Clinical", classic: "Case report", teaching: "Teaching" };
 
 function LibraryContent() {
   const router = useRouter();
@@ -58,13 +58,13 @@ function LibraryContent() {
 
   if (active?.presentation) {
     return (
-      <AppShell onBack={closeDetail} title={active.title} subtitle="Saved case presentation">
+      <AppShell onBack={closeDetail} title={active.title} subtitle="Saved case report">
         <Surface className="mx-auto max-w-4xl p-5 sm:p-6">
           <p className="section-label">One-line summary</p>
           <p className="mt-3 text-base font-semibold text-foreground">{active.presentation.oneLiner}</p>
-          <h2 className="mt-6 text-sm font-semibold text-foreground">Full presentation</h2>
+          <h2 className="mt-6 text-sm font-semibold text-foreground">Structured case report</h2>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-muted">{active.presentation.fullPresentation}</p>
-          <ButtonLink href="/classic" variant="primary" className="mt-6">Start another presentation</ButtonLink>
+          <ButtonLink href="/classic" variant="primary" className="mt-6">Start another report</ButtonLink>
         </Surface>
       </AppShell>
     );
@@ -83,7 +83,7 @@ function LibraryContent() {
   return (
     <AppShell title="Case library" subtitle="Saved on this device">
       <div className="space-y-7">
-        <PageHeader eyebrow="Workspace" title="Case library" description="Search and reopen clinical cases, presentations, and teaching sessions stored in this browser or app installation." actions={items.length ? <Button type="button" variant="danger" onClick={clearItems}><Trash2 aria-hidden="true" className="h-4 w-4" /> Clear library</Button> : undefined} />
+        <PageHeader eyebrow="Workspace" title="Case library" description="Search and reopen clinical cases, reports, and teaching sessions stored in this browser or app installation." actions={items.length ? <Button type="button" variant="danger" onClick={clearItems}><Trash2 aria-hidden="true" className="h-4 w-4" /> Clear library</Button> : undefined} />
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <label className="relative flex-1">
@@ -99,7 +99,7 @@ function LibraryContent() {
         </div>
 
         {items.length === 0 ? (
-          <EmptyState title={query || filter !== "all" ? "No matching saved items" : "Your library is empty"} description={query || filter !== "all" ? "Try a broader search or another case type." : "Complete a clinical case, presentation, or teaching session and save it to return later."} action={<ButtonLink href="/dashboard" variant="primary">Choose a module</ButtonLink>} />
+          <EmptyState title={query || filter !== "all" ? "No matching saved items" : "Your library is empty"} description={query || filter !== "all" ? "Try a broader search or another case type." : "Complete a clinical case, report, or teaching session and save it to return later."} action={<ButtonLink href="/dashboard" variant="primary">Choose a module</ButtonLink>} />
         ) : (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {items.map((item) => (

@@ -11,7 +11,15 @@ import { LandingActions } from "@/components/landing/landing-actions";
 import { ModuleIcon } from "@/components/ui/icons";
 import { modules } from "@/lib/modules";
 
-const featuredModules = modules.filter((module) => module.id !== "library" && module.id !== "stats");
+const primaryModules = modules.filter((module) => module.featured);
+const supportingModules = modules.filter(
+  (module) => module.id !== "library" && module.id !== "stats" && !module.featured,
+);
+
+const primaryHighlights: Record<string, string[]> = {
+  clinical: ["Structured patient findings", "Working differential", "Reasoning review"],
+  "image-diagnosis": ["Validated image upload", "De-identification reminder", "Clearly labelled AI output"],
+};
 
 export default function HomePage() {
   return (
@@ -24,7 +32,7 @@ export default function HomePage() {
           </Link>
           <nav className="hidden items-center gap-6 text-sm text-muted md:flex" aria-label="Public navigation">
             <a href="#modules" className="hover:text-foreground">Modules</a>
-            <a href="#how-it-works" className="hover:text-foreground">Use cases</a>
+            <a href="#how-it-works" className="hover:text-foreground">Capabilities</a>
             <a href="#safety" className="hover:text-foreground">Safety</a>
             <Link href="/privacy-policy" className="hover:text-foreground">Privacy</Link>
           </nav>
@@ -37,19 +45,19 @@ export default function HomePage() {
           <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.85fr)] lg:items-center lg:px-8 lg:py-24">
             <div className="max-w-3xl">
               <div className="inline-flex min-h-8 items-center gap-2 rounded-full border border-border bg-surface-subtle px-3 text-xs font-semibold text-brand-strong">
-                <ShieldCheck aria-hidden="true" className="h-4 w-4" /> Built for medical students in clinical training
+                <ShieldCheck aria-hidden="true" className="h-4 w-4" /> AI-assisted clinical toolkit for medical students
               </div>
               <h1 className="mt-6 max-w-[13ch] text-5xl font-semibold leading-[0.98] tracking-[-0.055em] text-foreground sm:text-6xl">
-                Clinical tools for the patient encounter—and the learning around it.
+                A clearer way to reason through clinical encounters.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg sm:leading-8">
-                DxFlow gives medical students independent tools for organizing patient findings, preparing case presentations, practising OSCEs, revising with generated questions, reviewing de-identified images, and using common clinical scores.
+                Structure patient findings, build a focused differential, review clinical images, prepare case reports, and strengthen the thinking behind every presentation.
               </p>
               <div className="mt-8">
                 <LandingActions />
               </div>
               <p className="mt-4 text-xs leading-5 text-muted">
-                Educational use only. Use patient-encounter tools under appropriate supervision and never enter identifiable patient information.
+                Educational use only. Designed for supervised clinical learning—not diagnosis or autonomous decision-making. Never enter identifiable patient information.
               </p>
             </div>
 
@@ -58,47 +66,73 @@ export default function HomePage() {
         </section>
 
         <section id="modules" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-          <div className="max-w-2xl">
-            <p className="section-label">Independent tools, organized by purpose</p>
+          <div className="max-w-3xl">
+            <p className="section-label">Core clinical tools</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-4xl">
-              Use the right mode for the job.
+              Think clearly. See more. Present with confidence.
             </h2>
             <p className="mt-3 text-base leading-7 text-muted">
-              Each module stands on its own. There is no required sequence and DxFlow does not assume that work in one mode continues into another.
+              Start with structured clinical reasoning or image diagnosis, then use focused tools for case reporting, calculations, practice, and review.
             </p>
           </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredModules.map((module) => (
-              <article key={module.id} className="rounded-[14px] border border-border bg-surface p-5 shadow-card">
-                <span className="module-card__icon"><ModuleIcon name={module.icon} className="h-5 w-5" /></span>
-                <h3 className="mt-5 text-base font-semibold text-foreground">{module.label}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted">{module.description}</p>
+          <div className="mt-10 grid gap-5 md:grid-cols-2">
+            {primaryModules.map((module, index) => (
+              <article key={module.id} className="relative overflow-hidden rounded-[18px] border border-brand/20 bg-surface p-6 shadow-panel sm:p-7">
+                <div className="absolute inset-x-0 top-0 h-1 bg-brand" aria-hidden="true" />
+                <div className="flex items-start justify-between gap-4">
+                  <span className="grid h-12 w-12 place-items-center rounded-[12px] bg-brand text-white">
+                    <ModuleIcon name={module.icon} className="h-6 w-6" />
+                  </span>
+                  <span className="rounded-full border border-border bg-surface-subtle px-3 py-1 text-[11px] font-semibold text-brand-strong">
+                    {index === 0 ? "Reasoning workspace" : "Visual review"}
+                  </span>
+                </div>
+                <h3 className="mt-6 text-2xl font-semibold tracking-[-0.035em] text-foreground">{module.label}</h3>
+                <p className="mt-3 max-w-xl text-sm leading-6 text-muted">{module.description}</p>
+                <ul className="mt-6 grid gap-2 sm:grid-cols-3" aria-label={`${module.label} capabilities`}>
+                  {(primaryHighlights[module.id] ?? []).map((highlight) => (
+                    <li key={highlight} className="flex items-center gap-2 text-xs font-medium text-foreground">
+                      <Check aria-hidden="true" className="h-4 w-4 shrink-0 text-success" /> {highlight}
+                    </li>
+                  ))}
+                </ul>
               </article>
             ))}
+          </div>
+          <div className="mt-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">More tools and learning modes</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {supportingModules.map((module) => (
+                <article key={module.id} className="rounded-[14px] border border-border bg-surface p-5 shadow-card">
+                  <span className="module-card__icon"><ModuleIcon name={module.icon} className="h-5 w-5" /></span>
+                  <h3 className="mt-5 text-base font-semibold text-foreground">{module.label}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted">{module.description}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
         <section id="how-it-works" className="border-y border-border bg-surface">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.75fr_1.25fr] lg:px-8 lg:py-20">
             <div>
-              <p className="section-label">Different contexts</p>
+              <p className="section-label">Clinical learning, structured</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-foreground">
-                No fixed flow. Choose by context.
+                Built around the work that matters.
               </h2>
             </div>
-            <ol className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-3">
               {[
-                ["01", "During a supervised encounter", "Use Clinical reasoning to organize de-identified findings, or Case presentation to prepare a structured summary for review."],
-                ["02", "For deliberate practice", "Teaching and OSCE are separate practice modes for questions, patient interviews, and formative feedback."],
-                ["03", "When a standalone aid fits", "Open a calculator or image analysis directly. These tools do not depend on completing another module first."],
-              ].map(([number, title, description]) => (
-                <li key={number} className="border-l-2 border-brand-soft pl-4">
-                  <span className="font-mono text-xs font-semibold text-brand-strong">{number}</span>
+                ["Reason through findings", "Structure history, examination, and investigations while keeping recorded facts distinct from generated suggestions."],
+                ["Interpret clinical images", "Review de-identified images through validated uploads, transparent processing, and clearly labelled AI output."],
+                ["Report and practise", "Prepare a structured case report, rehearse OSCE interviews, and reinforce knowledge with targeted teaching cases."],
+              ].map(([title, description]) => (
+                <article key={title} className="border-l-2 border-brand-soft pl-4">
                   <h3 className="mt-3 text-sm font-semibold text-foreground">{title}</h3>
                   <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
-                </li>
+                </article>
               ))}
-            </ol>
+            </div>
           </div>
         </section>
 
@@ -124,8 +158,8 @@ export default function HomePage() {
         <section className="border-t border-border bg-brand text-white">
           <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
             <div>
-              <h2 className="text-2xl font-semibold tracking-[-0.035em]">Open the tool that fits the moment.</h2>
-              <p className="mt-2 text-sm text-white/75">Start as a guest and choose any module. No fixed workflow is required.</p>
+              <h2 className="text-2xl font-semibold tracking-[-0.035em]">Bring structure to the next clinical encounter.</h2>
+              <p className="mt-2 text-sm text-white/75">Reason through findings, review an image, or prepare a clear case report in one focused workspace.</p>
             </div>
             <LandingActions inverted />
           </div>
@@ -153,10 +187,10 @@ function ProductSpecimen() {
       <div className="rounded-[14px] border border-border bg-surface">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div>
-            <p className="text-xs font-semibold text-foreground">Clinical reasoning tool</p>
-            <p className="mt-0.5 text-[11px] text-muted">De-identified encounter notes · Supervised use</p>
+            <p className="text-xs font-semibold text-foreground">Clinical reasoning</p>
+            <p className="mt-0.5 text-[11px] text-muted">Patient facts and AI review, clearly separated</p>
           </div>
-          <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-strong">In progress</span>
+          <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-semibold text-brand-strong">Encounter</span>
         </div>
         <div className="grid sm:grid-cols-[150px_1fr]">
           <div className="border-b border-border p-3 sm:border-b-0 sm:border-r">

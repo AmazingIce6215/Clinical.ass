@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s | DxFlow",
   },
   description:
-    "Independent patient-encounter tools, OSCE practice, teaching cases, image review, and clinical calculators for medical students.",
+    "AI-assisted clinical reasoning, image diagnosis, case reporting, OSCE practice, and evidence-aware calculators for medical students.",
   manifest: "/manifest.json",
   applicationName: "DxFlow",
   category: "education",
@@ -21,13 +21,13 @@ export const metadata: Metadata = {
     siteName: "DxFlow",
     title: "DxFlow — Clinical tools for medical students",
     description:
-      "Independent tools for supervised patient encounters, case presentations, practice sessions, image review, and common clinical scores.",
+      "Structure patient findings, review clinical images, prepare case reports, and strengthen clinical reasoning in one focused workspace.",
     images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "DxFlow clinical tools for medical students" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "DxFlow — Clinical tools for medical students",
-    description: "Independent patient-encounter tools and practice modes for medical students.",
+    description: "Clinical reasoning, image diagnosis, case reporting, and focused learning tools for medical students.",
     images: ["/opengraph-image"],
   },
   appleWebApp: {

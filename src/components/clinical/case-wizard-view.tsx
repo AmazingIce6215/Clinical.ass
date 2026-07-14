@@ -35,14 +35,14 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
     />
     <AppShell
       backHref="/dashboard"
-      title={isClassic ? "Case presentation" : "Clinical reasoning"}
+      title={isClassic ? "Case report" : "Clinical reasoning"}
       subtitle={
         isClassic
-          ? "De-identified history → AI-assisted case presentation"
+          ? "De-identified history → AI-assisted case report"
           : "De-identified findings → AI-assisted reasoning review"
       }
     >
-      <h1 className="sr-only">{isClassic ? "Case presentation" : "Clinical reasoning"}</h1>
+      <h1 className="sr-only">{isClassic ? "Case report" : "Clinical reasoning"}</h1>
       <p className="mb-3 rounded-xl border border-border bg-surface p-3 text-xs leading-5 text-muted">
         For supervised educational use only. Do not enter identifiable patient information or rely
         on generated suggestions as a substitute for clinical judgment or senior review.
@@ -54,7 +54,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
       )}
       {isClassic && (
         <p className="mb-4 text-xs text-muted">
-          Build a systematic history and generate a case presentation to review with a supervisor. Skip questions that are not relevant.
+          Build a systematic history and generate a structured case report to review with a supervisor. Skip questions that are not relevant.
         </p>
       )}
       <div className="mb-6">
@@ -210,9 +210,9 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
                     nextLabel={
                       isComplete
                         ? w.loading
-                          ? (isClassic ? "Generating presentation…" : "Analyzing case…")
+                          ? (isClassic ? "Generating report…" : "Analyzing case…")
                           : isClassic
-                            ? "Generate presentation"
+                            ? "Generate report"
                             : "Generate assessment"
                         : w.loading
                           ? "Loading…"
@@ -472,7 +472,7 @@ function ClassicResults({
       </GlassCard>
 
       <GlassCard>
-        <h3 className="mb-3 font-semibold">Full presentation</h3>
+        <h3 className="mb-3 font-semibold">Structured case report</h3>
         <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted">
           {presentation.fullPresentation}
         </p>

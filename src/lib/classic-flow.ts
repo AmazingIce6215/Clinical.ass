@@ -1,7 +1,7 @@
 import type { ClassicStepResponse } from "./types";
 import { isTopicAlreadyAnswered } from "./question-dedup";
 
-/** Full ward-round history → case presentation script */
+/** Full ward-round history → structured case report */
 export const CLASSIC_FLOW: Omit<ClassicStepResponse, "workingDifferentials" | "missingCritical">[] = [
   {
     nextStep: "hpi_onset",
@@ -23,7 +23,7 @@ export const CLASSIC_FLOW: Omit<ClassicStepResponse, "workingDifferentials" | "m
     allowCustom: true,
     fieldKey: "hpi_progression",
     category: "hpi",
-    reasonForAsking: "Progression helps characterize the illness course in your presentation.",
+    reasonForAsking: "Progression helps characterize the illness course in your case report.",
   },
   {
     nextStep: "hpi_character",
@@ -33,7 +33,7 @@ export const CLASSIC_FLOW: Omit<ClassicStepResponse, "workingDifferentials" | "m
     allowCustom: true,
     fieldKey: "hpi_character",
     category: "hpi",
-    reasonForAsking: "Describe what the patient feels — use their words in your case presentation.",
+    reasonForAsking: "Describe what the patient feels — use their words in your case report.",
   },
   {
     nextStep: "hpi_associated",
@@ -65,7 +65,7 @@ export const CLASSIC_FLOW: Omit<ClassicStepResponse, "workingDifferentials" | "m
     allowCustom: true,
     fieldKey: "pmh",
     category: "pmh",
-    reasonForAsking: "PMH is essential in every ward-round presentation.",
+    reasonForAsking: "PMH is essential in every complete case report.",
   },
   {
     nextStep: "drugs",
@@ -96,7 +96,7 @@ export const CLASSIC_FLOW: Omit<ClassicStepResponse, "workingDifferentials" | "m
     allowCustom: true,
     fieldKey: "social",
     category: "social",
-    reasonForAsking: "Social history is part of a complete case presentation.",
+    reasonForAsking: "Social history is part of a complete case report.",
   },
   {
     nextStep: "ros",
@@ -135,7 +135,7 @@ export const CLASSIC_FLOW: Omit<ClassicStepResponse, "workingDifferentials" | "m
     allowCustom: true,
     fieldKey: "exam_systems",
     category: "exam",
-    reasonForAsking: "Document focused exam findings for your presentation.",
+    reasonForAsking: "Document focused exam findings for your case report.",
   },
 ];
 
@@ -148,12 +148,12 @@ export function getNextClassicStep(answeredKeys: string[]): ClassicStepResponse 
   return {
     nextStep: "complete",
     sectionLabel: "Complete",
-    question: "History complete — generate your case presentation.",
+    question: "History complete — generate your case report.",
     inputType: "chips",
-    options: ["Generate presentation"],
+    options: ["Generate report"],
     allowCustom: false,
     fieldKey: "complete",
     category: "complete",
-    reasonForAsking: "All history sections collected. Ready to present to your consultant.",
+    reasonForAsking: "All history sections collected. Ready to prepare a structured report for review.",
   };
 }

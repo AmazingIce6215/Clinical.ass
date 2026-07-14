@@ -24,13 +24,13 @@ export default function OpenGraphImage() {
             <div style={{ fontSize: 28, fontWeight: 700 }}>DxFlow</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 19, color: "#c9e0eb" }}>
-            <div>Patient encounter tools</div><div>Case presentations</div><div>Practice modes</div><div>Clinical utilities</div>
+            <div>Clinical reasoning</div><div>Image diagnosis</div><div>Case reports</div><div>Practice &amp; calculators</div>
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: 58 }}>
           <div style={{ color: "#0f766e", fontSize: 20, fontWeight: 700, letterSpacing: 2 }}>CLINICAL TOOLS FOR MEDICAL STUDENTS</div>
-          <div style={{ maxWidth: 650, marginTop: 24, fontSize: 56, lineHeight: 1.04, letterSpacing: -3, fontWeight: 700 }}>Tools for the patient encounter—and the learning around it.</div>
-          <div style={{ marginTop: 30, fontSize: 23, lineHeight: 1.5, color: "#5b6c78" }}>Independent modules, organized by purpose. Educational use only.</div>
+          <div style={{ maxWidth: 650, marginTop: 24, fontSize: 56, lineHeight: 1.04, letterSpacing: -3, fontWeight: 700 }}>A clearer way to reason through clinical encounters.</div>
+          <div style={{ marginTop: 30, fontSize: 23, lineHeight: 1.5, color: "#5b6c78" }}>Structured thinking, image review, and case reporting. Educational use only.</div>
         </div>
       </div>
     </div>,

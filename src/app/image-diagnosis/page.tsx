@@ -244,10 +244,10 @@ export default function ImageDiagnosisPage() {
   return (
     <AppShell
       backHref="/dashboard"
-      title="Clinical image interpretation"
+      title="Image diagnosis"
       subtitle="Educational, AI-assisted review of a de-identified image"
     >
-      <h1 className="sr-only">Clinical image interpretation</h1>
+      <h1 className="sr-only">Image diagnosis</h1>
       <section
         id={privacyNoticeId}
         aria-labelledby={`${privacyNoticeId}-title`}
