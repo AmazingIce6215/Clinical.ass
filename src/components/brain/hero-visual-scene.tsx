@@ -12,7 +12,7 @@ const ParticleHeartCanvas = dynamic(
     ),
   {
     ssr: false,
-    loading: () => <HeartFallbackGraphic />,
+    loading: () => null,
   },
 );
 
@@ -63,9 +63,10 @@ export function HeroVisualScene() {
       onPointerCancel={() => controllerRef.current?.pointerLeave()}
       onPointerUp={handlePointerUp}
     >
+      <HeartFallbackGraphic />
       <ParticleHeartCanvas
         controllerRef={controllerRef}
-        fallback={<HeartFallbackGraphic />}
+        fallback={null}
         reducedMotion={prefersReducedMotion}
       />
     </div>

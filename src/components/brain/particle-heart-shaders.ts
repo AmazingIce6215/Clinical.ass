@@ -66,7 +66,6 @@ export const particleHeartVertexShader = /* glsl */ `
 
 export const particleHeartFragmentShader = /* glsl */ `
   uniform float uTime;
-  uniform sampler2D uSprite;
 
   varying float vSeed;
   varying float vColorMix;
@@ -74,8 +73,9 @@ export const particleHeartFragmentShader = /* glsl */ `
   varying float vGlow;
 
   void main() {
-    vec4 sprite = texture2D(uSprite, gl_PointCoord);
-    if (sprite.a < 0.04) discard;
+    float pointDistance = length(gl_PointCoord - vec2(0.5));
+    float spriteAlpha = 1.0 - smoothstep(0.32, 0.5, pointDistance);
+    if (spriteAlpha < 0.04) discard;
 
     vec3 burgundy = vec3(0.48, 0.015, 0.045);
     vec3 heartRed = vec3(0.94, 0.025, 0.075);
@@ -87,7 +87,7 @@ export const particleHeartFragmentShader = /* glsl */ `
 
     float shimmer = 0.96 + 0.04 * sin(uTime * 1.1 + vSeed * 29.0);
     float brightness = shimmer * (0.82 + vDepth * 0.22) + vGlow * 0.38;
-    float alpha = sprite.a * (0.76 + vDepth * 0.24);
+    float alpha = spriteAlpha * (0.76 + vDepth * 0.24);
 
     gl_FragColor = vec4(color * brightness, alpha);
   }

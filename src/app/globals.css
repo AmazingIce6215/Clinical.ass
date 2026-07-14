@@ -483,6 +483,7 @@ body {
   width: 100% !important;
   height: 100% !important;
   background: transparent !important;
+  z-index: 1;
 }
 
 .heart-visual-fallback {
@@ -491,10 +492,12 @@ body {
   display: grid;
   place-items: center;
   pointer-events: none;
+  opacity: 0.42;
+  z-index: 0;
 }
 
 .heart-visual-fallback svg {
-  width: min(52%, 15rem);
+  width: min(68%, 20rem);
   overflow: visible;
 }
 

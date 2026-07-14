@@ -40,46 +40,6 @@ type HeartSceneProps = {
   reducedMotion: boolean;
 };
 
-function createRadialSpriteTexture() {
-  const size = 64;
-  const data = new Uint8Array(size * size * 4);
-
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      const normalizedX = (x + 0.5) / size - 0.5;
-      const normalizedY = (y + 0.5) / size - 0.5;
-      const distance = Math.sqrt(
-        normalizedX * normalizedX + normalizedY * normalizedY,
-      );
-      const normalizedDistance = Math.min(1, distance / 0.5);
-      const edge = Math.min(
-        1,
-        Math.max(0, (1 - normalizedDistance) / 0.22),
-      );
-      const alpha = edge * edge * (3 - 2 * edge);
-      const offset = (y * size + x) * 4;
-
-      data[offset] = 255;
-      data[offset + 1] = 255;
-      data[offset + 2] = 255;
-      data[offset + 3] = Math.round(alpha * 255);
-    }
-  }
-
-  const texture = new THREE.DataTexture(
-    data,
-    size,
-    size,
-    THREE.RGBAFormat,
-    THREE.UnsignedByteType,
-  );
-  texture.needsUpdate = true;
-  texture.magFilter = THREE.LinearFilter;
-  texture.minFilter = THREE.LinearFilter;
-  texture.generateMipmaps = false;
-  return texture;
-}
-
 function HeartScene({
   controllerRef,
   particleCount,
@@ -90,9 +50,6 @@ function HeartScene({
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const beatTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const emphasisTimelineRef = useRef<gsap.core.Timeline | null>(null);
-  const textureDisposalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
   const rippleSlotRef = useRef(0);
   const pointerRef = useRef({ clientX: 0, clientY: 0, active: false });
   const mouseStrengthRef = useRef(0);
@@ -101,7 +58,6 @@ function HeartScene({
     () => buildHeartParticleData(particleCount),
     [particleCount],
   );
-  const spriteTexture = useMemo(() => createRadialSpriteTexture(), []);
   const interactionPlane = useMemo(
     () => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
     [],
@@ -118,13 +74,12 @@ function HeartScene({
       uMouse: { value: new THREE.Vector3() },
       uMouseStrength: { value: 0 },
       uPixelRatio: { value: pixelRatio },
-      uSprite: { value: spriteTexture },
       uRippleOrigins: {
         value: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()],
       },
       uRippleStartTimes: { value: [-100, -100, -100] },
     }),
-    [pixelRatio, spriteTexture],
+    [pixelRatio],
   );
 
   const projectClientPoint = useCallback(
@@ -241,21 +196,10 @@ function HeartScene({
   }, [reducedMotion]);
 
   useEffect(() => {
-    // Strict Mode replays effects; cancel its provisional cleanup before the
-    // mounted scene gets a chance to render with a disposed GPU texture.
-    if (textureDisposalTimerRef.current !== null) {
-      clearTimeout(textureDisposalTimerRef.current);
-      textureDisposalTimerRef.current = null;
-    }
-
     return () => {
       emphasisTimelineRef.current?.kill();
-      textureDisposalTimerRef.current = setTimeout(() => {
-        spriteTexture.dispose();
-        textureDisposalTimerRef.current = null;
-      }, 0);
     };
-  }, [spriteTexture]);
+  }, []);
 
   useFrame((state, delta) => {
     const material = materialRef.current;
