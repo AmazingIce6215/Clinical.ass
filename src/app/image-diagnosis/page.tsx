@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
+import { AlertTriangle, FileImage, Info, ShieldAlert, Upload } from "lucide-react";
 import { AppShell, GlassCard } from "@/components/app-shell";
 import { LoadingPanel } from "@/components/loading-panel";
 
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
-const CLINICAL_PROMPT =
-  "You are an educational image interpretation assistant. Analyze this image in a concise radiology-style way and respond in markdown. Focus on visible findings, the most likely interpretation, and brief next-step guidance if relevant. Use clear headings like ## Findings, ## Likely Diagnosis, ## Management, and ## Treatment when appropriate. Use bullet points where helpful, keep the response organized, and do not mention policy, safety disclaimers, or refusals unless absolutely required.";
+class ImageAnalysisError extends Error {}
 
 type AnalysisState = {
   loading: boolean;
@@ -14,6 +16,7 @@ type AnalysisState = {
   result: string;
   previewUrl: string;
   mimeType: string;
+  fileName: string;
 };
 
 const initialState: AnalysisState = {
@@ -22,13 +25,14 @@ const initialState: AnalysisState = {
   result: "",
   previewUrl: "",
   mimeType: "",
+  fileName: "",
 };
 
 function fileToDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("Could not read file"));
+    reader.onerror = () => reject(new ImageAnalysisError("The selected file could not be read."));
     reader.readAsDataURL(file);
   });
 }
@@ -36,7 +40,7 @@ function fileToDataUrl(file: File) {
 function getPureBase64(dataUrl: string) {
   const match = dataUrl.match(/^data:([^;,]+);base64,(.+)$/);
   if (!match?.[2]) {
-    throw new Error("Could not read image as a base64 file");
+    throw new ImageAnalysisError("The selected file could not be prepared for analysis.");
   }
   return match[2].trim();
 }
@@ -46,11 +50,10 @@ async function readApiResponse(response: Response) {
   if (!raw) return {};
 
   try {
-    return JSON.parse(raw) as { text?: string; error?: string; details?: string };
+    return JSON.parse(raw) as { text?: string; error?: string };
   } catch {
     return {
-      error: response.ok ? "Unexpected server response" : "Server returned a non-JSON response",
-      details: raw,
+      error: "The analysis service returned an unreadable response. Please try again.",
     };
   }
 }
@@ -158,25 +161,45 @@ function MarkdownResponse({ content }: { content: string }) {
 
 export default function ImageDiagnosisPage() {
   const [state, setState] = useState(initialState);
+  const uploadHelpId = useId();
+  const privacyNoticeId = useId();
 
   const handleFile = async (file?: File) => {
-    if (!file) return;
+    if (!file || state.loading) return;
+
+    const mimeType = file.type.toLowerCase();
+    if (!ALLOWED_IMAGE_TYPES.has(mimeType)) {
+      setState({
+        ...initialState,
+        error: "Use a JPEG, PNG, or WebP image.",
+      });
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      setState({
+        ...initialState,
+        error: "Choose an image smaller than 8 MB.",
+      });
+      return;
+    }
 
     try {
-      setState((prev) => ({
-        ...prev,
+      setState((previous) => ({
+        ...previous,
         loading: true,
         error: "",
         result: "",
+        fileName: file.name,
+        mimeType,
       }));
 
       const dataUrl = await fileToDataUrl(file);
-      const base64 = getPureBase64(dataUrl);
+      const imageBase64 = getPureBase64(dataUrl);
 
-      setState((prev) => ({
-        ...prev,
+      setState((previous) => ({
+        ...previous,
         previewUrl: dataUrl,
-        mimeType: file.type || "image/jpeg",
       }));
 
       const response = await fetch("/api/gemini-vision", {
@@ -185,98 +208,161 @@ export default function ImageDiagnosisPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          imageBase64: base64,
-          mimeType: file.type || "image/jpeg",
-          prompt: CLINICAL_PROMPT,
+          imageBase64,
+          mimeType,
         }),
       });
 
       const data = await readApiResponse(response);
       if (!response.ok) {
-        throw new Error(data.details || data.error || "Image analysis failed");
+        throw new ImageAnalysisError(
+          data.error || "The image could not be analyzed right now. Please try again.",
+        );
       }
 
-      const resultText = data.text || "No response returned.";
+      if (!data.text?.trim()) {
+        throw new ImageAnalysisError("No interpretation was returned. Please try a different image.");
+      }
 
-      setState((prev) => ({
-        ...prev,
+      setState((previous) => ({
+        ...previous,
         loading: false,
-        result: resultText,
+        result: data.text!.trim(),
       }));
     } catch (error) {
-      setState((prev) => ({
-        ...prev,
+      setState((previous) => ({
+        ...previous,
         loading: false,
-        error: error instanceof Error ? error.message : "Something went wrong while reading or analyzing the image",
+        error:
+          error instanceof ImageAnalysisError
+            ? error.message
+            : "The image could not be analyzed right now. Please try again.",
       }));
     }
   };
 
   return (
-    <AppShell backHref="/" title="Image Diagnosis" subtitle="Upload a clinical image for a visual read">
+    <AppShell
+      backHref="/dashboard"
+      title="Clinical image interpretation"
+      subtitle="Educational, AI-assisted review of a de-identified image"
+    >
+      <h1 className="sr-only">Clinical image interpretation</h1>
+      <section
+        id={privacyNoticeId}
+        aria-labelledby={`${privacyNoticeId}-title`}
+        className="mb-6 flex gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100"
+      >
+        <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+        <div>
+          <h2 id={`${privacyNoticeId}-title`} className="text-sm font-semibold">
+            De-identify the image before upload
+          </h2>
+          <p className="mt-1 text-sm leading-6">
+            Remove names, dates of birth, record numbers, embedded labels, and other direct
+            identifiers. The selected image is processed by Google Gemini to generate an
+            educational response.
+          </p>
+        </div>
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
         <GlassCard className="space-y-5">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              Upload image
-            </p>
-            <p className="mt-2 text-sm text-muted">
-              Choose a medical image and we&apos;ll send it to Gemini 2.0 Flash for a concise clinical read.
+            <h2 className="text-base font-semibold text-foreground">Select an image</h2>
+            <p id={uploadHelpId} className="mt-2 text-sm leading-6 text-muted">
+              Upload one JPEG, PNG, or WebP file up to 8 MB. Use the original-quality clinical
+              image when possible.
             </p>
           </div>
 
-          <label className="flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-surface/50 px-4 py-8 text-center transition hover:border-accent/40 hover:bg-surface/70">
+          <label className="flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface px-4 py-8 text-center transition-colors hover:border-accent focus-within:border-accent focus-within:outline-none focus-within:ring-2 focus-within:ring-accent/30">
             <input
               type="file"
-              accept="image/*"
-              className="hidden"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              disabled={state.loading}
+              aria-describedby={`${uploadHelpId} ${privacyNoticeId}`}
               onChange={(event) => {
-                const file = event.target.files?.[0];
+                const file = event.currentTarget.files?.[0];
+                event.currentTarget.value = "";
                 void handleFile(file);
               }}
             />
-            <span className="text-4xl">🖼️</span>
-            <span className="mt-4 text-sm font-medium text-foreground">
-              Click to upload or drop an image here
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-background text-accent">
+              <Upload className="h-5 w-5" aria-hidden="true" />
             </span>
-            <span className="mt-2 text-xs text-muted">
-              PNG, JPG, WebP, or similar image formats
+            <span className="mt-4 text-sm font-semibold text-foreground">
+              {state.loading ? "Uploading image…" : "Choose an image"}
             </span>
+            <span className="mt-2 text-xs text-muted">JPEG, PNG, or WebP · maximum 8 MB</span>
           </label>
+
+          {state.fileName ? (
+            <div className="flex items-start gap-3 rounded-xl border border-border bg-background p-3">
+              <FileImage className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{state.fileName}</p>
+                <p className="mt-0.5 text-xs text-muted">{state.mimeType}</p>
+              </div>
+            </div>
+          ) : null}
         </GlassCard>
 
         <GlassCard className="space-y-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              Output
-            </p>
-            <p className="mt-2 text-sm text-muted">
-              Gemini&apos;s response appears here in the same clinical output style used elsewhere.
+            <h2 className="text-base font-semibold text-foreground">
+              AI-generated educational interpretation
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              Observations and suggestions are generated from the uploaded image and may be
+              incomplete or incorrect. Confirm them against the source image and appropriate
+              clinical guidance.
             </p>
           </div>
 
           {state.previewUrl ? (
-            <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-background/40">
+            <figure className="overflow-hidden rounded-xl border border-border bg-background">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={state.previewUrl}
-                alt="Uploaded medical image preview"
+                alt="Preview of the selected clinical image"
                 className="h-auto w-full"
               />
-            </div>
+              <figcaption className="border-t border-border px-3 py-2 text-xs text-muted">
+                Uploaded image preview
+              </figcaption>
+            </figure>
           ) : null}
 
-          <div className="rounded-2xl border border-border/60 bg-background/40">
+          <div className="rounded-xl border border-border bg-background">
             {state.loading ? (
               <LoadingPanel visible={true} />
             ) : (
-              <div className="p-5">
+              <div className="p-5" aria-live="polite">
                 {state.error ? (
-                  <p className="text-sm text-rose-500">{state.error}</p>
+                  <div className="flex gap-3 text-red-700 dark:text-red-300" role="alert">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                    <p className="text-sm leading-6">{state.error}</p>
+                  </div>
                 ) : state.result ? (
-                  <MarkdownResponse content={state.result} />
+                  <div className="space-y-5">
+                    <div className="flex gap-3 rounded-xl border border-border bg-surface p-3 text-sm text-muted">
+                      <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                      <p className="leading-6">
+                        For learning support only. This output is not a diagnosis and must not be
+                        used as the sole basis for patient care.
+                      </p>
+                    </div>
+                    <MarkdownResponse content={state.result} />
+                  </div>
                 ) : (
-                  <p className="text-sm text-muted">Your result will appear here after analysis.</p>
+                  <div className="flex gap-3 text-muted">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                    <p className="text-sm leading-6">
+                      The generated interpretation will appear here after an image is selected.
+                    </p>
+                  </div>
                 )}
               </div>
             )}

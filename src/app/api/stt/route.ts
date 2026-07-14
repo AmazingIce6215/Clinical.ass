@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const groq = getGroqClient();
     if (!groq) {
       return NextResponse.json(
-        { error: "GROQ_API_KEY is not configured" },
+        { error: "Voice transcription is unavailable." },
         { status: 503 },
       );
     }
@@ -41,9 +41,10 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ text: transcription.text });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Transcription failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { error: "Voice transcription is temporarily unavailable." },
+      { status: 500 },
+    );
   }
 }

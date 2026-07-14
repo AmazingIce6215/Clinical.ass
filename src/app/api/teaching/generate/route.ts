@@ -85,8 +85,8 @@ DEPTH RULES FOR EXPLANATIONS:
 - Focus on exam traps and what students commonly miss
 
 EXAMPLE OF CORRECT EXPLANATION STYLE:
-❌ BAD: "Option B is incorrect because it is not consistent with pneumonia."
-✅ GOOD: "Option B suggests pulmonary embolism. While PE can present with acute dyspnea and chest pain, this patient has fever, productive cough, and focal crackles, which strongly indicate infectious consolidation rather than vascular obstruction. PE typically lacks purulent sputum and focal auscultatory findings. Additionally, the chest X-ray shows lobar opacity, not the clear lungs or wedge-shaped infarct typically seen in PE."
+POOR EXAMPLE: "Option B is incorrect because it is not consistent with pneumonia."
+BETTER EXAMPLE: "Option B suggests pulmonary embolism. While PE can present with acute dyspnea and chest pain, this patient has fever, productive cough, and focal crackles, which strongly indicate infectious consolidation rather than vascular obstruction. PE typically lacks purulent sputum and focal auscultatory findings. Additionally, the chest X-ray shows lobar opacity, not the clear lungs or wedge-shaped infarct typically seen in PE."
 
 Rules:
 - Generate exactly 3 questions per session

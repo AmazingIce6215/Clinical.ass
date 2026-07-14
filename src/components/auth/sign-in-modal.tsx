@@ -1,36 +1,26 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
-import { PrimaryButton } from "@/components/app-shell";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff, ShieldCheck, UserRoundCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button, Notice } from "@/components/ui/primitives";
 import { useAuth } from "@/context/auth-context";
 import { normalizeAuthResult } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
-function MessageBox({ message, tone }: { message: string | null; tone: "error" | "success" }) {
-  if (!message) return null;
+type AuthMode = "signin" | "signup" | "reset";
 
-  const toneClass = tone === "error"
-    ? "border-red-500/20 bg-red-500/10 text-red-600"
-    : "border-emerald-500/20 bg-emerald-500/10 text-emerald-600";
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -4 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.15 }}
-      className={`rounded-xl border px-4 py-2.5 text-sm ${toneClass}`}
-    >
-      {message}
-    </motion.div>
-  );
+function safeNext(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/dashboard";
+  return value;
 }
 
-const cardClass = "w-full max-w-md rounded-[28px] border border-border/70 bg-surface/95 p-5 shadow-soft sm:p-7";
-
-export function SignInModal() {
-  const { create, unlock, resetPin, goAnonymous } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
+export function SignInPanel() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { session, ready, create, unlock, resetPin, goAnonymous } = useAuth();
+  const [mode, setMode] = useState<AuthMode>("signin");
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,38 +28,47 @@ export function SignInModal() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const next = safeNext(searchParams.get("next"));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (ready && session) router.replace(next);
+  }, [next, ready, router, session]);
+
+  const chooseMode = (nextMode: AuthMode) => {
+    setMode(nextMode);
+    setError(null);
+    setSuccess(null);
+    setPassword("");
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError(null);
     setSuccess(null);
 
     if (mode === "reset") {
       if (!email.trim()) {
-        setError("Please enter your email.");
+        setError("Enter the email address linked to your account.");
         return;
       }
       setLoading(true);
-      const err = await resetPin(email);
+      const resetError = await resetPin(email);
       setLoading(false);
-      if (err) {
-        setError(err);
-      } else {
-        setSuccess("A reset link has been sent to your inbox.");
-      }
+      if (resetError) setError(resetError);
+      else setSuccess("If an account exists for this email, a reset link has been sent.");
       return;
     }
 
     if (mode === "signup" && firstName.trim().length < 2) {
-      setError("Please enter your name.");
+      setError("Enter the name you would like DxFlow to display.");
       return;
     }
     if (!email.trim() || !password) {
-      setError("Please complete both email and password fields.");
+      setError("Complete both the email and password fields.");
       return;
     }
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError("Use a password with at least 6 characters.");
       return;
     }
 
@@ -79,149 +78,100 @@ export function SignInModal() {
       : await unlock(email, password);
     setLoading(false);
 
-    const normalized = normalizeAuthResult(result);
-    if (result && typeof result === "object" && "error" in result) {
-      setError(normalized);
-    } else if (result && typeof result === "string" && result.trim()) {
-      setError(normalized);
-    } else if (mode === "signup") {
-      setSuccess("Welcome aboard. Your account is ready.");
+    if (result) {
+      const message = normalizeAuthResult(result);
+      if (mode === "signup" && /check your inbox|confirm/i.test(message)) setSuccess(message);
+      else setError(message);
+      return;
     }
+
+    router.replace(next);
   };
 
-  const resetForm = () => {
-    setError(null);
-    setSuccess(null);
-    setPassword("");
+  const continueAsGuest = () => {
+    goAnonymous();
+    router.replace(next);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-3 backdrop-blur-sm sm:p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
-        className={cardClass}
-      >
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-accent">Clinical.ass</p>
-            <h2 className="text-2xl font-semibold tracking-tight">
-              {mode === "signin" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset password"}
-            </h2>
-          </div>
-          <div className="rounded-2xl bg-accent/10 px-3 py-2 text-2xl">🩺</div>
+    <div className="rounded-[16px] border border-border bg-surface p-5 shadow-panel sm:p-7">
+      <div className="flex items-start gap-4">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[10px] bg-brand-soft text-brand-strong">
+          <UserRoundCheck aria-hidden="true" className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="section-label">Secure access</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-[-0.035em] text-foreground">
+            {mode === "signin" ? "Sign in to DxFlow" : mode === "signup" ? "Create your account" : "Reset your password"}
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            {mode === "signup"
+              ? "An account stores your profile and session. Saved cases and learning statistics currently remain on this device."
+              : mode === "reset"
+                ? "We will request a password-reset email for a hosted account. Device-local accounts cannot receive reset email."
+                : "Continue to your clinical learning workspace and device-local progress."}
+          </p>
         </div>
+      </div>
 
-        <p className="mb-5 text-sm leading-6 text-muted">
-          {mode === "signin"
-            ? "Sign in to continue your clinical learning journey with your saved progress."
-            : mode === "signup"
-              ? "Create a secure account and keep your learning synced across devices."
-              : "We will send a secure reset link to your email."}
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <AnimatePresence mode="wait">
-            {mode === "signup" && (
-              <motion.div
-                key="name"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
-              >
-                <label className="mb-1.5 block text-sm font-medium">Your name</label>
-                <input
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Alex"
-                  className="w-full rounded-xl border border-border/80 bg-surface/70 px-4 py-3 text-sm outline-none transition focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-                  autoFocus
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full rounded-xl border border-border/80 bg-surface/70 px-4 py-3 text-sm outline-none transition focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-              autoComplete="email"
-            />
-          </div>
-
-          {mode !== "reset" && (
-            <div>
-              <label className="mb-1.5 block text-sm font-medium">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
-                  className="w-full rounded-xl border border-border/80 bg-surface/70 px-4 py-3 pr-20 text-sm outline-none transition focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-3 flex items-center text-xs font-medium text-muted transition hover:text-foreground"
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          <AnimatePresence mode="wait">
-            {error && <MessageBox key="error" message={error} tone="error" />}
-            {success && <MessageBox key="success" message={success} tone="success" />}
-          </AnimatePresence>
-
-          <PrimaryButton type="submit" disabled={loading} className="w-full">
-            {loading ? "Please wait..." : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link"}
-          </PrimaryButton>
-        </form>
-
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
-          <button
-            type="button"
-            onClick={() => {
-              setMode(mode === "signin" ? "signup" : "signin");
-              resetForm();
-            }}
-            className="transition hover:text-foreground"
-          >
-            {mode === "signin" ? "Create account" : "Sign in instead"}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode("reset");
-              resetForm();
-            }}
-            className="transition hover:text-foreground"
-          >
-            Forgot password?
-          </button>
+      {mode !== "reset" ? (
+        <div className="mt-6 grid grid-cols-2 rounded-[10px] border border-border bg-surface-subtle p-1" role="group" aria-label="Authentication mode">
+          <button type="button" onClick={() => chooseMode("signin")} aria-pressed={mode === "signin"} className={cn("min-h-10 rounded-[8px] text-sm font-semibold", mode === "signin" ? "bg-surface text-foreground shadow-card" : "text-muted")}>Sign in</button>
+          <button type="button" onClick={() => chooseMode("signup")} aria-pressed={mode === "signup"} className={cn("min-h-10 rounded-[8px] text-sm font-semibold", mode === "signup" ? "bg-surface text-foreground shadow-card" : "text-muted")}>Create account</button>
         </div>
+      ) : null}
 
-        <button
-          type="button"
-          onClick={() => {
-            resetForm();
-            goAnonymous();
-          }}
-          className="mt-4 w-full text-sm text-muted underline underline-offset-2 transition hover:text-foreground"
-        >
-          Continue anonymously
-        </button>
-      </motion.div>
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        {mode === "signup" ? (
+          <label className="block">
+            <span className="text-sm font-semibold text-foreground">Display name</span>
+            <input value={firstName} onChange={(event) => setFirstName(event.target.value)} autoComplete="name" placeholder="Your name" className="mt-1.5 w-full rounded-[10px] border border-border bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/15" />
+          </label>
+        ) : null}
+
+        <label className="block">
+          <span className="text-sm font-semibold text-foreground">Email address</span>
+          <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" placeholder="you@example.com" className="mt-1.5 w-full rounded-[10px] border border-border bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/15" />
+        </label>
+
+        {mode !== "reset" ? (
+          <label className="block">
+            <span className="text-sm font-semibold text-foreground">Password</span>
+            <span className="relative mt-1.5 block">
+              <input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === "signup" ? "new-password" : "current-password"} placeholder="At least 6 characters" className="w-full rounded-[10px] border border-border bg-surface px-3.5 py-3 pr-12 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/15" />
+              <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute inset-y-0 right-0 grid w-11 place-items-center text-muted" aria-label={showPassword ? "Hide password" : "Show password"}>
+                {showPassword ? <EyeOff aria-hidden="true" className="h-4 w-4" /> : <Eye aria-hidden="true" className="h-4 w-4" />}
+              </button>
+            </span>
+          </label>
+        ) : null}
+
+        {error ? <Notice title="We could not complete that request" tone="danger">{error}</Notice> : null}
+        {success ? <Notice title="Check your inbox">{success}</Notice> : null}
+
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Please wait…" : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link"}
+        </Button>
+      </form>
+
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm">
+        {mode === "reset" ? (
+          <button type="button" onClick={() => chooseMode("signin")} className="font-semibold text-brand-strong hover:underline">Back to sign in</button>
+        ) : (
+          <button type="button" onClick={() => chooseMode("reset")} className="text-muted hover:text-foreground">Forgot password?</button>
+        )}
+        <button type="button" onClick={continueAsGuest} className="font-semibold text-brand-strong hover:underline">Continue as guest</button>
+      </div>
+
+      <div className="mt-6 flex gap-3 rounded-[10px] border border-border bg-surface-subtle p-3 text-xs leading-5 text-muted">
+        <ShieldCheck aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-brand-strong" />
+        <p>Do not enter identifiable patient information. Review the <Link href="/privacy-policy" className="font-semibold text-foreground underline underline-offset-2">privacy policy</Link> before using AI-assisted modules.</p>
+      </div>
     </div>
   );
+}
+
+// Compatibility export for any legacy imports while routes migrate away from a modal gate.
+export function SignInModal() {
+  return <SignInPanel />;
 }

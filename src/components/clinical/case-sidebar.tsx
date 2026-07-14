@@ -1,12 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { CircleAlert } from "lucide-react";
+import { useId, useState } from "react";
 import type { ClinicalAiInsight, CoPilotInsight, PatientCase } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function CaseSidebar({
-  patientCase,
   aiInsight,
   aiInsightIsLocal,
   aiError,
@@ -22,7 +22,7 @@ export function CaseSidebar({
 }) {
   const [userExpanded, setUserExpanded] = useState(false);
 
-  const showAiSection = aiError || aiInsight;
+  const showAiSection = Boolean(aiError || aiInsight);
   const aiCollapsed = minimizeAi && !userExpanded && Boolean(aiInsight);
 
   const aiPanel = aiError ? (
@@ -44,16 +44,21 @@ export function CaseSidebar({
 
   return (
     <>
-      {/* Mobile: always show minimized leading cause only */}
       {showAiSection && (
         <div className="mb-4 lg:hidden">
-          {aiInsight && (
-            <MinimizedAiPanel
+          {aiInsight && (userExpanded ? (
+            <AiInsightPanel
               insight={aiInsight}
-              onExpand={() => setUserExpanded(true)}
-              compact
+              isLocal={aiInsightIsLocal}
+              onMinimize={() => setUserExpanded(false)}
             />
-          )}
+          ) : (
+              <MinimizedAiPanel
+                insight={aiInsight}
+                onExpand={() => setUserExpanded(true)}
+                compact
+              />
+            ))}
           {aiError && !aiInsight && (
             <AiErrorCard message={aiError} />
           )}
@@ -179,18 +184,18 @@ function MinimizedAiPanel({
       type="button"
       onClick={onExpand}
       className={cn(
-        "flex w-full items-center gap-3 rounded-2xl border border-accent/25 bg-accent/5 px-4 py-3 text-left transition hover:border-accent/40 hover:bg-accent/10",
+        "flex min-h-11 w-full items-center gap-3 rounded-xl border border-accent/25 bg-surface px-4 py-3 text-left transition hover:border-accent/40 hover:bg-background",
         compact ? "py-2.5" : "py-3",
       )}
       aria-expanded="false"
-      aria-label="Expand live AI sidebar"
+      aria-label="Expand generated clinical suggestion"
     >
       <span className="relative flex h-2 w-2 shrink-0">
         <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-accent">
-          Live AI
+          Generated suggestion
         </p>
         <p className="truncate text-sm font-medium text-foreground">
           {insight.leadingDiagnosis}
@@ -217,63 +222,71 @@ function CoPilotPanel({
   onAnalyze?: () => void;
 }) {
   const [expanded, setExpanded] = useState(true);
-  const actionLabel = loading ? "Analyzing…" : insight ? "Refresh" : "Analyze";
+  const contentId = useId();
+  const actionLabel = loading ? "Generating…" : insight ? "Refresh" : "Generate";
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-surface/60 p-4 backdrop-blur-md">
+    <div className="rounded-xl border border-border bg-surface p-4">
       <div className="mb-3 flex items-start justify-between gap-3">
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
-          className="text-left"
+          className="min-h-11 text-left"
           aria-expanded={expanded}
+          aria-controls={contentId}
         >
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
-            CO-PILOT
+            AI learning aid
           </p>
           <p className="mt-1 text-sm font-semibold text-foreground">
-            Clinical thinking coach
+            Generated coaching prompts
           </p>
         </button>
         <button
           type="button"
           onClick={onAnalyze}
           disabled={loading || !onAnalyze}
-          className="rounded-xl border border-border/60 bg-surface px-3 py-2 text-sm font-semibold text-foreground transition hover:border-accent/60 hover:bg-accent/5 disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-11 rounded-xl border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground transition hover:border-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
           {actionLabel}
         </button>
       </div>
 
       {expanded && (
-        <div className="space-y-4">
+        <div id={contentId} className="space-y-4">
           {error ? (
             <AiErrorCard message={error} />
           ) : insight ? (
             <>
               {stale && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-                  Case changed since the last analysis. Refresh to update recommendations.
+                  The recorded case changed after these suggestions were generated. Refresh before
+                  reviewing them.
                 </div>
               )}
 
-              <SidebarCard title="Key Clinical Questions to Ask Next">
-                {insight.keyQuestions.map((question) => (
-                  <p key={question} className="text-sm leading-relaxed text-muted">
-                    • {question}
-                  </p>
-                ))}
+              <p className="text-xs leading-5 text-muted">
+                AI-generated learning prompts. Verify each suggestion against the case and
+                appropriate clinical guidance.
+              </p>
+
+              <SidebarCard title="Suggested questions to ask next">
+                <ul className="list-disc space-y-2 pl-4 text-sm leading-relaxed text-muted">
+                  {insight.keyQuestions.map((question) => (
+                    <li key={question}>{question}</li>
+                  ))}
+                </ul>
               </SidebarCard>
 
-              <SidebarCard title="Focused Examination Steps">
-                {insight.examSteps.map((step) => (
-                  <p key={step} className="text-sm leading-relaxed text-muted">
-                    • {step}
-                  </p>
-                ))}
+              <SidebarCard title="Suggested examination focus">
+                <ul className="list-disc space-y-2 pl-4 text-sm leading-relaxed text-muted">
+                  {insight.examSteps.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ul>
               </SidebarCard>
 
-              <SidebarCard title="Expected Findings (Based on Possible Pathways)">
+              <SidebarCard title="Possible findings by pathway">
                 {insight.expectedFindings.map((item) => (
                   <div key={item.pathway} className="space-y-2 rounded-xl border border-border/50 bg-surface/50 p-3">
                     <p className="text-sm font-semibold text-foreground">{item.pathway}</p>
@@ -286,17 +299,18 @@ function CoPilotPanel({
                 ))}
               </SidebarCard>
 
-              <SidebarCard title="Red Flags Not to Miss">
-                {insight.redFlags.map((flag) => (
-                  <p key={flag} className="text-sm leading-relaxed text-muted">
-                    • {flag}
-                  </p>
-                ))}
+              <SidebarCard title="Red flags for review">
+                <ul className="list-disc space-y-2 pl-4 text-sm leading-relaxed text-muted">
+                  {insight.redFlags.map((flag) => (
+                    <li key={flag}>{flag}</li>
+                  ))}
+                </ul>
               </SidebarCard>
             </>
           ) : (
             <p className="text-sm text-muted">
-              Tap Analyze to get focused coaching on next questions, exam maneuvers, expected findings, and key red flags.
+              Generate educational prompts for questions, examination focus, possible findings,
+              and red flags.
             </p>
           )}
         </div>
@@ -320,18 +334,15 @@ function AiInsightPanel({
     <motion.div
       layout
       className={cn(
-        "overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 via-surface/80 to-surface/60 shadow-soft backdrop-blur-xl",
+        "overflow-hidden rounded-xl border border-accent/30 bg-surface shadow-sm",
         compact ? "p-4" : "p-5",
       )}
     >
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-40" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-          </span>
+          <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
           <h3 className="text-xs font-semibold uppercase tracking-wider text-accent">
-            {isLocal ? "Clinical preview" : "AI clinical reasoning"}
+            {isLocal ? "Rule-based clinical preview" : "AI-generated clinical suggestions"}
           </h3>
         </div>
         <div className="flex items-center gap-2">
@@ -345,8 +356,8 @@ function AiInsightPanel({
             <button
               type="button"
               onClick={onMinimize}
-              className="rounded-lg px-2 py-1 text-[10px] font-medium text-muted transition hover:bg-surface/80 hover:text-foreground"
-              aria-label="Minimize live AI sidebar"
+              className="min-h-11 rounded-lg px-2 py-1 text-xs font-medium text-muted transition hover:bg-background hover:text-foreground"
+              aria-label="Minimize generated clinical suggestions"
             >
               Minimize
             </button>
@@ -362,7 +373,9 @@ function AiInsightPanel({
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.25 }}
         >
-          <p className="text-[10px] font-medium uppercase tracking-wide text-muted">Leading</p>
+          <p className="text-[10px] font-medium uppercase tracking-wide text-muted">
+            Suggested leading diagnosis
+          </p>
           <p className={cn("font-semibold text-foreground", compact ? "text-sm" : "text-base")}>
             {insight.leadingDiagnosis}
           </p>
@@ -373,7 +386,7 @@ function AiInsightPanel({
       {insight.differentials.length > 0 && (
         <div className="mt-4 space-y-2.5">
           <p className="text-[10px] font-medium uppercase tracking-wide text-muted">
-            Working differentials
+            Suggested differentials
           </p>
           <AnimatePresence mode="popLayout">
             {insight.differentials.map((d, i) => (
@@ -388,21 +401,6 @@ function AiInsightPanel({
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-xs font-medium leading-snug">{d.diagnosis}</span>
                   <LikelihoodBadge likelihood={d.likelihood} />
-                </div>
-                <div className="mt-2 h-1 overflow-hidden rounded-full bg-border/40">
-                  <motion.div
-                    className={cn(
-                      "h-full rounded-full",
-                      d.likelihood === "high"
-                        ? "bg-emerald-500"
-                        : d.likelihood === "moderate"
-                          ? "bg-amber-500"
-                          : "bg-slate-400",
-                    )}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${d.confidence}%` }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                  />
                 </div>
                 {!compact && d.reasoning && (
                   <p className="mt-1.5 text-[10px] leading-relaxed text-muted">{d.reasoning}</p>
@@ -431,7 +429,8 @@ function AiInsightPanel({
 
       {isLocal && !compact && (
         <p className="mt-3 text-[10px] leading-relaxed text-muted">
-          Offline preview while you work up the case. Full AI runs when you tap Diagnose.
+          This preview is generated locally from recorded findings. Selecting Generate assessment
+          requests a separate AI-generated educational review.
         </p>
       )}
     </motion.div>
@@ -439,18 +438,22 @@ function AiInsightPanel({
 }
 
 function AiErrorCard({ message }: { message: string }) {
-  const isRateLimit = /rate limit/i.test(message);
+  const isTemporary = /rate|quota|busy|timeout|network|fetch|temporar/i.test(message);
 
   return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
-      <p className="text-xs font-semibold text-red-700 dark:text-red-300">
-        {isRateLimit ? "AI is busy" : "AI unavailable"}
-      </p>
-      <p className="mt-2 text-sm text-red-600 dark:text-red-200">{message}</p>
-      <p className="mt-2 text-xs text-muted">
-        {isRateLimit
-          ? "Live differentials pause briefly to save your final diagnosis quota."
-          : "If this persists, ensure GROQ_API_KEY is configured on your environment."}
+    <div
+      className="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-950"
+      role="alert"
+    >
+      <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+        <CircleAlert className="h-4 w-4" aria-hidden="true" />
+        <p className="text-xs font-semibold">
+          {isTemporary ? "AI suggestions are temporarily unavailable" : "AI suggestions unavailable"}
+        </p>
+      </div>
+      <p className="mt-2 text-sm leading-6 text-red-700 dark:text-red-200">
+        Continue with the recorded case and your own clinical reasoning, or try generating the
+        suggestions again shortly.
       </p>
     </div>
   );
@@ -463,7 +466,10 @@ function UrgencyBadge({ urgency }: { urgency: ClinicalAiInsight["urgency"] }) {
     emergency: "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400",
   };
   return (
-    <span className={cn("rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase", styles[urgency])}>
+    <span
+      className={cn("rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase", styles[urgency])}
+      aria-label={`AI-suggested urgency: ${urgency}`}
+    >
       {urgency}
     </span>
   );
@@ -471,7 +477,7 @@ function UrgencyBadge({ urgency }: { urgency: ClinicalAiInsight["urgency"] }) {
 
 function SidebarCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-surface/60 p-4 backdrop-blur-md">
+    <div className="rounded-xl border border-border bg-background p-4">
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">{title}</h3>
       <div className="space-y-2">{children}</div>
     </div>
@@ -500,6 +506,7 @@ function LikelihoodBadge({ likelihood }: { likelihood: string }) {
         "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase",
         colors[likelihood] ?? colors.moderate,
       )}
+      aria-label={`AI-suggested likelihood: ${likelihood}`}
     >
       {likelihood}
     </span>

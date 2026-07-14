@@ -329,6 +329,7 @@ export function useCaseWizard(mode: Mode) {
   };
 
   const resolveContradiction = (idx: number, clarification: string) => {
+    void clarification;
     setActiveContradictions((prev) => prev.filter((_, i) => i !== idx));
     setExpandedContradictionIdx((prev) => (prev === idx ? null : prev));
   };

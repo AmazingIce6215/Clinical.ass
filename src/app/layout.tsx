@@ -1,26 +1,46 @@
 import type { Metadata, Viewport } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/auth-context";
-import { AuthGate } from "@/components/auth/auth-gate";
-import { AvatarButton } from "@/components/avatar-button";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Clincalass — Clinical Reasoning Companion",
+  metadataBase: new URL("https://clinicalass.vercel.app"),
+  title: {
+    default: "DxFlow — Clinical learning, structured",
+    template: "%s | DxFlow",
+  },
   description:
-    "AI-powered clinical workup and case-based teaching for medical students. Educational use only.",
+    "Structured clinical reasoning, OSCE practice, teaching cases, and evidence-aware tools for medical learners.",
   manifest: "/manifest.json",
+  applicationName: "DxFlow",
+  category: "education",
+  openGraph: {
+    type: "website",
+    siteName: "DxFlow",
+    title: "DxFlow — Clinical learning, structured",
+    description:
+      "Practice clinical reasoning, OSCE interviews, case questions, and common scoring tools in one focused workspace.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "DxFlow clinical learning workspace" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DxFlow — Clinical learning, structured",
+    description: "A focused clinical learning workspace for medical students and junior clinicians.",
+    images: ["/opengraph-image"],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Clincalass",
+    title: "DxFlow",
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f6fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#070b14" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f7f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b141b" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -33,14 +53,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="h-full antialiased">
-      <body className="min-h-dvh bg-background text-foreground">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
+    >
+      <body className={`${GeistSans.className} min-h-dvh bg-background text-foreground`}>
         <ThemeProvider>
           <AuthProvider>
-            <AuthGate>
-              {children}
-              <AvatarButton />
-            </AuthGate>
+            {children}
           </AuthProvider>
         </ThemeProvider>
       </body>

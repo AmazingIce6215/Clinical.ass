@@ -2,11 +2,26 @@
 
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { motion } from "framer-motion";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { notFound } from "next/navigation";
-import { AppShell, GlassCard, SecondaryButton } from "@/components/app-shell";
-import { FadeSlide } from "@/components/motion";
+import {
+  CheckCircle2,
+  FileSearch,
+  ListChecks,
+  LoaderCircle,
+  RefreshCw,
+  TriangleAlert,
+} from "lucide-react";
+import { AppShell } from "@/components/app-shell";
+import { TeachingSubjectIcon } from "@/components/teaching/subject-icon";
+import {
+  Badge,
+  Button,
+  ButtonLink,
+  Notice,
+  PageHeader,
+  Surface,
+} from "@/components/ui/primitives";
 import {
   getSubjectAiInsight,
   getSubjectAttemptsForAnalysis,
@@ -19,347 +34,266 @@ import { getSubject } from "@/lib/teaching-subjects";
 import type { SubjectAiInsight } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export default function SubjectStatsPage({
-  params,
-}: {
-  params: Promise<{ subject: string }>;
-}) {
+export default function SubjectStatsPage({ params }: { params: Promise<{ subject: string }> }) {
   const { subject: subjectId } = use(params);
   const subjectInfo = getSubject(subjectId);
-  const [insight, setInsight] = useState<SubjectAiInsight | null>(
-    () => !needsAnalysis(subjectId) ? getSubjectAiInsight(subjectId) : null,
+  const [insight, setInsight] = useState<SubjectAiInsight | null>(() =>
+    !needsAnalysis(subjectId) ? getSubjectAiInsight(subjectId) : null,
   );
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const initRef = useRef(false);
+  const initialized = useRef(false);
 
-  const allSubjects = getSubjectBreakdown();
-  const subjectStats = allSubjects.find((s) => s.id === subjectId);
-  const weakTopics = getWeakTopics().filter(
-    (t) => subjectId === "all" || t.topic.toLowerCase().includes(subjectId),
+  const subjectStats = getSubjectBreakdown().find((subject) => subject.id === subjectId);
+  const weakTopics = getWeakTopics().filter((topic) =>
+    subjectId === "all" || topic.topic.toLowerCase().includes(subjectId),
   );
-
-  const needsRefresh = !insight && !analyzing && !error;
 
   const runAnalysis = useCallback(async () => {
     if (!subjectInfo || !subjectStats) return;
     setAnalyzing(true);
     setError(null);
+
     try {
       const attempts = getSubjectAttemptsForAnalysis(subjectId);
       if (attempts.length === 0) {
-        setError("Not enough data to analyze. Answer more questions first.");
+        setError("More completed questions are needed before a generated review can be prepared.");
         return;
       }
-      const res = await fetch("/api/teaching/analyze", {
+
+      const response = await fetch("/api/teaching/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           subject: subjectId,
           subjectName: subjectInfo.name,
-          attempts: attempts.map((a) => ({
-            vignette: a.vignette,
-            prompt: a.prompt,
-            options: a.options,
-            correctAnswerText: a.correctAnswerText,
-            userAnswerText: a.userAnswerText,
-            correct: a.correct,
-            timeTaken: a.timeTaken,
-            difficulty: a.difficulty,
+          attempts: attempts.map((attempt) => ({
+            vignette: attempt.vignette,
+            prompt: attempt.prompt,
+            options: attempt.options,
+            correctAnswerText: attempt.correctAnswerText,
+            userAnswerText: attempt.userAnswerText,
+            correct: attempt.correct,
+            timeTaken: attempt.timeTaken,
+            difficulty: attempt.difficulty,
           })),
         }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? "Analysis failed");
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error ?? "The generated review is temporarily unavailable.");
         return;
       }
-      const data = await res.json();
+
+      const data = await response.json();
       setSubjectAiInsight(subjectId, data.insight);
       setInsight(data.insight);
-      setError(null);
     } catch {
-      setError("Network error — check your connection");
+      setError("The generated review could not be reached. Check your connection and try again.");
     } finally {
       setAnalyzing(false);
     }
   }, [subjectId, subjectInfo, subjectStats]);
 
   useEffect(() => {
-    if (initRef.current || !subjectInfo || !subjectStats) return;
-    initRef.current = true;
-    if (needsRefresh) {
-      runAnalysis();
-    }
-  }, [subjectInfo, subjectStats, needsRefresh, runAnalysis]);
+    if (initialized.current || !subjectInfo || !subjectStats) return;
+    initialized.current = true;
+    if (!insight && !error) void runAnalysis();
+  }, [error, insight, runAnalysis, subjectInfo, subjectStats]);
 
   if (!subjectInfo) notFound();
 
   return (
-    <AppShell
-      backHref="/stats"
-      title={subjectInfo.name}
-      subtitle={`${subjectInfo.description}`}
-    >
-      <div className="mx-auto max-w-3xl space-y-6">
-        {/* Header stats */}
-        <FadeSlide>
-          <GlassCard>
-            <div className="flex items-center gap-4">
-              <span className="text-4xl">{subjectInfo.icon}</span>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-                      Performance
-                    </p>
-                    {subjectStats ? (
-                      <div className="mt-3 grid grid-cols-3 gap-4">
-                        <div>
-                          <p className="text-xs text-muted">Accuracy</p>
-                          <p className="text-2xl font-bold tabular-nums text-accent">
-                            {subjectStats.accuracy}%
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted">Attempted</p>
-                          <p className="text-2xl font-bold tabular-nums">
-                            {subjectStats.attempted}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted">Correct</p>
-                          <p className="text-2xl font-bold tabular-nums text-emerald-500">
-                            {subjectStats.correct}
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="mt-2 text-sm text-muted">
-                        No questions attempted in this subject yet.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-            {subjectStats && (
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-border/60">
-                <motion.div
-                  className={cn(
-                    "h-full rounded-full",
-                    subjectStats.accuracy >= 80
-                      ? "bg-emerald-500"
-                      : subjectStats.accuracy >= 60
-                        ? "bg-amber-500"
-                        : "bg-red-500",
-                  )}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${subjectStats.accuracy}%` }}
-                  transition={{ type: "spring", stiffness: 60, damping: 20 }}
-                />
-              </div>
-            )}
-          </GlassCard>
-        </FadeSlide>
+    <AppShell backHref="/stats" title={subjectInfo.name} subtitle="Subject-level formative performance">
+      <div className="mx-auto max-w-5xl space-y-6">
+        <PageHeader
+          eyebrow="Progress"
+          title={subjectInfo.name}
+          description={subjectInfo.description}
+          actions={<ButtonLink href={`/teaching/${subjectInfo.id}`} variant="primary">Practice this subject</ButtonLink>}
+        />
 
-        {/* Weak Topics */}
-        {weakTopics.length > 0 && (
-          <FadeSlide delay={0.1}>
-            <GlassCard>
-              <p className="mb-4 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-                Weak Topics
-              </p>
-              <div className="space-y-2">
-                {weakTopics.map((topic, i) => (
-                  <div
-                    key={topic.topic}
-                    className="flex items-center justify-between rounded-xl border border-border/40 bg-surface/40 p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          "flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold",
-                          i === 0
-                            ? "bg-red-500/20 text-red-500"
-                            : i === 1
-                              ? "bg-amber-500/20 text-amber-500"
-                              : "bg-surface text-muted",
-                        )}
-                      >
-                        {i + 1}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium capitalize">{topic.topic}</p>
-                        <p className="text-xs text-muted">
-                          {topic.incorrectCount} incorrect
-                          {topic.totalAttempts > 0
-                            ? ` · ${topic.accuracy}% accuracy`
-                            : ""}
-                        </p>
-                      </div>
-                    </div>
-                    <span
-                      className={cn(
-                        "rounded-full px-2.5 py-1 text-xs font-medium",
-                        topic.accuracy < 40
-                          ? "bg-red-500/10 text-red-500"
-                          : topic.accuracy < 70
-                            ? "bg-amber-500/10 text-amber-500"
-                            : "bg-emerald-500/10 text-emerald-500",
-                      )}
-                    >
-                      {topic.accuracy < 40
-                        ? "Needs work"
-                        : topic.accuracy < 70
-                          ? "Improving"
-                          : "Getting there"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </GlassCard>
-          </FadeSlide>
-        )}
-
-        {/* AI Analysis */}
-        <FadeSlide delay={0.2}>
-          <GlassCard>
-            <p className="mb-1 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              AI Performance Analysis
-            </p>
-
-            {/* Analyzing state */}
-            {analyzing && (
-              <div className="mt-4 flex items-center gap-3 rounded-xl border border-border/40 bg-surface/40 px-5 py-4">
-                <motion.div
-                  className="h-5 w-5 shrink-0 rounded-full border-2 border-accent/30 border-t-accent"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.45fr)]">
+          <div className="space-y-6">
+            <Surface className="p-5">
+              <div className="flex items-center gap-3">
+                <span className="grid h-11 w-11 place-items-center rounded-[10px] bg-brand-soft text-brand-strong">
+                  <TeachingSubjectIcon name={subjectInfo.icon} className="h-6 w-6" />
+                </span>
                 <div>
-                  <p className="text-sm font-medium">Analyzing your performance...</p>
-                  <p className="text-xs text-muted">
-                    Reviewing your answers to identify strengths and weaknesses
-                  </p>
+                  <h2 className="text-base font-semibold text-foreground">Practice summary</h2>
+                  <p className="text-sm text-muted">Teaching mode only</p>
                 </div>
               </div>
-            )}
 
-            {/* Error state */}
-            {error && !analyzing && (
-              <div className="mt-4 space-y-3">
-                <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4">
-                  <p className="text-sm text-red-500">{error}</p>
-                </div>
-                <SecondaryButton onClick={runAnalysis}>Retry analysis</SecondaryButton>
-              </div>
-            )}
-
-            {/* Cached insight */}
-            {insight && !analyzing && (
-              <div className="mt-4 space-y-4">
-                {/* Strengths */}
-                {insight.strengths.length > 0 && (
-                  <div>
-                    <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-500">
-                      <span>✓</span> Strengths
-                    </p>
-                    <div className="space-y-2">
-                      {insight.strengths.map((s, i) => (
-                        <div key={i} className="rounded-lg border border-emerald-500/15 bg-emerald-500/5 p-3">
-                          <p className="text-sm font-medium text-foreground">{s.area}</p>
-                          <p className="mt-0.5 text-xs text-muted">{s.detail}</p>
-                        </div>
-                      ))}
-                    </div>
+              {subjectStats ? (
+                <>
+                  <dl className="mt-5 grid grid-cols-3 gap-2">
+                    <Metric label="Accuracy" value={`${subjectStats.accuracy}%`} />
+                    <Metric label="Attempted" value={String(subjectStats.attempted)} />
+                    <Metric label="Correct" value={String(subjectStats.correct)} />
+                  </dl>
+                  <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-border" aria-label={`${subjectStats.accuracy}% practice accuracy`}>
+                    <div
+                      className={cn(
+                        "h-full rounded-full",
+                        subjectStats.accuracy >= 80 ? "bg-success" : subjectStats.accuracy >= 60 ? "bg-warning" : "bg-danger",
+                      )}
+                      style={{ width: `${subjectStats.accuracy}%` }}
+                    />
                   </div>
-                )}
+                </>
+              ) : (
+                <p className="mt-5 rounded-[10px] bg-surface-subtle p-4 text-sm leading-6 text-muted">
+                  No completed questions are stored for this subject.
+                </p>
+              )}
+            </Surface>
 
-                {/* Weaknesses */}
-                {insight.weaknesses.length > 0 && (
-                  <div>
-                    <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-red-500">
-                      <span>⚠</span> Areas to improve
-                    </p>
-                    <div className="space-y-2">
-                      {insight.weaknesses.map((w, i) => (
-                        <div
-                          key={i}
-                          className={cn(
-                            "rounded-lg border p-3",
-                            w.severity === "high"
-                              ? "border-red-500/20 bg-red-500/5"
-                              : w.severity === "medium"
-                                ? "border-amber-500/20 bg-amber-500/5"
-                                : "border-yellow-500/20 bg-yellow-500/5",
-                          )}
-                        >
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-foreground">{w.area}</p>
-                            <span
-                              className={cn(
-                                "rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase",
-                                w.severity === "high"
-                                  ? "bg-red-500/15 text-red-500"
-                                  : w.severity === "medium"
-                                    ? "bg-amber-500/15 text-amber-500"
-                                    : "bg-yellow-500/15 text-yellow-500",
-                              )}
-                            >
-                              {w.severity}
-                            </span>
-                          </div>
-                          <p className="mt-0.5 text-xs text-muted">{w.detail}</p>
-                        </div>
-                      ))}
-                    </div>
+            <Surface className="p-5">
+              <h2 className="text-base font-semibold text-foreground">Topics to revisit</h2>
+              <p className="mt-1 text-sm leading-6 text-muted">Derived from your answered questions, not from a competency assessment.</p>
+              {weakTopics.length > 0 ? (
+                <ol className="mt-4 space-y-3">
+                  {weakTopics.map((topic, index) => (
+                    <li key={topic.topic} className="flex gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-subtle text-xs font-semibold text-muted">{index + 1}</span>
+                      <div>
+                        <p className="text-sm font-medium capitalize text-foreground">{topic.topic}</p>
+                        <p className="mt-0.5 text-xs text-muted">{topic.incorrectCount} incorrect · {topic.accuracy}% practice accuracy</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="mt-4 text-sm text-muted">No repeated incorrect topics have been identified.</p>
+              )}
+            </Surface>
+          </div>
+
+          <Surface className="p-5 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
+              <div className="flex items-start gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-info-soft text-info">
+                  <FileSearch aria-hidden="true" className="h-5 w-5" />
+                </span>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-base font-semibold text-foreground">Generated study review</h2>
+                    <Badge tone="info">AI-generated</Badge>
                   </div>
-                )}
-
-                {/* Recommendations */}
-                {insight.recommendations.length > 0 && (
-                  <div>
-                    <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent">
-                      <span>→</span> Recommendations
-                    </p>
-                    <ol className="space-y-1.5">
-                      {insight.recommendations.map((r, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[10px] font-bold text-accent">
-                            {i + 1}
-                          </span>
-                          <span className="text-muted">{r}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between border-t border-border/20 pt-4">
-                  <p className="text-[10px] text-muted">
-                    Analyzed {new Date(insight.generatedAt).toLocaleDateString()}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={runAnalysis}
-                    className="text-xs font-medium text-accent hover:underline"
-                  >
-                    Refresh analysis
-                  </button>
+                  <p className="mt-1 text-sm leading-6 text-muted">A formative summary of recent answers. Verify suggestions against trusted learning resources.</p>
                 </div>
               </div>
-            )}
+              {insight && !analyzing ? (
+                <Button variant="secondary" onClick={runAnalysis}>
+                  <RefreshCw aria-hidden="true" className="h-4 w-4" /> Refresh
+                </Button>
+              ) : null}
+            </div>
 
-            {/* No data yet */}
-            {!subjectStats && (
-              <p className="mt-4 text-sm text-muted">
-                Answer some questions in teaching mode to get a performance analysis.
-              </p>
-            )}
-          </GlassCard>
-        </FadeSlide>
+            {analyzing ? (
+              <div className="flex min-h-56 items-center justify-center" role="status" aria-live="polite">
+                <div className="text-center">
+                  <LoaderCircle aria-hidden="true" className="mx-auto h-7 w-7 animate-spin text-brand-strong" />
+                  <p className="mt-3 text-sm font-medium text-foreground">Preparing a study review</p>
+                  <p className="mt-1 text-xs text-muted">Recent answers are being processed by the configured AI provider.</p>
+                </div>
+              </div>
+            ) : null}
+
+            {error && !analyzing ? (
+              <div className="mt-5 space-y-4">
+                <Notice title="Review unavailable" tone="warning">{error}</Notice>
+                <Button variant="secondary" onClick={runAnalysis}>Try again</Button>
+              </div>
+            ) : null}
+
+            {insight && !analyzing ? <InsightSections insight={insight} /> : null}
+
+            {!subjectStats && !analyzing ? (
+              <div className="mt-5 rounded-[12px] border border-border bg-surface-subtle p-5">
+                <ListChecks aria-hidden="true" className="h-5 w-5 text-brand-strong" />
+                <h3 className="mt-3 text-sm font-semibold text-foreground">Complete a few questions first</h3>
+                <p className="mt-1 text-sm leading-6 text-muted">A generated review needs completed Teaching answers from this subject.</p>
+              </div>
+            ) : null}
+          </Surface>
+        </div>
       </div>
     </AppShell>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[10px] bg-surface-subtle p-3">
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className="mt-1 text-xl font-semibold tabular-nums text-foreground">{value}</dd>
+    </div>
+  );
+}
+
+function InsightSections({ insight }: { insight: SubjectAiInsight }) {
+  return (
+    <div className="mt-5 space-y-6">
+      {insight.strengths.length > 0 ? (
+        <section aria-labelledby="strengths-heading">
+          <h3 id="strengths-heading" className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-success" /> Observed strengths
+          </h3>
+          <div className="mt-3 space-y-2">
+            {insight.strengths.map((strength) => (
+              <div key={`${strength.area}-${strength.detail}`} className="rounded-[10px] border border-border p-4">
+                <p className="text-sm font-medium text-foreground">{strength.area}</p>
+                <p className="mt-1 text-sm leading-6 text-muted">{strength.detail}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {insight.weaknesses.length > 0 ? (
+        <section aria-labelledby="improvement-heading">
+          <h3 id="improvement-heading" className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <TriangleAlert aria-hidden="true" className="h-4 w-4 text-warning" /> Areas for review
+          </h3>
+          <div className="mt-3 space-y-2">
+            {insight.weaknesses.map((weakness) => (
+              <div key={`${weakness.area}-${weakness.detail}`} className="rounded-[10px] border border-border p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">{weakness.area}</p>
+                  <Badge tone={weakness.severity === "high" ? "danger" : weakness.severity === "medium" ? "warning" : "neutral"}>
+                    {weakness.severity} priority
+                  </Badge>
+                </div>
+                <p className="mt-1 text-sm leading-6 text-muted">{weakness.detail}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {insight.recommendations.length > 0 ? (
+        <section aria-labelledby="recommendations-heading">
+          <h3 id="recommendations-heading" className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <ListChecks aria-hidden="true" className="h-4 w-4 text-info" /> Suggested study steps
+          </h3>
+          <ol className="mt-3 space-y-2">
+            {insight.recommendations.map((recommendation, index) => (
+              <li key={recommendation} className="flex gap-3 rounded-[10px] bg-surface-subtle p-3 text-sm leading-6 text-muted">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-surface text-xs font-semibold text-foreground">{index + 1}</span>
+                <span>{recommendation}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+
+      <p className="border-t border-border pt-4 text-xs text-muted">
+        Generated {new Date(insight.generatedAt).toLocaleDateString("en-US", { dateStyle: "medium" })} from {insight.attemptCount} recorded attempt{insight.attemptCount === 1 ? "" : "s"}.
+      </p>
+    </div>
   );
 }

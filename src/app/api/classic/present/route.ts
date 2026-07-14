@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       const fallback: ClassicPresentation = {
         oneLiner: `${patientCase.name || "Patient"}, ${patientCase.age}y, presenting with ${patientCase.chiefComplaints.join(", ") || "symptoms"}.`,
         fullPresentation: buildFallbackPresentation(patientCase),
-        keyPoints: ["Complete history collected", "Add GROQ_API_KEY for AI-generated presentation"],
+        keyPoints: ["Complete history collected", "Generated presentation unavailable; review this local summary before use"],
         suggestedQuestions: ["What is your leading diagnosis?", "What investigations would you order?"],
       };
       return NextResponse.json({

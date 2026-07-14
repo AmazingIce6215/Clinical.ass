@@ -1,21 +1,34 @@
 import { NextResponse } from "next/server";
+import {
+  MAX_BASE64_CHARACTERS,
+  validateImagePayload,
+  type ImageValidationError,
+} from "./validation";
 
 export const maxDuration = 30;
+export const runtime = "nodejs";
 
-type GeminiVisionBody = {
-  imageBase64?: string;
-  mimeType?: string;
-  prompt?: string;
+const MAX_REQUEST_BYTES = MAX_BASE64_CHARACTERS + 2_048;
+
+const IMAGE_ANALYSIS_PROMPT = `You are an educational clinical image interpretation assistant for medical learners.
+
+Describe only features that are visible in the supplied image. Do not infer or reproduce a person's identity or other personal information. Separate observations from interpretation, state important uncertainty, and never present the output as a confirmed diagnosis or a substitute for review by a qualified clinician.
+
+Return concise Markdown with these headings when applicable:
+## Observed findings
+## Educational interpretation
+## Differential considerations
+## Limitations
+## Learning next steps
+
+Use neutral clinical language. Do not provide patient-specific prescribing or treatment instructions. If the image is not a clinical image, is too limited to interpret, or lacks enough context, say so clearly.`;
+
+type ProviderResponse = {
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+  }>;
+  error?: { message?: string };
 };
-
-function cleanBase64(value: string) {
-  const trimmed = value.trim();
-  const commaIndex = trimmed.indexOf(",");
-  if (commaIndex >= 0 && trimmed.startsWith("data:")) {
-    return trimmed.slice(commaIndex + 1);
-  }
-  return trimmed;
-}
 
 function normalizeModel(value: string) {
   return value.trim().replace(/^models\//, "");
@@ -32,12 +45,36 @@ function getModelCandidates() {
   return [...new Set(candidates)];
 }
 
-async function callGeminiVision(params: {
+function jsonResponse(body: { text?: string; error?: string }, status = 200) {
+  return NextResponse.json(body, {
+    status,
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+function validationErrorResponse(error: ImageValidationError) {
+  if (error === "unsupported_type") {
+    return jsonResponse({ error: "Use a JPEG, PNG, or WebP image." }, 415);
+  }
+
+  if (error === "image_too_large") {
+    return jsonResponse({ error: "Choose an image smaller than 8 MB." }, 413);
+  }
+
+  if (error === "invalid_image") {
+    return jsonResponse({ error: "The selected file could not be verified as an image." }, 400);
+  }
+
+  return jsonResponse({ error: "The upload request could not be read." }, 400);
+}
+
+async function callImageAnalysisProvider(params: {
   apiKey: string;
   model: string;
   imageBase64: string;
   mimeType: string;
-  prompt: string;
 }) {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${params.model}:generateContent`,
@@ -58,7 +95,7 @@ async function callGeminiVision(params: {
                   data: params.imageBase64,
                 },
               },
-              { text: params.prompt },
+              { text: IMAGE_ANALYSIS_PROMPT },
             ],
           },
         ],
@@ -71,84 +108,58 @@ async function callGeminiVision(params: {
 }
 
 export async function POST(request: Request) {
+  const contentLength = Number(request.headers.get("content-length") ?? "0");
+  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+    return validationErrorResponse("image_too_large");
+  }
+
+  let body: unknown;
   try {
-    const apiKey =
-      (process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY)?.trim();
-    const models = getModelCandidates();
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "GEMINI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY is not configured" },
-        { status: 500 },
-      );
-    }
+    body = await request.json();
+  } catch {
+    return validationErrorResponse("invalid_request");
+  }
 
-    let body: GeminiVisionBody;
-    try {
-      body = (await request.json()) as GeminiVisionBody;
-    } catch {
-      return NextResponse.json({ error: "Request body must be valid JSON" }, { status: 400 });
-    }
+  const validation = validateImagePayload(body);
+  if (!validation.ok) {
+    return validationErrorResponse(validation.error);
+  }
 
-    const imageBase64 = body.imageBase64?.trim();
-    const mimeType = body.mimeType?.trim() || "image/jpeg";
-    const prompt = body.prompt?.trim();
+  const apiKey =
+    (process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY)?.trim();
+  if (!apiKey) {
+    console.error("Image analysis service is not configured.");
+    return jsonResponse(
+      { error: "Image analysis is temporarily unavailable. Please try again later." },
+      503,
+    );
+  }
 
-    if (!imageBase64 || !prompt) {
-      return NextResponse.json({ error: "imageBase64 and prompt are required" }, { status: 400 });
-    }
+  const models = getModelCandidates();
+  let lastStatus = 502;
+  let lastDetails = "No provider response was received.";
 
-    const cleanedImage = cleanBase64(imageBase64);
-    if (!/^[A-Za-z0-9+/=]+$/.test(cleanedImage)) {
-      return NextResponse.json(
-        { error: "Image data is not valid base64" },
-        { status: 400 },
-      );
-    }
-
-    let lastDetails = "";
-    let lastStatus = 502;
-
+  try {
     for (const model of models) {
-      const { response, responseText } = await callGeminiVision({
+      const { response, responseText } = await callImageAnalysisProvider({
         apiKey,
         model,
-        imageBase64: cleanedImage,
-        mimeType,
-        prompt,
+        ...validation.value,
       });
 
-      if (!response.ok) {
-        lastStatus = response.status;
-        try {
-          const parsed = JSON.parse(responseText) as { error?: { message?: string } };
-          lastDetails = parsed.error?.message || responseText;
-        } catch {
-          lastDetails = responseText;
-        }
+      lastStatus = response.status;
 
-        const shouldFallback =
-          response.status === 429 ||
-          /high demand|quota|rate limit|overloaded|try again later/i.test(lastDetails);
-        if (shouldFallback && model !== models[models.length - 1]) {
-          continue;
-        }
-
+      let data: ProviderResponse;
+      try {
+        data = JSON.parse(responseText) as ProviderResponse;
+      } catch {
+        lastDetails = "The provider returned an unreadable response.";
         continue;
       }
 
-      let data: {
-        candidates?: Array<{
-          content?: { parts?: Array<{ text?: string }> };
-        }>;
-      };
-
-      try {
-        data = JSON.parse(responseText) as typeof data;
-      } catch {
-        return NextResponse.json(
-          { error: "Gemini returned a non-JSON response", details: responseText, model },
-          { status: 502 },
-        );
+      if (!response.ok) {
+        lastDetails = data.error?.message || `Provider status ${response.status}`;
+        continue;
       }
 
       const text =
@@ -157,15 +168,23 @@ export async function POST(request: Request) {
           .join("")
           .trim() || "";
 
-      return NextResponse.json({ text, model });
-    }
+      if (text) {
+        return jsonResponse({ text });
+      }
 
-    return NextResponse.json(
-      { error: "Gemini request failed", details: lastDetails, model: models[models.length - 1] },
-      { status: lastStatus },
-    );
+      lastDetails = "The provider returned an empty interpretation.";
+    }
   } catch (error) {
-    console.error("Gemini vision error:", error);
-    return NextResponse.json({ error: "Failed to analyze image" }, { status: 500 });
+    lastDetails = error instanceof Error ? error.message : "Unexpected provider failure.";
   }
+
+  console.error("Image analysis provider request failed.", {
+    status: lastStatus,
+    details: lastDetails.slice(0, 500),
+  });
+
+  return jsonResponse(
+    { error: "The image could not be analyzed right now. Please try again." },
+    502,
+  );
 }

@@ -17,8 +17,10 @@ export async function POST(request: Request) {
     const result = await gradeSession(body.session);
 
     return NextResponse.json(result);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to grade session";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { error: "Formative feedback is temporarily unavailable." },
+      { status: 500 },
+    );
   }
 }

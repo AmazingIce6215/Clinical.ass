@@ -20,7 +20,7 @@ export function Chip({
       className={cn(
         "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
         selected
-          ? "border-accent bg-accent/15 text-accent shadow-glow-sm"
+          ? "border-accent bg-accent/15 text-accent shadow-soft"
           : "border-border/80 bg-surface/50 text-foreground hover:border-accent/40 hover:bg-surface",
       )}
       whileHover={{ scale: 1.03 }}
@@ -106,7 +106,7 @@ export function SegmentedControl<T extends string>({
           {value === opt.value && (
             <motion.div
               layoutId="segment-bg"
-              className="absolute inset-0 rounded-lg bg-accent shadow-glow-sm"
+              className="absolute inset-0 rounded-lg bg-accent shadow-soft"
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
             />
           )}

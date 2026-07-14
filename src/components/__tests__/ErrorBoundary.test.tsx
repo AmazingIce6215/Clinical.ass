@@ -1,7 +1,6 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import ErrorBoundary from '../ErrorBoundary';
 
 // A component that throws an error when rendered
@@ -29,7 +28,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
 
-    expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
-    expect(screen.getByText(/please try again later/i)).toBeInTheDocument();
+    expect(screen.getByText(/could not be displayed/i)).toBeInTheDocument();
+    expect(screen.getByText(/reload the page/i)).toBeInTheDocument();
   });
 });

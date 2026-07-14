@@ -1,10 +1,25 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
 import Link from "next/link";
-import { AppShell, GlassCard } from "@/components/app-shell";
-import { FadeSlide } from "@/components/motion";
+import {
+  CalendarDays,
+  Check,
+  Clock3,
+  Flame,
+  Target,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { useSyncExternalStore } from "react";
+import { AppShell } from "@/components/app-shell";
+import { TeachingSubjectIcon } from "@/components/teaching/subject-icon";
+import {
+  Badge,
+  ButtonLink,
+  EmptyState,
+  PageHeader,
+  Surface,
+} from "@/components/ui/primitives";
 import {
   getActivityHeatmapData,
   getOverallStats,
@@ -16,15 +31,21 @@ import {
 import { teachingSubjects } from "@/lib/teaching-subjects";
 import { cn } from "@/lib/utils";
 
-function formatTime(seconds: number): string {
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  if (hrs > 0) return `${hrs}h ${mins}m`;
-  return `${mins}m`;
+const subscribe = () => () => undefined;
+
+function useHasMounted() {
+  return useSyncExternalStore(subscribe, () => true, () => false);
 }
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString("en-US", {
+function formatTime(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
+function formatDate(timestamp: number): string {
+  return new Date(timestamp).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -33,382 +54,235 @@ function formatDate(ts: number): string {
 }
 
 export default function StatsPage() {
-  const overall = useMemo(() => getOverallStats(), []);
-  const subjects = useMemo(() => getSubjectBreakdown(), []);
-  const weakTopics = useMemo(() => getWeakTopics(), []);
-  const streak = useMemo(() => getStreak(), []);
-  const recent = useMemo(() => getRecentAttempts(10), []);
-  const [heatmapYear] = useState(() => getActivityHeatmapData());
+  const mounted = useHasMounted();
 
-  const subjectMap = useMemo(() => {
-    const map: Record<string, { name: string; icon: string }> = {};
-    for (const s of teachingSubjects) {
-      map[s.id] = { name: s.name, icon: s.icon };
-    }
-    return map;
-  }, []);
+  if (!mounted) {
+    return (
+      <AppShell backHref="/dashboard" title="Progress" subtitle="Teaching activity and formative performance">
+        <div className="space-y-5" aria-busy="true">
+          <div className="h-28 animate-pulse rounded-[14px] border border-border bg-surface" />
+          <div className="h-72 animate-pulse rounded-[14px] border border-border bg-surface" />
+        </div>
+      </AppShell>
+    );
+  }
 
-  const streakActive = streak.current > 0;
+  const overall = getOverallStats();
+  const subjects = getSubjectBreakdown();
+  const weakTopics = getWeakTopics();
+  const streak = getStreak();
+  const recent = getRecentAttempts(8);
+  const activity = getActivityHeatmapData();
+  const subjectMap = new Map(teachingSubjects.map((subject) => [subject.id, subject]));
 
   return (
-    <AppShell backHref="/" title="Learning Stats" subtitle="Track your teaching mode performance">
-      <div className="mx-auto max-w-5xl space-y-8 lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0">
-        <div className="space-y-8 lg:col-span-2">
-        {/* A. Overall Performance */}
-        <FadeSlide>
-          <GlassCard>
-            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              Overall Performance
-            </p>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <StatCard
-                label="Questions Attempted"
-                value={overall.totalAttempted.toString()}
-              />
-              <StatCard
-                label="Overall Accuracy"
-                value={`${overall.overallAccuracy}%`}
-                accent
-              />
-              <StatCard
-                label="Total Study Time"
-                value={formatTime(overall.totalStudyTime)}
-              />
-            </div>
-          </GlassCard>
-        </FadeSlide>
+    <AppShell backHref="/dashboard" title="Progress" subtitle="Teaching activity and formative performance">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <PageHeader
+          eyebrow="Progress"
+          title="Learning record"
+          description="Review activity stored on this device. Percentages describe practice-question performance and are not clinical competency assessments."
+          actions={<ButtonLink href="/teaching" variant="primary">Start teaching session</ButtonLink>}
+        />
 
-        {/* B. Subject Breakdown */}
-        <FadeSlide delay={0.1}>
-          <GlassCard>
-            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              Subject Breakdown
-            </p>
-            {subjects.length === 0 ? (
-              <p className="text-sm text-muted">No subjects attempted yet. Start a teaching session!</p>
-            ) : (
-              <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
-                {subjects.map((s: { id: string; name: string; icon: string; attempted: number; accuracy: number }) => {
-                  const isWeakest = s.id === overall.weakest && subjects.length > 1;
-                  const isStrongest = s.id === overall.strongest && subjects.length > 1;
-                  return (
-                    <Link key={s.id} href={`/stats/${s.id}`} className="group block">
-                      <div className="mb-1.5 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{s.icon}</span>
-                          <span className="text-sm font-medium">{s.name}</span>
-                          {isWeakest && (
-                            <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-500">
-                              Weakest
-                            </span>
-                          )}
-                          {isStrongest && (
-                            <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500">
-                              Strongest
-                            </span>
-                          )}
+        <section aria-labelledby="summary-heading">
+          <h2 id="summary-heading" className="sr-only">Performance summary</h2>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Metric label="Questions attempted" value={String(overall.totalAttempted)} icon={Target} />
+            <Metric label="Practice accuracy" value={`${overall.overallAccuracy}%`} icon={Check} />
+            <Metric label="Study time" value={formatTime(overall.totalStudyTime)} icon={Clock3} />
+            <Metric label="Current activity streak" value={`${streak.current} day${streak.current === 1 ? "" : "s"}`} icon={Flame} />
+          </div>
+        </section>
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(280px,0.85fr)]">
+          <div className="space-y-6">
+            <Surface className="overflow-hidden">
+              <div className="border-b border-border px-5 py-4">
+                <h2 className="text-base font-semibold text-foreground">Subject performance</h2>
+                <p className="mt-1 text-sm text-muted">Results from completed Teaching questions.</p>
+              </div>
+              {subjects.length === 0 ? (
+                <div className="p-5">
+                  <EmptyState
+                    title="No teaching activity yet"
+                    description="Complete a teaching question to begin building a subject-level record."
+                    action={<ButtonLink href="/teaching" variant="primary">Choose a subject</ButtonLink>}
+                  />
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {subjects.map((subject) => {
+                    const strongest = subject.id === overall.strongest && subjects.length > 1;
+                    const focus = subject.id === overall.weakest && subjects.length > 1;
+
+                    return (
+                      <Link
+                        key={subject.id}
+                        href={`/stats/${subject.id}`}
+                        className="group block px-5 py-4 transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-brand-soft text-brand-strong">
+                            <TeachingSubjectIcon name={subject.icon} className="h-5 w-5" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="text-sm font-semibold text-foreground">{subject.name}</h3>
+                                {strongest ? <Badge tone="success">Highest accuracy</Badge> : null}
+                                {focus ? <Badge tone="warning">Review suggested</Badge> : null}
+                              </div>
+                              <span className="text-sm font-semibold tabular-nums text-foreground">{subject.accuracy}%</span>
+                            </div>
+                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border" aria-hidden="true">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full",
+                                  subject.accuracy >= 80 ? "bg-success" : subject.accuracy >= 60 ? "bg-warning" : "bg-danger",
+                                )}
+                                style={{ width: `${subject.accuracy}%` }}
+                              />
+                            </div>
+                            <p className="mt-2 text-xs text-muted">
+                              {subject.correct} correct of {subject.attempted} attempted
+                            </p>
+                          </div>
                         </div>
-                        <span className="text-sm font-semibold tabular-nums">
-                          {s.accuracy}%
-                        </span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-border/60">
-                        <motion.div
-                          className={cn(
-                            "h-full rounded-full",
-                            s.accuracy >= 80
-                              ? "bg-emerald-500"
-                              : s.accuracy >= 60
-                                ? "bg-amber-500"
-                                : "bg-red-500",
-                          )}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${s.accuracy}%` }}
-                          transition={{ type: "spring", stiffness: 60, damping: 20 }}
-                        />
-                      </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <p className="text-[11px] text-muted">
-                          {s.attempted} question{s.attempted !== 1 ? "s" : ""}
-                        </p>
-                        <span className="text-[11px] font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
-                          View analysis →
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </GlassCard>
-        </FadeSlide>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </Surface>
 
-        {/* C. Weak Topics */}
-        <FadeSlide delay={0.2}>
-          <GlassCard>
-            <p className="mb-1 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              Weak Topics
-            </p>
-            <p className="mb-6 text-xs text-muted">
-              Topics ranked by repeated incorrect answers
-            </p>
-            {weakTopics.length === 0 ? (
-              <p className="text-sm text-muted">
-                No weak topics detected. Keep answering to build your profile!
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {weakTopics.map((topic, i) => (
-                  <div
-                    key={topic.topic}
-                    className="flex items-center justify-between rounded-xl border border-border/40 bg-surface/40 p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          "flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold",
-                          i === 0
-                            ? "bg-red-500/20 text-red-500"
-                            : i === 1
-                              ? "bg-amber-500/20 text-amber-500"
-                              : "bg-surface text-muted",
-                        )}
-                      >
-                        {i + 1}
-                      </span>
+            <Surface className="overflow-hidden">
+              <div className="border-b border-border px-5 py-4">
+                <h2 className="text-base font-semibold text-foreground">Recent activity</h2>
+                <p className="mt-1 text-sm text-muted">Your latest answered teaching questions.</p>
+              </div>
+              {recent.length === 0 ? (
+                <p className="px-5 py-8 text-sm text-muted">No answered questions are stored on this device.</p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {recent.map((attempt, index) => {
+                    const subject = subjectMap.get(attempt.subject);
+                    return (
+                      <li key={`${attempt.questionId}-${attempt.timestamp}-${index}`} className="flex items-center gap-3 px-5 py-3.5">
+                        <span className={cn(
+                          "grid h-8 w-8 shrink-0 place-items-center rounded-full",
+                          attempt.correct ? "bg-success-soft text-success" : "bg-danger-soft text-danger",
+                        )}>
+                          {attempt.correct ? <Check aria-label="Correct" className="h-4 w-4" /> : <X aria-label="Incorrect" className="h-4 w-4" />}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-foreground">{subject?.name ?? attempt.subject}</p>
+                          <p className="mt-0.5 text-xs text-muted">{formatDate(attempt.timestamp)} · {attempt.difficulty}</p>
+                        </div>
+                        <span className="shrink-0 text-xs tabular-nums text-muted">
+                          {attempt.timeTaken < 60 ? `${attempt.timeTaken}s` : `${Math.floor(attempt.timeTaken / 60)}m ${attempt.timeTaken % 60}s`}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </Surface>
+          </div>
+
+          <aside className="space-y-6" aria-label="Activity details">
+            <Surface className="p-5">
+              <div className="flex items-center gap-2">
+                <CalendarDays aria-hidden="true" className="h-5 w-5 text-brand-strong" />
+                <h2 className="text-base font-semibold text-foreground">Study activity</h2>
+              </div>
+              <dl className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-[10px] bg-surface-subtle p-3">
+                  <dt className="text-xs text-muted">Longest streak</dt>
+                  <dd className="mt-1 text-lg font-semibold tabular-nums text-foreground">{streak.longest} days</dd>
+                </div>
+                <div className="rounded-[10px] bg-surface-subtle p-3">
+                  <dt className="text-xs text-muted">Last active</dt>
+                  <dd className="mt-1 text-sm font-semibold text-foreground">
+                    {streak.lastActiveDate
+                      ? new Date(`${streak.lastActiveDate}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                      : "No activity"}
+                  </dd>
+                </div>
+              </dl>
+              <ActivityGrid data={activity} />
+            </Surface>
+
+            <Surface className="p-5">
+              <h2 className="text-base font-semibold text-foreground">Topics to revisit</h2>
+              <p className="mt-1 text-sm leading-6 text-muted">Based only on repeated answers in Teaching mode.</p>
+              {weakTopics.length === 0 ? (
+                <p className="mt-5 rounded-[10px] bg-surface-subtle p-4 text-sm text-muted">No repeated incorrect topics have been identified.</p>
+              ) : (
+                <ol className="mt-4 space-y-3">
+                  {weakTopics.slice(0, 6).map((topic, index) => (
+                    <li key={topic.topic} className="flex gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-subtle text-xs font-semibold text-muted">{index + 1}</span>
                       <div>
-                        <p className="text-sm font-medium capitalize">{topic.topic}</p>
-                        <p className="text-xs text-muted">
-                          {topic.incorrectCount} incorrect
-                          {topic.totalAttempts > 0
-                            ? ` · ${topic.accuracy}% accuracy`
-                            : ""}
-                        </p>
+                        <p className="text-sm font-medium capitalize text-foreground">{topic.topic}</p>
+                        <p className="mt-0.5 text-xs text-muted">{topic.incorrectCount} incorrect · {topic.accuracy}% practice accuracy</p>
                       </div>
-                    </div>
-                    <motion.div
-                      className="text-xs font-medium"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <span
-                        className={cn(
-                          "rounded-full px-2.5 py-1",
-                          topic.accuracy < 40
-                            ? "bg-red-500/10 text-red-500"
-                            : topic.accuracy < 70
-                              ? "bg-amber-500/10 text-amber-500"
-                              : "bg-emerald-500/10 text-emerald-500",
-                        )}
-                      >
-                        {topic.accuracy < 40
-                          ? "Needs work"
-                          : topic.accuracy < 70
-                            ? "Improving"
-                            : "Getting there"}
-                      </span>
-                    </motion.div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </GlassCard>
-        </FadeSlide>
-
-        {/* E. Recent Activity */}
-        <FadeSlide delay={0.3}>
-          <GlassCard>
-            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              Recent Activity
-            </p>
-            {recent.length === 0 ? (
-              <p className="text-sm text-muted">No questions answered yet. Head to Teaching Mode!</p>
-            ) : (
-              <div className="space-y-2">
-                {recent.map((attempt, i) => (
-                  <motion.div
-                    key={`${attempt.questionId}-${i}`}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl border p-3 text-sm",
-                      attempt.correct
-                        ? "border-emerald-500/20 bg-emerald-500/5"
-                        : "border-red-500/20 bg-red-500/5",
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
-                        attempt.correct
-                          ? "bg-emerald-500/15 text-emerald-500"
-                          : "bg-red-500/15 text-red-500",
-                      )}
-                    >
-                      {attempt.correct ? "✓" : "✗"}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium capitalize">
-                          {subjectMap[attempt.subject]?.name ?? attempt.subject}
-                        </span>
-                        <span className="text-[10px] text-muted">
-                          {attempt.difficulty}
-                        </span>
-                      </div>
-                      <p className="mt-0.5 truncate text-xs text-muted">
-                        {formatDate(attempt.timestamp)}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-xs tabular-nums text-muted">
-                      {attempt.timeTaken < 60
-                        ? `${attempt.timeTaken}s`
-                        : `${Math.floor(attempt.timeTaken / 60)}m ${attempt.timeTaken % 60}s`}
-                    </span>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </GlassCard>
-        </FadeSlide>
-      </div>
-
-      <div className="space-y-8 lg:col-span-1">
-        {/* D. Streak + Heatmap */}
-        <FadeSlide delay={0.1}>
-          <GlassCard>
-            <p className="mb-6 text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">
-              Study Streak
-            </p>
-            <div className="mb-8 grid gap-4 sm:grid-cols-3">
-              <StatCard
-                label="Current Streak"
-                value={`${streak.current} day${streak.current !== 1 ? "s" : ""}`}
-                accent={streakActive}
-              />
-              <StatCard
-                label="Best Streak"
-                value={`${streak.longest} day${streak.longest !== 1 ? "s" : ""}`}
-              />
-              <StatCard
-                label="Last Active"
-                value={
-                  streak.lastActiveDate
-                    ? new Date(streak.lastActiveDate + "T00:00:00").toLocaleDateString(
-                        "en-US",
-                        { month: "short", day: "numeric" },
-                      )
-                    : "Never"
-                }
-              />
-            </div>
-
-            {/* Activity Heatmap */}
-            <p className="mb-4 text-sm font-medium text-muted">
-              Activity — last 12 months
-            </p>
-            <div className="overflow-x-auto pb-2">
-              <div className="flex gap-0.5">
-                {months(heatmapYear).map((month, mi) => (
-                  <div key={mi} className="flex flex-col gap-0.5">
-                    <p className="mb-1 text-[9px] font-medium text-muted">{month.label}</p>
-                    <div className="grid grid-flow-row gap-0.5" style={{ gridTemplateRows: `repeat(${month.rows}, 1fr)` }}>
-                      {month.days.map((day, di) => (
-                        <motion.div
-                          key={`${mi}-${di}`}
-                          initial={{ opacity: 0, scale: 0 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: (mi * month.days.length + di) * 0.001 }}
-                          className={cn(
-                            "h-2.5 w-2.5 rounded-[3px] sm:h-3 sm:w-3",
-                            day.level === 0 && "bg-border/20",
-                            day.level === 1 && "bg-accent/20",
-                            day.level === 2 && "bg-accent/40",
-                            day.level === 3 && "bg-accent/65",
-                            day.level === 4 && "bg-accent",
-                          )}
-                          title={`${day.date}: ${day.count} questions`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-3 flex items-center gap-2 text-[11px] text-muted">
-              <span>Less</span>
-              <div className="h-2.5 w-2.5 rounded-[3px] bg-border/20" />
-              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent/20" />
-              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent/40" />
-              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent/65" />
-              <div className="h-2.5 w-2.5 rounded-[3px] bg-accent" />
-              <span>More</span>
-            </div>
-          </GlassCard>
-        </FadeSlide>
-      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </Surface>
+          </aside>
+        </div>
       </div>
     </AppShell>
   );
 }
 
-function StatCard({
+function Metric({
   label,
   value,
-  accent = false,
+  icon: Icon,
 }: {
   label: string;
   value: string;
-  accent?: boolean;
+  icon: LucideIcon;
 }) {
   return (
-    <div className="rounded-xl border border-border/40 bg-surface/50 p-4">
-      <p className="text-xs text-muted">{label}</p>
-      <motion.p
-        className={cn(
-          "mt-1 text-2xl font-bold tabular-nums",
-          accent && "text-accent",
-        )}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      >
-        {value}
-      </motion.p>
-    </div>
+    <Surface className="p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-muted">{label}</p>
+        <Icon aria-hidden="true" className="h-4 w-4 text-brand-strong" />
+      </div>
+      <p className="mt-2 text-2xl font-semibold tracking-[-0.03em] tabular-nums text-foreground">{value}</p>
+    </Surface>
   );
 }
 
-
-
-function months(
-  data: Array<{ date: string; count: number; level: number }>,
-) {
-  if (data.length === 0) return [];
-  const monthMap: Record<
-    string,
-    { label: string; days: typeof data; rows: number }
-  > = {};
-
-  const firstDate = new Date(data[0].date);
-  const startDay = firstDate.getDay();
-
-  let idx = 0;
-  for (const d of data) {
-    const dt = new Date(d.date);
-    const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
-    const label = dt.toLocaleDateString("en-US", { month: "short" });
-
-    if (!monthMap[key]) {
-      monthMap[key] = { label, days: [], rows: 7 };
-      for (let p = 0; p < (idx === 0 ? startDay : 0); p++) {
-        monthMap[key].days.push({ date: "", count: 0, level: 0 });
-      }
-    }
-    monthMap[key].days.push(d);
-    idx++;
-  }
-
-  return Object.values(monthMap);
+function ActivityGrid({ data }: { data: Array<{ date: string; count: number; level: number }> }) {
+  const recent = data.slice(-84);
+  return (
+    <div className="mt-5">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="text-xs font-medium text-muted">Last 12 weeks</p>
+        <p className="text-[11px] text-muted">Darker cells indicate more questions</p>
+      </div>
+      <div className="grid grid-flow-col grid-rows-7 gap-1 overflow-hidden" role="img" aria-label="Teaching-question activity over the last 12 weeks">
+        {recent.map((day) => (
+          <span
+            key={day.date}
+            title={`${day.date}: ${day.count} question${day.count === 1 ? "" : "s"}`}
+            className={cn(
+              "aspect-square min-w-0 rounded-[3px]",
+              day.level === 0 && "bg-border",
+              day.level === 1 && "bg-accent/20",
+              day.level === 2 && "bg-accent/40",
+              day.level === 3 && "bg-accent/65",
+              day.level === 4 && "bg-accent",
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }

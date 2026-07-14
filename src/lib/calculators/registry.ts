@@ -1,4 +1,4 @@
-import type { CalculatorDefinition } from "./types";
+import type { CalculatorCategory, CalculatorDefinition } from "./types";
 import { gcs } from "./definitions/gcs";
 import { curb65 } from "./definitions/curb65";
 import { wellsPE } from "./definitions/wells-pe";
@@ -10,7 +10,9 @@ import { sofa } from "./definitions/sofa";
 import { childPugh } from "./definitions/child-pugh";
 import { bishop } from "./definitions/bishop";
 
-const calculators: CalculatorDefinition[] = [
+export const CALCULATOR_FAVORITES_STORAGE_KEY = "calc_favorites";
+
+const calculators: readonly CalculatorDefinition[] = [
   gcs,
   curb65,
   wellsPE,
@@ -25,7 +27,7 @@ const calculators: CalculatorDefinition[] = [
 
 const calculatorMap = new Map(calculators.map((c) => [c.slug, c]));
 
-export function getAllCalculators(): CalculatorDefinition[] {
+export function getAllCalculators(): readonly CalculatorDefinition[] {
   return calculators;
 }
 
@@ -33,7 +35,7 @@ export function getCalculator(slug: string): CalculatorDefinition | undefined {
   return calculatorMap.get(slug);
 }
 
-export function searchCalculators(query: string): CalculatorDefinition[] {
+export function searchCalculators(query: string): readonly CalculatorDefinition[] {
   const q = query.toLowerCase().trim();
   if (!q) return calculators;
   return calculators.filter(
@@ -41,11 +43,12 @@ export function searchCalculators(query: string): CalculatorDefinition[] {
       c.title.toLowerCase().includes(q) ||
       c.shortName.toLowerCase().includes(q) ||
       c.description.toLowerCase().includes(q) ||
-      c.category.toLowerCase().includes(q),
+      c.category.toLowerCase().includes(q) ||
+      c.evidence.intendedPopulation.toLowerCase().includes(q),
   );
 }
 
-export function getCalculatorsByCategory(categoryId: string): CalculatorDefinition[] {
+export function getCalculatorsByCategory(categoryId: string): readonly CalculatorDefinition[] {
   if (!categoryId || categoryId === "all") return calculators;
   return calculators.filter((c) => c.category === categoryId);
 }
@@ -58,7 +61,14 @@ export function getCategories() {
     return true;
   }).map((c) => ({
     id: c.category,
-    label: c.category.charAt(0).toUpperCase() + c.category.slice(1).replace("-", " "),
+    label: formatCalculatorCategory(c.category),
     icon: c.icon,
   }));
+}
+
+export function formatCalculatorCategory(category: CalculatorCategory): string {
+  return category
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }

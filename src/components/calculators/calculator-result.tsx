@@ -1,7 +1,7 @@
 "use client";
 
+import { Check, Info, RotateCcw } from "lucide-react";
 import type { CalculatorResult } from "@/lib/calculators/types";
-import { GlassCard } from "@/components/app-shell";
 import { cn } from "@/lib/utils";
 
 interface CalculatorResultProps {
@@ -9,103 +9,133 @@ interface CalculatorResultProps {
   onReset: () => void;
 }
 
-const severityConfig: Record<string, { bg: string; border: string; text: string; label: string }> = {
-  low: { bg: "from-emerald-500/10 to-emerald-400/5", border: "border-emerald-500/30", text: "text-emerald-600 dark:text-emerald-400", label: "Low risk" },
-  moderate: { bg: "from-amber-500/10 to-amber-400/5", border: "border-amber-500/30", text: "text-amber-600 dark:text-amber-400", label: "Moderate risk" },
-  high: { bg: "from-orange-500/10 to-orange-400/5", border: "border-orange-500/30", text: "text-orange-600 dark:text-orange-400", label: "High risk" },
-  severe: { bg: "from-red-500/15 to-red-400/5", border: "border-red-500/30", text: "text-red-600 dark:text-red-400", label: "Severe" },
-  critical: { bg: "from-purple-600/15 to-red-500/10", border: "border-purple-500/40", text: "text-purple-600 dark:text-purple-400", label: "Critical" },
+const severityConfig: Record<
+  CalculatorResult["severity"],
+  { border: string; surface: string; text: string }
+> = {
+  low: {
+    border: "border-brand/25",
+    surface: "bg-brand-soft",
+    text: "text-brand-strong",
+  },
+  moderate: {
+    border: "border-warning/30",
+    surface: "bg-warning-soft",
+    text: "text-warning",
+  },
+  high: {
+    border: "border-danger/25",
+    surface: "bg-danger-soft",
+    text: "text-danger",
+  },
+  severe: {
+    border: "border-danger/30",
+    surface: "bg-danger-soft",
+    text: "text-danger",
+  },
+  critical: {
+    border: "border-danger/40",
+    surface: "bg-danger-soft",
+    text: "text-danger",
+  },
 };
 
 export function CalculatorResultDisplay({ result, onReset }: CalculatorResultProps) {
-  const config = severityConfig[result.severity] ?? severityConfig.moderate;
+  const config = severityConfig[result.severity];
 
   return (
-    <GlassCard className={cn("overflow-hidden", config.border)}>
-      <div className="space-y-5">
-        <div className={cn("rounded-2xl bg-gradient-to-br p-5 text-center", config.bg)}>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted">
-            Score
-          </p>
-          <p className={cn("mt-1 text-5xl font-bold tracking-tight", config.text)}>
-            {result.score}
-            <span className="text-lg font-medium text-muted">/{result.maxScore}</span>
-          </p>
-          <div className="mt-2">
-            <span
-              className={cn(
-                "inline-block rounded-full px-3 py-1 text-xs font-semibold",
-                config.bg,
-                config.text,
-              )}
-            >
-              {result.label}
-            </span>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <Section title="Interpretation" content={result.interpretation} />
-          <Section title="Clinical Significance" content={result.clinicalSignificance} />
-
-          {result.recommendations && result.recommendations.length > 0 && (
-            <div>
-              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">
-                What Should I Do Now?
-              </p>
-              <ul className="space-y-1">
-                {result.recommendations.map((rec, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-2.5 rounded-lg border border-border/50 bg-surface/50 px-3 py-2.5 text-sm leading-relaxed text-foreground/90"
-                  >
-                    <span className="mt-0.5 shrink-0 text-accent">→</span>
-                    <span>{rec}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <Section title="Limitations" content={result.limitations} />
-
-          {result.details && result.details.length > 0 && (
-            <div>
-              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">
-                Component Breakdown
-              </p>
-              <div className="space-y-1">
-                {result.details.map((d, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between rounded-lg border border-border/50 bg-surface/50 px-3 py-2"
-                  >
-                    <span className="text-xs text-foreground">{d.label}</span>
-                    <span className="text-xs font-medium text-muted">{d.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={onReset}
-          className="w-full rounded-xl border border-border/70 bg-surface/60 py-2.5 text-sm font-medium text-muted transition hover:border-accent/30 hover:text-accent"
+    <section
+      className="rounded-xl border border-border bg-surface p-5 shadow-sm sm:p-6"
+      aria-labelledby="calculator-result-heading"
+    >
+      <div
+        className={cn("rounded-lg border p-5", config.border, config.surface)}
+        role="status"
+        aria-live="polite"
+      >
+        <h2 id="calculator-result-heading" className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+          Calculated score
+        </h2>
+        <output
+          className={cn("mt-2 block font-mono text-4xl font-semibold tracking-tight", config.text)}
+          aria-label={`Calculated score ${result.score} out of ${result.maxScore}`}
         >
-          Start over
-        </button>
+          {result.score}
+          <span className="ml-1 text-base font-medium text-muted">/ {result.maxScore}</span>
+        </output>
+        <p className={cn("mt-3 text-sm font-semibold", config.text)}>{result.label}</p>
       </div>
-    </GlassCard>
+
+      <div className="mt-6 space-y-5">
+        <ResultSection title="Interpretation" content={result.interpretation} />
+        <ResultSection title="Clinical context" content={result.clinicalSignificance} />
+
+        {result.recommendations?.length ? (
+          <section aria-labelledby="calculator-considerations-heading">
+            <h3
+              id="calculator-considerations-heading"
+              className="text-xs font-semibold uppercase tracking-[0.14em] text-muted"
+            >
+              Considerations for clinical review
+            </h3>
+            <ul className="mt-2 divide-y divide-border rounded-lg border border-border bg-background px-3">
+              {result.recommendations.map((recommendation) => (
+                <li key={recommendation} className="flex gap-3 py-3 text-sm leading-6 text-foreground">
+                  <Check className="mt-1 size-4 shrink-0 text-accent" aria-hidden="true" />
+                  <span>{recommendation}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        <ResultSection title="Limitations and context" content={result.limitations} />
+
+        {result.details?.length ? (
+          <section aria-labelledby="calculator-breakdown-heading">
+            <h3
+              id="calculator-breakdown-heading"
+              className="text-xs font-semibold uppercase tracking-[0.14em] text-muted"
+            >
+              Component breakdown
+            </h3>
+            <dl className="mt-2 divide-y divide-border rounded-lg border border-border bg-background px-3">
+              {result.details.map((detail) => (
+                <div key={detail.label} className="flex items-center justify-between gap-4 py-2.5">
+                  <dt className="text-sm text-foreground">{detail.label}</dt>
+                  <dd className="shrink-0 text-sm font-medium tabular-nums text-muted">{detail.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ) : null}
+      </div>
+
+      <div className="mt-6 flex gap-3 rounded-lg border border-border bg-background p-3 text-xs leading-5 text-muted">
+        <Info className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
+        <p>
+          Educational interpretation only. Confirm inputs and apply current local guidance, the full
+          clinical picture, and senior review where appropriate.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={onReset}
+        className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-semibold text-foreground outline-none transition-colors hover:border-accent/50 hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface motion-reduce:transition-none"
+      >
+        <RotateCcw className="size-4" aria-hidden="true" />
+        Clear result and start again
+      </button>
+    </section>
   );
 }
 
-function Section({ title, content }: { title: string; content: string }) {
+function ResultSection({ title, content }: { title: string; content: string }) {
   return (
-    <div>
-      <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-muted">{title}</p>
-      <p className="text-sm leading-relaxed text-foreground/90">{content}</p>
-    </div>
+    <section>
+      <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{title}</h3>
+      <p className="mt-1.5 text-sm leading-6 text-foreground">{content}</p>
+    </section>
   );
 }

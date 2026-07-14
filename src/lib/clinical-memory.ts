@@ -108,13 +108,10 @@ function extractEntries(
   }
 
   const values = Array.isArray(value) ? value : [String(value)];
-  let allDenied = true;
-  let anyDenied = false;
 
   for (const v of values) {
     const { denied, symptom } = isDenial(v);
     if (denied) {
-      anyDenied = true;
       entries.push({
         symptom: normalizeSymptom(symptom || fieldKey),
         present: false,
@@ -122,7 +119,6 @@ function extractEntries(
         rawValue: v,
       });
     } else if (normalize(v) !== "yes" && normalize(v) !== "no") {
-      allDenied = false;
       const syn = normalize(v);
       if (syn !== "skip" && syn !== "not applicable" && syn !== "") {
         entries.push({
@@ -133,7 +129,6 @@ function extractEntries(
         });
       }
     } else if (normalize(v) === "yes") {
-      allDenied = false;
       entries.push({
         symptom: fieldKey,
         present: true,
@@ -141,7 +136,6 @@ function extractEntries(
         rawValue: v,
       });
     } else if (normalize(v) === "no") {
-      anyDenied = true;
       entries.push({
         symptom: fieldKey,
         present: false,
@@ -301,5 +295,4 @@ function buildMemory(patientCase: PatientCase, skipField?: string): ClinicalMemo
 
   return entries;
 }
-
 

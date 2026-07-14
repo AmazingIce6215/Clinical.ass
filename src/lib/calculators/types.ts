@@ -1,5 +1,27 @@
 export type FieldType = "number" | "select" | "boolean" | "multiselect";
 
+export type CalculatorCategory =
+  | "cardiology"
+  | "critical-care"
+  | "hepatology"
+  | "neurology"
+  | "obstetrics"
+  | "respiratory";
+
+export type CalculatorIconKey =
+  | "activity"
+  | "air-vent"
+  | "baby"
+  | "brain"
+  | "droplets"
+  | "shield-alert"
+  | "stethoscope";
+
+export type ISODate = `${number}-${number}-${number}`;
+
+export type CalculatorValue = string | number | boolean | string[];
+export type CalculatorValues = Record<string, CalculatorValue>;
+
 export interface FieldOption {
   label: string;
   value: string | number;
@@ -33,14 +55,29 @@ export interface CalculatorResult {
   recommendations?: string[];
 }
 
+export interface CalculatorReference {
+  title: string;
+  citation: string;
+  url: string;
+}
+
+export interface CalculatorEvidence {
+  version: string;
+  intendedPopulation: string;
+  exclusions: string[];
+  references: CalculatorReference[];
+  reviewedAt: ISODate;
+}
+
 export interface CalculatorDefinition {
   slug: string;
   title: string;
   shortName: string;
   description: string;
-  category: string;
-  icon: string;
+  category: CalculatorCategory;
+  icon: CalculatorIconKey;
   clinicalApplication: string;
+  evidence: CalculatorEvidence;
   inputs: CalculatorField[];
-  calculate: (values: Record<string, string | number | boolean | string[]>) => CalculatorResult;
+  calculate: (values: CalculatorValues) => CalculatorResult;
 }

@@ -1,10 +1,10 @@
-# Clincalass
+# DxFlow
 
-Clinical reasoning companion for medical students — guided workup + case-based teaching.
+Structured clinical learning for medical students and junior clinicians — guided workups, case-based teaching, OSCE practice, image review, and common scoring tools.
 
 ## Features
 
-- **Clincalass Companion** — Fluid step wizard (not chat): demographics → complaints → AI-guided history/exam → differentials & management
+- **Clinical reasoning** — Structured workflow from demographics and complaints through history, examination, differentials, and review
 - **Teaching Mode** — Amboss-style case vignettes with MCQs and explanations
 - **System appearance** — Automatically matches your OS light/dark mode
 - **Animations** — Framer Motion transitions with reduced-motion support
@@ -31,7 +31,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Disclaimer
 
-**For educational use only.** Not a substitute for clinical judgment, senior review, or local protocols. Do not use as the sole basis for patient care.
+**For educational use only.** Not a substitute for clinical judgement, senior review, or local protocols. Do not use DxFlow as the basis for patient-care decisions.
 
 ## Tech stack
 

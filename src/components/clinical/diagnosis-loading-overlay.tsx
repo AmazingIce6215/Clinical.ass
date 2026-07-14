@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { pickDiagnosisLoadingMessage } from "@/lib/diagnosis-loading-messages";
 
@@ -19,6 +20,8 @@ function RotatingDiagnosisMessage({
   );
 
   useEffect(() => {
+    if (reduceMotion) return;
+
     const interval = window.setInterval(() => {
       setMessage((current) =>
         pickDiagnosisLoadingMessage({
@@ -30,18 +33,18 @@ function RotatingDiagnosisMessage({
     }, ROTATE_MS);
 
     return () => window.clearInterval(interval);
-  }, [patientName, complaints]);
+  }, [patientName, complaints, reduceMotion]);
 
   return (
-    <div className="min-h-[9rem]">
+    <div className="min-h-14">
       <AnimatePresence mode="wait">
         <motion.p
           key={message}
-          className="text-2xl font-semibold leading-snug text-foreground sm:text-3xl md:text-4xl"
-          initial={{ opacity: 0, y: reduceMotion ? 0 : 12 }}
+          className="text-base font-medium leading-7 text-foreground sm:text-lg"
+          initial={{ opacity: 0, y: reduceMotion ? 0 : 4 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: reduceMotion ? 0 : -12 }}
-          transition={{ duration: reduceMotion ? 0 : 0.45, ease: [0.22, 1, 0.36, 1] }}
+          exit={{ opacity: 0, y: reduceMotion ? 0 : -4 }}
+          transition={{ duration: reduceMotion ? 0 : 0.2 }}
         >
           {message}
         </motion.p>
@@ -65,7 +68,7 @@ export function DiagnosisLoadingOverlay({
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-background/85 px-6 backdrop-blur-md"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 px-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -73,39 +76,26 @@ export function DiagnosisLoadingOverlay({
           role="status"
           aria-live="polite"
           aria-busy="true"
+          aria-atomic="true"
         >
-          <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-            <motion.div
-              className="relative mb-10 h-16 w-16"
-              animate={reduceMotion ? undefined : { rotate: 360 }}
-              transition={
-                reduceMotion
-                  ? undefined
-                  : { duration: 2.4, repeat: Infinity, ease: "linear" }
-              }
-            >
-              <div className="absolute inset-0 rounded-full border-2 border-accent/15" />
-              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-accent" />
-              <div className="absolute inset-3 rounded-full bg-accent/10" />
-            </motion.div>
+          <div className="mx-auto w-full max-w-xl rounded-xl border border-border bg-surface p-8 text-center shadow-xl sm:p-10">
+            <div className="mx-auto mb-5 flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background text-accent">
+              <LoaderCircle
+                className={reduceMotion ? "h-5 w-5" : "h-5 w-5 animate-spin"}
+                aria-hidden="true"
+              />
+            </div>
 
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-accent/80">
-              Generating diagnosis
+            <p className="mb-3 text-sm font-semibold text-foreground">
+              Generating an educational assessment
             </p>
 
             <RotatingDiagnosisMessage patientName={patientName} complaints={complaints} />
 
-            <motion.p
-              className="mt-8 max-w-md text-sm text-muted"
-              animate={reduceMotion ? undefined : { opacity: [0.45, 0.9, 0.45] }}
-              transition={
-                reduceMotion
-                  ? undefined
-                  : { duration: 2.8, repeat: Infinity, ease: "easeInOut" }
-              }
-            >
-              Synthesizing differentials, investigations, and a management plan…
-            </motion.p>
+            <p className="mx-auto mt-5 max-w-md text-xs leading-5 text-muted">
+              Generated suggestions can be incomplete. Review the output against the recorded
+              findings and appropriate clinical guidance.
+            </p>
           </div>
         </motion.div>
       )}

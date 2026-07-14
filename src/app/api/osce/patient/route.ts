@@ -22,8 +22,10 @@ export async function POST(request: Request) {
     const response = await getPatientResponse(body.session, body.userInput.trim());
 
     return NextResponse.json({ response });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to get patient response";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { error: "The simulated patient response is temporarily unavailable." },
+      { status: 500 },
+    );
   }
 }

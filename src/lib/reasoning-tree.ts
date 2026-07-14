@@ -91,7 +91,7 @@ export function buildReasoningTree(
   const finalNode: ReasoningNode = {
     label: primary,
     type: "final",
-    reasoning: `Most likely because:\n${buildTopReasons(allDx, primary)}`,
+    reasoning: `Most likely because:\n${buildTopReasons(allDx)}`,
     supporting: allDx
       .find((dx) => dx.isPrimary)
       ?.supportingFindings?.slice(0, 5),
@@ -174,7 +174,6 @@ function categorizePathways(
 
 function buildTopReasons(
   allDx: DxEntry[],
-  primary: string,
 ): string {
   const primaryDx = allDx.find((dx) => dx.isPrimary);
   if (!primaryDx) return "Leading diagnosis based on clinical presentation";

@@ -1,4 +1,5 @@
 import Groq from "groq-sdk";
+import type { ChatCompletionCreateParamsNonStreaming } from "groq-sdk/resources/chat/completions";
 
 let client: Groq | null = null;
 
@@ -39,11 +40,11 @@ export function formatAiError(message: string): string {
   const normalized = message.trim();
 
   if (/rate_limit|rate limit reached|tokens per minute/i.test(normalized)) {
-    return "Groq rate limit reached — too many AI requests in a short window. Wait 30–60 seconds and try again.";
+    return "The generated response service is temporarily busy because of request limits. Wait briefly and try again.";
   }
 
   if (normalized.includes("GROQ_API_KEY")) {
-    return normalized;
+    return "The generated response service is unavailable.";
   }
 
   const jsonMatch = normalized.match(/\{[\s\S]*\}/);
@@ -58,11 +59,7 @@ export function formatAiError(message: string): string {
     }
   }
 
-  if (normalized.length > 180) {
-    return "AI request failed. Please try again in a moment.";
-  }
-
-  return normalized;
+  return "The generated response could not be completed. Please try again in a moment.";
 }
 
 function sleep(ms: number) {
@@ -98,8 +95,7 @@ async function runCompletion<T>(
     return {
       data: null,
       error: {
-        message:
-          "GROQ_API_KEY is not configured. Add it in Vercel Project Settings → Environment Variables.",
+        message: "The generated response service is unavailable.",
         code: "missing_api_key",
       },
     };
@@ -110,7 +106,7 @@ async function runCompletion<T>(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const body: Record<string, unknown> = {
+      const body: ChatCompletionCreateParamsNonStreaming = {
         model,
         temperature: 0.3,
         messages: [
@@ -123,7 +119,7 @@ async function runCompletion<T>(
         body.response_format = { type: "json_object" };
       }
 
-      const completion = await groq.chat.completions.create(body as any);
+      const completion = await groq.chat.completions.create(body);
 
       const raw = completion.choices[0]?.message?.content;
       if (!raw) return { data: null, error: { message: "Empty AI response" } };

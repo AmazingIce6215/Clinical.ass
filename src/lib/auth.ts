@@ -363,6 +363,7 @@ export async function updateProfile(data: {
 }
 
 export async function getProfileCreatedAt(firstName: string): Promise<string | null> {
+  void firstName;
   return null;
 }
 
@@ -378,7 +379,7 @@ export async function resetPin(email: string): Promise<{ error?: string }> {
     return {};
   }
 
-  return { error: "Password reset is available once Supabase is configured." };
+  return { error: "Password-reset email is not available for device-local accounts." };
 }
 
 export async function logoutUser() {
@@ -411,10 +412,10 @@ function randomItem<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-const nightGreetings = ["hello night owl", "hey night owl", "late night?", "moonlit study"];
-const morningGreetings = ["good morning", "morning early bird", "rise and shine", "morning"];
-const afternoonGreetings = ["good afternoon", "afternoon", "hello there", "nice afternoon"];
-const eveningGreetings = ["good evening", "evening", "hey there", "evening vibes"];
+const nightGreetings = ["good evening"];
+const morningGreetings = ["good morning"];
+const afternoonGreetings = ["good afternoon"];
+const eveningGreetings = ["good evening"];
 
 function selectGreeting(hour: number): string {
   if (hour >= 22 || hour < 5) return randomItem(nightGreetings);

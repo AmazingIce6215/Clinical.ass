@@ -19,6 +19,7 @@ import {
 } from "@/lib/auth";
 import { setLibraryUserId } from "@/lib/case-library";
 import { setStatsUserId } from "@/lib/teaching-stats";
+import { setOsceStatsUserId } from "@/lib/osce-stats";
 
 interface AuthContextValue {
   session: AuthSession | null;
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setLibraryUserId(session?.userId ?? null);
     setStatsUserId(session?.userId ?? null);
+    setOsceStatsUserId(session?.userId ?? null);
   }, [session]);
 
   const create = useCallback(async (firstName: string, email: string, password: string) => {
@@ -56,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(result.session!);
     setLibraryUserId(result.session!.userId);
     setStatsUserId(result.session!.userId);
+    setOsceStatsUserId(result.session!.userId);
     return null;
   }, []);
 
@@ -65,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(result.session!);
     setLibraryUserId(result.session!.userId);
     setStatsUserId(result.session!.userId);
+    setOsceStatsUserId(result.session!.userId);
     return null;
   }, []);
 
@@ -73,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(s);
     setLibraryUserId(s.userId);
     setStatsUserId(s.userId);
+    setOsceStatsUserId(s.userId);
   }, []);
 
   const logout = useCallback(async () => {
@@ -80,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(null);
     setLibraryUserId(null);
     setStatsUserId(null);
+    setOsceStatsUserId(null);
   }, []);
 
   const refresh = useCallback(async () => {
@@ -87,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(s);
     setLibraryUserId(s?.userId ?? null);
     setStatsUserId(s?.userId ?? null);
+    setOsceStatsUserId(s?.userId ?? null);
   }, []);
 
   const resetPin = useCallback(async (email: string) => {

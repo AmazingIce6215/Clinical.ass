@@ -101,11 +101,11 @@ export async function POST(request: Request) {
       aiPowered: !!result.data,
       aiError: result.error?.message ?? null,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({
       contradictions: [],
       aiPowered: false,
-      aiError: (error as Error)?.message ?? "Consistency check failed",
+      aiError: "Generated consistency review is temporarily unavailable.",
     });
   }
 }

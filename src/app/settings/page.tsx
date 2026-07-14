@@ -1,256 +1,114 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Monitor, Moon, ShieldCheck, Sun, UserRound } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
-import { AppShell, GlassCard, PrimaryButton } from "@/components/app-shell";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { AppShell } from "@/components/app-shell";
+import { Button, Notice, PageHeader, Surface } from "@/components/ui/primitives";
 import { useAuth } from "@/context/auth-context";
 import { updateProfile } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
-const ACCENT_OPTIONS = [
-  { key: "blue", label: "Blue", bg: "bg-blue-500" },
-  { key: "teal", label: "Teal", bg: "bg-teal-500" },
-  { key: "green", label: "Green", bg: "bg-emerald-500" },
-  { key: "purple", label: "Purple", bg: "bg-violet-500" },
-  { key: "amber", label: "Amber", bg: "bg-amber-500" },
-];
-
-const THEME_OPTIONS = [
-  { key: "light", label: "Light" },
-  { key: "dark", label: "Dark" },
-  { key: "system", label: "System" },
-];
+const themes = [
+  { key: "light", label: "Light", icon: Sun },
+  { key: "dark", label: "Dark", icon: Moon },
+  { key: "system", label: "System", icon: Monitor },
+] as const;
 
 export default function SettingsPage() {
-  const router = useRouter();
   const { session, refresh, resetPin } = useAuth();
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [saving, setSaving] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [message, setMessage] = useState<{ tone: "info" | "danger"; title: string; body: string } | null>(null);
 
-  const [name, setName] = useState(session?.firstName ?? "");
-  const [email, setEmail] = useState(session?.email ?? "");
-  const [isSaving, setIsSaving] = useState(false);
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState(() => {
-    if (typeof window === "undefined") return "system";
-    return localStorage.getItem("clincalass_theme") || "system";
-  });
-  const [accent, setAccent] = useState(() => {
-    if (typeof window === "undefined") return "blue";
-    return localStorage.getItem("clincalass_accent") || "blue";
-  });
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (session?.firstName) setName(session.firstName);
-    if (session?.email) setEmail(session.email);
-  }, [session?.firstName, session?.email]);
-
-  useEffect(() => {
-    setTheme(selectedTheme);
-  }, [selectedTheme, setTheme]);
-
-  const applyAccent = (accentKey: string) => {
-    const accentMap: Record<string, { accent: string; accentForeground: string }> = {
-      blue: { accent: "#2563eb", accentForeground: "#ffffff" },
-      teal: { accent: "#14b8a6", accentForeground: "#ffffff" },
-      green: { accent: "#22c55e", accentForeground: "#ffffff" },
-      purple: { accent: "#8b5cf6", accentForeground: "#ffffff" },
-      amber: { accent: "#f59e0b", accentForeground: "#0b1220" },
-    };
-
-    const values = accentMap[accentKey] ?? accentMap.blue;
-    document.documentElement.style.setProperty("--accent", values.accent);
-    document.documentElement.style.setProperty("--accent-foreground", values.accentForeground);
-  };
-
-  useEffect(() => {
-    applyAccent(accent);
-  }, [accent]);
-
-  const handleSave = async () => {
-    setError(null);
-    setIsSaving(true);
-
-    const result = await updateProfile({ first_name: name });
-    setIsSaving(false);
-    if (result.error) {
-      setError(result.error);
+  const handleProfileSave = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const name = String(form.get("displayName") || "").trim();
+    if (name.length < 2) {
+      setMessage({ tone: "danger", title: "Name not saved", body: "Enter at least two characters for your display name." });
       return;
     }
 
+    setSaving(true);
+    const result = await updateProfile({ first_name: name });
+    setSaving(false);
+    if (result.error) {
+      setMessage({ tone: "danger", title: "Profile not saved", body: result.error });
+      return;
+    }
     await refresh();
-    localStorage.setItem("clincalass_accent", accent);
-    localStorage.setItem("clincalass_theme", selectedTheme);
-    setTheme(selectedTheme);
-    setShowSuccess(true);
-    window.setTimeout(() => router.push("/"), 1300);
+    setMessage({ tone: "info", title: "Profile updated", body: "Your display name has been saved." });
   };
 
   const handlePasswordReset = async () => {
-    if (!email.trim()) {
-      setError("Please sign in first so we know your email address.");
+    if (!session?.email) {
+      setMessage({ tone: "danger", title: "Reset unavailable", body: "This guest or device-local session does not have an email address." });
       return;
     }
-
-    setIsResettingPassword(true);
-    const resetError = await resetPin(email);
-    setIsResettingPassword(false);
-
-    if (resetError) {
-      setError(resetError);
-      return;
-    }
-
-    setError(null);
-    setShowSuccess(true);
-    window.setTimeout(() => router.push("/"), 1000);
+    setResetting(true);
+    const error = await resetPin(session.email);
+    setResetting(false);
+    if (error) setMessage({ tone: "danger", title: "Reset request failed", body: error });
+    else setMessage({ tone: "info", title: "Check your inbox", body: "A password-reset request has been sent for this account." });
   };
 
-  const initial = name ? name.charAt(0).toUpperCase() : "👤";
-
   return (
-    <>
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-background/70 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col items-center gap-4 rounded-2xl border border-border/60 bg-surface/80 px-12 py-10 backdrop-blur-xl shadow-2xl"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.15, type: "spring", stiffness: 500, damping: 20 }}
-                className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20"
-              >
-                <span className="text-3xl text-emerald-500">✓</span>
-              </motion.div>
-              <p className="text-lg font-semibold text-foreground">Settings saved!</p>
-              <p className="text-sm text-muted">Taking you back home...</p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <AppShell title="Settings" subtitle="Profile, security, and appearance">
+      <div className="mx-auto max-w-4xl space-y-8">
+        <PageHeader eyebrow="Account" title="Settings" description="Manage the identity shown in DxFlow, request a password reset, and choose a stable display theme." />
 
-      <AppShell backHref="/" title="Settings" subtitle="Personalize your profile and appearance">
-        <div className="space-y-8">
-          <GlassCard className="space-y-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">Profile</p>
-                <p className="mt-2 text-sm text-muted">Update your display name and secure your account.</p>
-              </div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface/90 text-2xl shadow-soft">
-                <span>{initial}</span>
-              </div>
+        {message ? <Notice title={message.title} tone={message.tone}>{message.body}</Notice> : null}
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Surface className="p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-[10px] bg-brand-soft text-brand-strong"><UserRound aria-hidden="true" className="h-5 w-5" /></span>
+              <div><h2 className="text-base font-semibold text-foreground">Profile</h2><p className="mt-1 text-sm text-muted">Shown in greetings and learning summaries.</p></div>
             </div>
+            <form key={session?.firstName} onSubmit={handleProfileSave} className="mt-6 space-y-4">
+              <label className="block">
+                <span className="text-sm font-semibold text-foreground">Display name</span>
+                <input name="displayName" defaultValue={session?.firstName || ""} autoComplete="name" className="mt-1.5 w-full rounded-[10px] border border-border bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/15" />
+              </label>
+              <label className="block">
+                <span className="text-sm font-semibold text-foreground">Email address</span>
+                <input value={session?.email || "Guest session — no email"} readOnly className="mt-1.5 w-full rounded-[10px] border border-border bg-surface-subtle px-3.5 py-3 text-sm text-muted outline-none" />
+              </label>
+              <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save profile"}</Button>
+            </form>
+          </Surface>
 
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">Display name</label>
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Your name"
-                className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-base outline-none transition placeholder:text-muted/50 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-              />
+          <Surface className="p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-[10px] bg-brand-soft text-brand-strong"><ShieldCheck aria-hidden="true" className="h-5 w-5" /></span>
+              <div><h2 className="text-base font-semibold text-foreground">Account security</h2><p className="mt-1 text-sm text-muted">Password-reset email is available for hosted accounts. Device-local accounts remain on this installation.</p></div>
             </div>
-
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">Email address</label>
-              <input
-                value={email}
-                readOnly
-                className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-base outline-none"
-              />
-              <p className="text-sm text-muted">Use the button below if you need to reset your password.</p>
+            <div className="mt-6 rounded-[10px] border border-border bg-surface-subtle p-4 text-sm leading-6 text-muted">
+              Saved cases and progress currently remain in this browser or app installation and are not restored by a password reset.
             </div>
-
-            <button
-              type="button"
-              onClick={handlePasswordReset}
-              disabled={isResettingPassword}
-              className="rounded-xl border border-border/80 bg-surface/70 px-4 py-2.5 text-sm font-medium transition hover:border-accent/40 hover:bg-surface/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isResettingPassword ? "Sending link..." : "Send password reset link"}
-            </button>
-
-            {error && (
-              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            )}
-          </GlassCard>
-
-          <GlassCard className="space-y-6">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.32em] text-accent/90">Appearance</p>
-              <p className="mt-2 text-sm text-muted">Control theme and accent preferences.</p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="grid gap-2 sm:grid-cols-3">
-                {THEME_OPTIONS.map((option) => (
-                  <button
-                    key={option.key}
-                    type="button"
-                    onClick={() => setSelectedTheme(option.key)}
-                    className={cn(
-                      "rounded-2xl border px-4 py-3 text-left text-sm font-medium transition",
-                      selectedTheme === option.key
-                        ? "border-accent bg-accent/10 text-foreground"
-                        : "border-border/70 bg-surface/70 text-muted hover:border-accent/30 hover:bg-surface/90",
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-foreground">Accent color</p>
-                <div className="flex flex-wrap items-center gap-3">
-                  {ACCENT_OPTIONS.map((option) => (
-                    <button
-                      key={option.key}
-                      type="button"
-                      onClick={() => setAccent(option.key)}
-                      className={cn(
-                        "relative flex h-11 w-11 items-center justify-center rounded-full border transition",
-                        option.bg,
-                        accent === option.key
-                          ? "border-accent-foreground ring-2 ring-accent"
-                          : "border-border/60 hover:border-accent/50",
-                      )}
-                    >
-                      {accent === option.key ? (
-                        <span className="text-[11px] font-bold text-white">✓</span>
-                      ) : null}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </GlassCard>
-
-          <div className="flex justify-end">
-            <PrimaryButton onClick={handleSave} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save settings"}
-            </PrimaryButton>
-          </div>
+            <Button type="button" variant="secondary" className="mt-4" onClick={handlePasswordReset} disabled={resetting || !session?.email}>
+              {resetting ? "Requesting…" : "Send password-reset link"}
+            </Button>
+          </Surface>
         </div>
-      </AppShell>
-    </>
+
+        <Surface className="p-5 sm:p-6">
+          <div><p className="section-label">Appearance</p><h2 className="mt-2 text-lg font-semibold text-foreground">Display theme</h2><p className="mt-1 text-sm text-muted">DxFlow uses one fixed clinical palette so status colours and contrast stay consistent.</p></div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Display theme">
+            {themes.map((option) => {
+              const Icon = option.icon;
+              const selected = theme === option.key || (!theme && option.key === "system");
+              return (
+                <button key={option.key} type="button" role="radio" aria-checked={selected} onClick={() => setTheme(option.key)} className={cn("flex min-h-14 items-center gap-3 rounded-[10px] border px-4 text-left text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent", selected ? "border-accent bg-brand-soft text-brand-strong" : "border-border bg-surface text-muted hover:bg-surface-subtle")}>
+                  <Icon aria-hidden="true" className="h-5 w-5" /> {option.label}
+                </button>
+              );
+            })}
+          </div>
+        </Surface>
+      </div>
+    </AppShell>
   );
 }

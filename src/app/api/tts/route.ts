@@ -105,10 +105,8 @@ export async function POST(request: Request) {
         "Cache-Control": "no-cache",
       },
     });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to synthesize speech";
-    return new Response(JSON.stringify({ error: message, detail: String(error) }), {
+  } catch {
+    return new Response(JSON.stringify({ error: "Speech playback is temporarily unavailable." }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

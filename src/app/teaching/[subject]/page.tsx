@@ -1,12 +1,20 @@
 "use client";
 
-import { use, useCallback, useState } from "react";
+import {
+  BookOpen,
+  CircleAlert,
+  Layers3,
+  RefreshCcw,
+  Waypoints,
+  type LucideIcon,
+} from "lucide-react";
 import { notFound } from "next/navigation";
-import { motion } from "framer-motion";
-import { AppShell, GlassCard, PrimaryButton } from "@/components/app-shell";
+import { use, useCallback, useState } from "react";
+import { AppShell } from "@/components/app-shell";
 import { CasePlayer } from "@/components/teaching/case-player";
 import { TeachingLoadingOverlay } from "@/components/teaching/teaching-loading-overlay";
-import { StaggerContainer, StaggerItem } from "@/components/motion";
+import { TeachingSubjectIcon } from "@/components/teaching/subject-icon";
+import { Badge, Button, Notice, PageHeader, Surface } from "@/components/ui/primitives";
 import {
   getSeenDiseases,
   getSeenTitles,
@@ -14,37 +22,36 @@ import {
 } from "@/lib/case-library";
 import { getSubject } from "@/lib/teaching-subjects";
 import type { GeneratedTeachingCase } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 type Difficulty = "easy" | "medium" | "hard";
 
-const difficultyMeta: {
+const difficultyMeta: Array<{
   key: Difficulty;
   label: string;
+  level: string;
   description: string;
-  icon: string;
-  color: string;
-}[] = [
+  Icon: LucideIcon;
+}> = [
   {
     key: "easy",
     label: "Easy",
-    description: "Classic textbook presentations. Tests basic recall and recognition of common conditions.",
-    icon: "🌱",
-    color: "from-emerald-500/20 to-emerald-600/10",
+    level: "Foundational",
+    description: "Common textbook presentations focused on recall and pattern recognition.",
+    Icon: BookOpen,
   },
   {
     key: "medium",
     label: "Medium",
-    description: "Moderately complex cases requiring clinical reasoning. Plausible distractors.",
-    icon: "🔥",
-    color: "from-amber-500/20 to-amber-600/10",
+    level: "Applied",
+    description: "Cases requiring clinical reasoning across several plausible options.",
+    Icon: Layers3,
   },
   {
     key: "hard",
     label: "Hard",
-    description: "Atypical presentations with tricky distractors. Tests higher-order clinical judgment.",
-    icon: "💎",
-    color: "from-red-500/20 to-red-600/10",
+    level: "Advanced",
+    description: "Atypical presentations requiring careful discrimination between options.",
+    Icon: Waypoints,
   },
 ];
 
@@ -60,40 +67,43 @@ export default function SubjectCasePage({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generateCase = useCallback(async (selectedDifficulty: Difficulty) => {
-    if (!subjectInfo) return;
-    setDifficulty(selectedDifficulty);
-    setLoading(true);
-    setError(null);
-    setTeachingCase(null);
+  const generateCase = useCallback(
+    async (selectedDifficulty: Difficulty) => {
+      if (!subjectInfo) return;
+      setDifficulty(selectedDifficulty);
+      setLoading(true);
+      setError(null);
+      setTeachingCase(null);
 
-    try {
-      const res = await fetch("/api/teaching/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: subjectId,
-          difficulty: selectedDifficulty,
-          avoidTitles: getSeenTitles(subjectId),
-          avoidDiseases: getSeenDiseases(subjectId),
-          avoidVignettes: getSeenVignettes(subjectId),
-        }),
-      });
+      try {
+        const response = await fetch("/api/teaching/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subject: subjectId,
+            difficulty: selectedDifficulty,
+            avoidTitles: getSeenTitles(subjectId),
+            avoidDiseases: getSeenDiseases(subjectId),
+            avoidVignettes: getSeenVignettes(subjectId),
+          }),
+        });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.detail ?? data.error ?? "Failed to generate case");
-        return;
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          setError(data.detail ?? data.error ?? "generation-failed");
+          return;
+        }
+
+        const data = await response.json();
+        setTeachingCase(data.case);
+      } catch {
+        setError("network-error");
+      } finally {
+        setLoading(false);
       }
-
-      const data = await res.json();
-      setTeachingCase(data.case);
-    } catch {
-      setError("Network error — check your connection");
-    } finally {
-      setLoading(false);
-    }
-  }, [subjectId, subjectInfo]);
+    },
+    [subjectId, subjectInfo],
+  );
 
   const handleReset = useCallback(() => {
     setDifficulty(null);
@@ -110,49 +120,53 @@ export default function SubjectCasePage({
         title={subjectInfo.name}
         subtitle={subjectInfo.description}
       >
-        <div className="mx-auto max-w-2xl">
-          <div className="mb-8 text-center">
-            <span className="text-5xl">{subjectInfo.icon}</span>
-            <h2 className="mt-4 text-xl font-semibold">Choose difficulty</h2>
-            <p className="mt-2 text-sm text-muted">
-              Select the difficulty level for your teaching session. Each
-              session generates 3 unique patient cases with MCQs.
+        <div className="mx-auto w-full max-w-5xl space-y-7">
+          <PageHeader
+            eyebrow="Teaching bank"
+            title={subjectInfo.name}
+            description="Select a difficulty to generate a three-question practice session."
+            actions={
+              <span className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-border bg-surface text-accent">
+                <TeachingSubjectIcon name={subjectInfo.icon} className="h-5 w-5" />
+              </span>
+            }
+          />
+
+          <Notice title="Generated session" tone="info">
+            The cases and explanations are created when you begin. Treat them as formative study
+            material and verify clinical details against current guidance.
+          </Notice>
+
+          <fieldset>
+            <legend className="text-base font-semibold text-foreground">Choose difficulty</legend>
+            <p className="mt-1 text-sm leading-6 text-muted">
+              Difficulty changes presentation complexity and distractor similarity; it does not
+              indicate clinical competence.
             </p>
-          </div>
-          <StaggerContainer className="grid gap-4 sm:grid-cols-3">
-            {difficultyMeta.map((d) => (
-              <StaggerItem key={d.key}>
-                <motion.button
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {difficultyMeta.map(({ key, label, level, description, Icon }) => (
+                <button
+                  key={key}
                   type="button"
-                  onClick={() => generateCase(d.key)}
-                  whileHover={{ y: -4 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="h-full w-full text-left"
+                  onClick={() => void generateCase(key)}
+                  className="group h-full min-h-11 rounded-[14px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  aria-label={`Generate a ${label.toLowerCase()} ${subjectInfo.name} session`}
                 >
-                  <GlassCard
-                    className={cn(
-                      "group h-full cursor-pointer border-transparent transition-all hover:border-accent/40",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br",
-                        d.color,
-                      )}
-                    >
-                      <span className="text-2xl">{d.icon}</span>
+                  <Surface className="flex h-full flex-col p-5 transition-colors group-hover:border-accent/35 group-hover:bg-surface-subtle">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-accent/10 text-accent">
+                        <Icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
+                      </span>
+                      <Badge>{level}</Badge>
                     </div>
-                    <h3 className="text-lg font-semibold group-hover:text-accent">
-                      {d.label}
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-muted">
-                      {d.description}
-                    </p>
-                  </GlassCard>
-                </motion.button>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
+                    <h2 className="mt-4 text-lg font-semibold text-foreground">{label}</h2>
+                    <p className="mt-1 flex-1 text-sm leading-6 text-muted">{description}</p>
+                    <span className="mt-5 text-sm font-semibold text-accent">Generate session</span>
+                  </Surface>
+                </button>
+              ))}
+            </div>
+          </fieldset>
         </div>
       </AppShell>
     );
@@ -161,9 +175,13 @@ export default function SubjectCasePage({
   if (loading) {
     return (
       <>
-        <TeachingLoadingOverlay visible={true} />
-        <AppShell backHref="/teaching" title="Generating session..." subtitle="AI is building 3 unique patients">
-          <div className="invisible" />
+        <TeachingLoadingOverlay visible />
+        <AppShell
+          backHref="/teaching"
+          title="Preparing teaching session"
+          subtitle={`${subjectInfo.name} · ${difficulty}`}
+        >
+          <div aria-hidden="true" />
         </AppShell>
       </>
     );
@@ -171,43 +189,33 @@ export default function SubjectCasePage({
 
   if (error) {
     return (
-      <AppShell backHref="/teaching" title="Generation failed">
-        <div className="mx-auto flex max-w-lg flex-col items-center text-center">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          >
-            <GlassCard>
-              <div className="flex flex-col items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/15">
-                  <span className="text-3xl">⚠️</span>
-                </div>
-                <h2 className="text-lg font-semibold">No cached content available</h2>
-                <p className="max-w-sm text-sm leading-relaxed text-muted">
-                  {error}
-                </p>
-                <div className="mt-2 rounded-xl border border-border/50 bg-surface/50 p-4 text-left text-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted">
-                    Why this happens
-                  </p>
-                  <p className="mt-2 text-xs leading-relaxed text-muted">
-                    New cases must be generated in real-time to ensure learning
-                    quality. The AI system was unable to create a fresh,
-                    unique set of questions for this session.
-                  </p>
-                </div>
-                <div className="mt-4 flex gap-3">
-                  <PrimaryButton onClick={() => difficulty && generateCase(difficulty)}>
-                    Try again
-                  </PrimaryButton>
-                  <PrimaryButton onClick={handleReset}>
-                    Change difficulty
-                  </PrimaryButton>
-                </div>
-              </div>
-            </GlassCard>
-          </motion.div>
+      <AppShell
+        backHref="/teaching"
+        title="Teaching session unavailable"
+        subtitle={subjectInfo.name}
+      >
+        <div className="mx-auto w-full max-w-xl">
+          <Surface className="p-6 sm:p-8">
+            <span className="flex h-11 w-11 items-center justify-center rounded-[10px] bg-warning-soft text-warning">
+              <CircleAlert aria-hidden="true" className="h-5 w-5" />
+            </span>
+            <h1 className="mt-5 text-2xl font-semibold text-foreground">
+              We could not prepare this session
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              The generation service did not return a complete case set. Your existing progress and
+              saved cases have not been changed.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button onClick={() => difficulty && void generateCase(difficulty)}>
+                <RefreshCcw aria-hidden="true" className="h-4 w-4" />
+                Try again
+              </Button>
+              <Button variant="secondary" onClick={handleReset}>
+                Change difficulty
+              </Button>
+            </div>
+          </Surface>
         </div>
       </AppShell>
     );

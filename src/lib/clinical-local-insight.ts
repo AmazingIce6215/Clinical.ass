@@ -179,10 +179,10 @@ export function getFallbackDiagnosis(
   if (reason === "missing_key") {
     return {
       ...diagnosis,
-      primaryDiagnosis: "AI unavailable — add GROQ_API_KEY in Vercel",
+      primaryDiagnosis: "Generated analysis unavailable",
       teachingPoints: [
         ...diagnosis.teachingPoints,
-        "Configure GROQ_API_KEY in Vercel environment variables to enable AI diagnosis.",
+        "The generated analysis service is not available. Review the entered facts and use an authoritative clinical resource.",
       ],
     };
   }
@@ -192,10 +192,10 @@ export function getFallbackDiagnosis(
       ...diagnosis,
       primaryDiagnosis: diagnosis.primaryDiagnosis,
       clinicalReasoningSummary:
-        `${diagnosis.clinicalReasoningSummary} AI was rate-limited — this is an offline clinical template. Wait 30–60 seconds and tap Retry diagnosis.`,
+        `${diagnosis.clinicalReasoningSummary} The generated analysis service was temporarily unavailable, so this is a local educational template.`,
       teachingPoints: [
         ...diagnosis.teachingPoints,
-        "Groq free tier limits how many AI calls run per minute. Final diagnosis uses one AI call per case.",
+        "Generated analysis can be retried later. Do not use this fallback for patient-care decisions.",
       ],
     };
   }
@@ -205,7 +205,7 @@ export function getFallbackDiagnosis(
 
 export function getFallbackReasonFromError(message?: string): FallbackReason {
   if (!message) return "generic";
-  if (/GROQ_API_KEY|not configured/i.test(message)) return "missing_key";
-  if (/rate limit/i.test(message)) return "rate_limit";
+  if (/GROQ_API_KEY|not configured|service is unavailable/i.test(message)) return "missing_key";
+  if (/rate limit|request limits|temporarily busy/i.test(message)) return "rate_limit";
   return "generic";
 }

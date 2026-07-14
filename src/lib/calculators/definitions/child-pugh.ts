@@ -7,9 +7,33 @@ export const childPugh: CalculatorDefinition = {
   description:
     "Assesses severity of liver disease and predicts prognosis in cirrhosis. Used for transplant prioritisation.",
   category: "hepatology",
-  icon: "🫁",
+  icon: "stethoscope",
   clinicalApplication:
-    "Classifies cirrhosis into Class A (compensated), B (significant impairment), and C (decompensated). Used for surgical risk stratification and MELD exception.",
+    "Supports broad classification of hepatic functional severity in cirrhosis and contextual discussion of prognosis and procedural risk.",
+  evidence: {
+    version: "Standard five-domain Child-Pugh score",
+    intendedPopulation:
+      "Adults with chronic liver disease or cirrhosis being assessed for hepatic functional severity and prognosis.",
+    exclusions: [
+      "Acute liver failure",
+      "Children and young people under 18 years",
+      "Use for transplant allocation where MELD-based systems are required",
+      "Interpretation without considering the subjectivity of ascites and encephalopathy grading",
+    ],
+    references: [
+      {
+        title: "Transection of the oesophagus for bleeding oesophageal varices",
+        citation: "Pugh RNH, et al. Br J Surg. 1973;60(8):646–649.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/4541913/",
+      },
+      {
+        title: "EASL Clinical Practice Guidelines for the management of patients with decompensated cirrhosis",
+        citation: "European Association for the Study of the Liver. J Hepatol. 2018;69(2):406–460.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/29653741/",
+      },
+    ],
+    reviewedAt: "2026-07-14",
+  },
   inputs: [
     {
       id: "bilirubin",
@@ -72,22 +96,20 @@ export const childPugh: CalculatorDefinition = {
     if (score >= 10) { severity = "severe"; label = "Child-Pugh Class C (decompensated)"; }
     else if (score >= 7) { severity = "moderate"; label = "Child-Pugh Class B (significant impairment)"; }
 
-    const survival = score <= 6 ? "~100% 1-year" : score <= 9 ? "~80% 1-year" : "~45% 1-year";
-
     return {
       score,
       maxScore: 15,
       severity,
       label,
-      interpretation: `Child-Pugh score ${score}/15 — ${label}. ${survival} survival.`,
+      interpretation: `Child-Pugh score ${score}/15 — ${label}.`,
       clinicalSignificance:
         "Class A (5–6): well-compensated; surgical risk low. Class B (7–9): significant functional impairment; consider pre-op optimisation. Class C (10–15): decompensated; avoid elective surgery. Assess MELD-Na for transplant listing.",
       recommendations:
         score <= 6
-          ? ["Manage as compensated cirrhosis — no elective surgery contraindicated.", "Screen for varices (OGD) and start surveillance every 1–2 years.", "Monitor bloods (LFT, INR, creatinine) at least every 6 months."]
+          ? ["Interpret the class alongside portal-hypertension features, comorbidity, and the planned procedure.", "Review variceal and hepatocellular-carcinoma surveillance under the current cirrhosis guideline.", "Plan laboratory and clinical follow-up according to disease stability and specialist advice."]
           : score <= 9
-            ? ["Pre-operative optimisation before any elective procedure.", "Assess for decompensation — check for ascites, encephalopathy, jaundice.", "Refer to hepatology — consider MELD-Na for transplant listing if deteriorating."]
-            : ["Avoid elective surgery — risk of decompensation and mortality is high.", "Urgent hepatology referral — active transplant workup if candidate.", "Manage complications: diuretics for ascites, lactulose/rifaximin for encephalopathy."],
+            ? ["Seek specialist assessment and optimisation before an elective procedure.", "Review for current or previous decompensation, including ascites, encephalopathy, jaundice, and variceal bleeding.", "Consider MELD-based assessment and hepatology referral when clinically appropriate."]
+            : ["Elective procedures generally require careful multidisciplinary risk review because decompensation risk is high.", "Prompt hepatology input and transplant eligibility assessment may be appropriate.", "Manage cirrhosis complications using current specialist and local guidance."],
       limitations:
         "Subjective assessment of ascites and encephalopathy. Does not account for portal hypertension complications (variceal bleeding, SBP). MELD/MELD-Na preferred for transplant allocation.",
       details: [

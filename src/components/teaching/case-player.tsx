@@ -1,16 +1,22 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  AppShell,
-  ButtonLink,
-  GlassCard,
-  PrimaryButton,
-  SecondaryButton,
-} from "@/components/app-shell";
-import { FadeSlide, ProgressBar } from "@/components/motion";
+  Bookmark,
+  BookmarkCheck,
+  CheckCircle2,
+  CircleX,
+  Lightbulb,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import { AppShell } from "@/components/app-shell";
+import { Badge, Button, ButtonLink, Notice, Surface } from "@/components/ui/primitives";
 import {
   isInLibrary,
   markDiseaseSeen,
@@ -22,6 +28,15 @@ import {
 import { logAttempt } from "@/lib/teaching-stats";
 import type { GeneratedTeachingCase } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+function subscribeToLibrary(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  return () => window.removeEventListener("storage", onStoreChange);
+}
+
+function getServerFavoriteSnapshot() {
+  return false;
+}
 
 export function CasePlayer({
   teachingCase,
@@ -42,13 +57,18 @@ export function CasePlayer({
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
-  const [favorited, setFavorited] = useState(() => isInLibrary(teachingCase.id));
-
+  const [favoriteRevision, setFavoriteRevision] = useState(0);
   const questionStartTimeRef = useRef(0);
 
-  useEffect(() => {
-    questionStartTimeRef.current = Date.now();
-  }, []);
+  const getFavoriteSnapshot = useCallback(() => {
+    void favoriteRevision;
+    return isInLibrary(teachingCase.id);
+  }, [favoriteRevision, teachingCase.id]);
+  const favorited = useSyncExternalStore(
+    subscribeToLibrary,
+    getFavoriteSnapshot,
+    getServerFavoriteSnapshot,
+  );
 
   useEffect(() => {
     questionStartTimeRef.current = Date.now();
@@ -58,16 +78,15 @@ export function CasePlayer({
   const progress = finished
     ? 100
     : ((questionIndex + (revealed ? 1 : 0)) / teachingCase.questions.length) * 100;
-
   const handleBack = onBack ?? (() => router.push(backHref ?? "/teaching"));
 
   const submit = () => {
     if (selected === null) return;
     const timeTaken = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
     const correct = selected === question.correctIndex;
-    if (correct) {
-      setScore((s) => s + 1);
-    }
+
+    if (correct) setScore((currentScore) => currentScore + 1);
+
     logAttempt({
       questionId: question.id,
       subject: teachingCase.subject,
@@ -91,24 +110,24 @@ export function CasePlayer({
       markDiseaseSeen(teachingCase.subject, teachingCase.title);
       markVignettesSeen(
         teachingCase.subject,
-        teachingCase.questions.map((q) => q.vignette),
+        teachingCase.questions.map((item) => item.vignette),
       );
       setFinished(true);
-    } else {
-      setQuestionIndex((i) => i + 1);
-      setSelected(null);
-      setRevealed(false);
+      return;
     }
+
+    setQuestionIndex((currentIndex) => currentIndex + 1);
+    setSelected(null);
+    setRevealed(false);
   };
 
   const toggleFavorite = useCallback(() => {
     if (favorited) {
       removeFromLibrary(teachingCase.id);
-      setFavorited(false);
     } else {
       saveTeachingToLibrary({ ...teachingCase, favorited: true });
-      setFavorited(true);
     }
+    setFavoriteRevision((revision) => revision + 1);
   }, [favorited, teachingCase]);
 
   const reset = () => {
@@ -126,190 +145,236 @@ export function CasePlayer({
       title={teachingCase.title}
       subtitle={`${teachingCase.subjectName} · ${teachingCase.difficulty}`}
     >
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="flex-1">
-            <ProgressBar value={progress} />
-            <p className="mt-2 text-xs text-muted">
-              Question {Math.min(questionIndex + 1, teachingCase.questions.length)} of{" "}
-              {teachingCase.questions.length}
-            </p>
+      <div className="mx-auto w-full max-w-4xl space-y-5">
+        <h1 className="sr-only">{teachingCase.title}</h1>
+
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <div
+              className="h-2 overflow-hidden rounded-full bg-surface-subtle"
+              role="progressbar"
+              aria-label="Teaching session progress"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress)}
+            >
+              <div className="h-full rounded-full bg-accent" style={{ width: `${progress}%` }} />
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+              <span>
+                Question {Math.min(questionIndex + 1, teachingCase.questions.length)} of{" "}
+                {teachingCase.questions.length}
+              </span>
+              <span aria-hidden="true">·</span>
+              <Badge tone="info">AI-generated case</Badge>
+            </div>
           </div>
-          <motion.button
+          <button
             type="button"
             onClick={toggleFavorite}
             className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg transition",
+              "inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[10px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
               favorited
-                ? "border-amber-500/50 bg-amber-500/15"
-                : "border-border/70 bg-surface/60 hover:border-amber-500/30",
+                ? "border-accent/30 bg-accent/10 text-accent"
+                : "border-border bg-surface text-muted hover:border-accent/35 hover:text-foreground",
             )}
-            whileTap={{ scale: 0.92 }}
-            aria-label={favorited ? "Remove from library" : "Save to library"}
+            aria-label={favorited ? "Remove case from library" : "Save case to library"}
+            aria-pressed={favorited}
           >
-            {favorited ? "★" : "☆"}
-          </motion.button>
+            {favorited ? (
+              <BookmarkCheck aria-hidden="true" className="h-5 w-5" />
+            ) : (
+              <Bookmark aria-hidden="true" className="h-5 w-5" />
+            )}
+          </button>
         </div>
 
-        <AnimatePresence mode="wait">
-          {!finished ? (
-            <FadeSlide key={`q-${questionIndex}`}>
-              <GlassCard className="mb-4">
-                {question.patientLabel && (
-                  <p className="text-xs font-semibold uppercase tracking-wider text-accent">
-                    {question.patientLabel}
-                  </p>
-                )}
-                <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-muted">
-                  Case vignette
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-foreground/90">
-                  {question.vignette}
-                </p>
-              </GlassCard>
+        {!finished ? (
+          <>
+            <Surface className="p-5 sm:p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge>Patient information</Badge>
+                {question.patientLabel ? <Badge tone="neutral">{question.patientLabel}</Badge> : null}
+              </div>
+              <h2 className="mt-4 text-sm font-semibold text-foreground">Case vignette</h2>
+              <p className="mt-2 text-sm leading-7 text-foreground">{question.vignette}</p>
+            </Surface>
 
-              <GlassCard>
-                <h2 className="text-lg font-semibold">{question.prompt}</h2>
+            <Surface className="p-5 sm:p-6">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  submit();
+                }}
+              >
+                <fieldset>
+                  <legend className="text-lg font-semibold leading-7 text-foreground">
+                    {question.prompt}
+                  </legend>
+                  <p className="mt-1 text-xs text-muted">Select the single best answer.</p>
 
-                <div className="mt-5 space-y-2.5">
-                  {question.options.map((opt, i) => {
-                    const isSelected = selected === i;
-                    const isCorrect = i === question.correctIndex;
-                    let stateClass = "border-border/70 hover:border-accent/40";
+                  <div className="mt-5 space-y-2.5">
+                    {question.options.map((option, index) => {
+                      const isSelected = selected === index;
+                      const isCorrect = index === question.correctIndex;
+                      let stateClass = "border-border bg-surface hover:border-accent/35";
 
-                    if (revealed) {
-                      if (isCorrect) stateClass = "border-emerald-500/60 bg-emerald-500/10";
-                      else if (isSelected) stateClass = "border-red-500/60 bg-red-500/10";
-                      else stateClass = "border-border/40 opacity-70";
-                    } else if (isSelected) {
-                      stateClass = "border-accent bg-accent/10";
-                    }
+                      if (revealed) {
+                        if (isCorrect) {
+                          stateClass = "border-success/35 bg-success-soft";
+                        } else if (isSelected) {
+                          stateClass = "border-danger/35 bg-danger-soft";
+                        } else {
+                          stateClass = "border-border bg-surface-subtle text-muted";
+                        }
+                      } else if (isSelected) {
+                        stateClass = "border-accent bg-accent/10";
+                      }
 
-                    return (
-                      <motion.button
-                        key={`${question.id}-${i}`}
-                        type="button"
-                        disabled={revealed}
-                        onClick={() => setSelected(i)}
-                        className={cn(
-                          "flex w-full items-start gap-3 rounded-xl border p-4 text-left text-sm transition",
-                          stateClass,
-                        )}
-                        whileHover={revealed ? undefined : { x: 4 }}
-                        whileTap={revealed ? undefined : { scale: 0.995 }}
-                      >
-                        <span
+                      return (
+                        <label
+                          key={`${question.id}-${index}`}
                           className={cn(
-                            "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
-                            revealed && isCorrect
-                              ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                              : revealed && isSelected
-                                ? "bg-red-500/20 text-red-600 dark:text-red-400"
-                                : "bg-surface",
+                            "flex min-h-11 cursor-pointer items-start gap-3 rounded-[10px] border p-3.5 text-left text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent",
+                            revealed && "cursor-default",
+                            stateClass,
                           )}
                         >
-                          {String.fromCharCode(65 + i)}
-                        </span>
-                        <span>{opt}</span>
-                      </motion.button>
-                    );
-                  })}
-                </div>
+                          <input
+                            type="radio"
+                            name={`answer-${question.id}`}
+                            value={index}
+                            checked={isSelected}
+                            disabled={revealed}
+                            onChange={() => setSelected(index)}
+                            className="sr-only"
+                          />
+                          <span
+                            className={cn(
+                              "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs font-semibold",
+                              revealed && isCorrect
+                                ? "border-success/30 bg-success-soft text-success"
+                                : revealed && isSelected
+                                  ? "border-danger/30 bg-danger-soft text-danger"
+                                  : isSelected
+                                    ? "border-accent bg-accent text-accent-foreground"
+                                    : "border-border bg-surface-subtle text-muted",
+                            )}
+                          >
+                            {String.fromCharCode(65 + index)}
+                          </span>
+                          <span className="pt-0.5 leading-6">{option}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
 
-                <AnimatePresence>
-                  {revealed && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mt-5 space-y-3 overflow-hidden"
-                    >
-                      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm">
-                        <p className="font-medium text-emerald-600 dark:text-emerald-400">
-                          Correct answer: {String.fromCharCode(65 + question.correctIndex)}
-                        </p>
-                        <p className="mt-2 text-muted">{question.explanation}</p>
-                      </div>
+                {revealed ? (
+                  <section
+                    className="mt-6 space-y-4 border-t border-border pt-5"
+                    aria-labelledby={`feedback-${question.id}`}
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge tone="info">Formative feedback</Badge>
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1.5 text-sm font-semibold",
+                          selected === question.correctIndex ? "text-success" : "text-danger",
+                        )}
+                      >
+                        {selected === question.correctIndex ? (
+                          <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
+                        ) : (
+                          <CircleX aria-hidden="true" className="h-4 w-4" />
+                        )}
+                        {selected === question.correctIndex ? "Correct" : "Not the best answer"}
+                      </span>
+                    </div>
 
-                      <div className="rounded-xl border border-border/60 bg-surface/40 p-4 text-sm">
-                        <p className="mb-3 font-medium">All options explained</p>
-                        <div className="space-y-3">
-                          {question.options.map((opt, i) => (
-                            <div
-                              key={i}
-                              className={cn(
-                                "rounded-lg border p-3",
-                                i === question.correctIndex
-                                  ? "border-emerald-500/30 bg-emerald-500/5"
-                                  : "border-border/40",
-                              )}
-                            >
-                              <p className="font-medium">
-                                {String.fromCharCode(65 + i)}. {opt}
-                              </p>
-                              <p className="mt-1 text-muted">
-                                {question.optionExplanations[i] ??
-                                  (i === question.correctIndex
-                                    ? question.explanation
-                                    : "This is not the best answer for this scenario.")}
-                              </p>
-                            </div>
-                          ))}
+                    <div>
+                      <h2 id={`feedback-${question.id}`} className="text-base font-semibold text-foreground">
+                        Answer explanation
+                      </h2>
+                      <p className="mt-2 text-sm leading-6 text-muted">{question.explanation}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-semibold text-foreground">Option review</h3>
+                      {question.options.map((option, index) => (
+                        <div
+                          key={`${question.id}-explanation-${index}`}
+                          className={cn(
+                            "rounded-[10px] border p-3 text-sm",
+                            index === question.correctIndex
+                              ? "border-success/25 bg-success-soft"
+                              : "border-border bg-surface-subtle",
+                          )}
+                        >
+                          <p className="font-medium text-foreground">
+                            {String.fromCharCode(65 + index)}. {option}
+                          </p>
+                          <p className="mt-1 leading-6 text-muted">
+                            {question.optionExplanations[index] ??
+                              (index === question.correctIndex
+                                ? question.explanation
+                                : "This option is less consistent with the case information provided.")}
+                          </p>
                         </div>
-                      </div>
+                      ))}
+                    </div>
 
-                      <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm">
-                        <p className="font-medium text-accent">Teaching pearl</p>
-                        <p className="mt-1 text-muted">{question.teachingPearl}</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    <Notice title="Teaching point" tone="info">
+                      <span className="flex gap-2">
+                        <Lightbulb aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span>{question.teachingPearl}</span>
+                      </span>
+                    </Notice>
+                  </section>
+                ) : null}
 
-                <div className="mt-6 flex justify-end gap-3">
+                <div className="mt-6 flex justify-end">
                   {!revealed ? (
-                    <PrimaryButton onClick={submit} disabled={selected === null}>
+                    <Button type="submit" disabled={selected === null}>
                       Submit answer
-                    </PrimaryButton>
+                    </Button>
                   ) : (
-                    <PrimaryButton onClick={next}>
+                    <Button type="button" onClick={next}>
                       {questionIndex + 1 >= teachingCase.questions.length
-                        ? "See results"
+                        ? "Review session"
                         : "Next question"}
-                    </PrimaryButton>
+                    </Button>
                   )}
                 </div>
-              </GlassCard>
-            </FadeSlide>
-          ) : (
-            <FadeSlide key="done">
-              <GlassCard className="text-center">
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
-                  <p className="text-5xl font-bold text-accent">
-                    {score}/{teachingCase.questions.length}
-                  </p>
-                  <p className="mt-2 text-lg font-medium">Session complete</p>
-                  <p className="mt-1 text-sm text-muted">
-                    {score === teachingCase.questions.length
-                      ? "Perfect — excellent clinical reasoning!"
-                      : "Review the explanations and try again."}
-                  </p>
-                </motion.div>
-                <div className="mt-8 flex flex-wrap justify-center gap-3">
-                  {showNewCase && onNewCase && (
-                    <PrimaryButton onClick={onNewCase}>New session</PrimaryButton>
-                  )}
-                  <SecondaryButton onClick={reset}>Retry this session</SecondaryButton>
-                  <ButtonLink href={backHref ?? "/teaching"}>Back</ButtonLink>
-                </div>
-              </GlassCard>
-            </FadeSlide>
-          )}
-        </AnimatePresence>
+              </form>
+            </Surface>
+          </>
+        ) : (
+          <Surface className="p-6 sm:p-8">
+            <Badge tone="info">Session summary</Badge>
+            <h2 className="mt-4 text-2xl font-semibold text-foreground">Teaching session complete</h2>
+            <p className="mt-4 text-4xl font-semibold tabular-nums text-foreground">
+              {score} of {teachingCase.questions.length}
+            </p>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
+              This score reflects this generated question set only. Review the explanations before
+              starting another session or retrying the same questions.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              {showNewCase && onNewCase ? (
+                <Button onClick={onNewCase}>New session</Button>
+              ) : null}
+              <Button variant="secondary" onClick={reset}>
+                Retry this session
+              </Button>
+              <ButtonLink href={backHref ?? "/teaching"} variant="ghost">
+                Back to subjects
+              </ButtonLink>
+            </div>
+          </Surface>
+        )}
       </div>
     </AppShell>
   );

@@ -7,9 +7,32 @@ export const gcs: CalculatorDefinition = {
   description:
     "Standardised assessment of consciousness by evaluating eye, verbal, and motor responses after brain injury.",
   category: "neurology",
-  icon: "🧠",
+  icon: "brain",
   clinicalApplication:
-    "Used in acute settings (trauma, stroke, overdose) to quantify consciousness, guide intubation, and trend neurological status.",
+    "Supports standardised documentation and serial trending of consciousness in acute settings such as trauma, stroke, and overdose.",
+  evidence: {
+    version: "Standard 15-point adult scale",
+    intendedPopulation:
+      "Adults with acute impaired consciousness or suspected brain injury whose eye, verbal, and motor responses can be assessed.",
+    exclusions: [
+      "Sedation, paralysis, or intubation that prevents a complete assessment",
+      "Preverbal children without use of an age-appropriate paediatric modification",
+      "Local eye, facial, or limb injury that prevents reliable component testing",
+    ],
+    references: [
+      {
+        title: "Assessment of coma and impaired consciousness: a practical scale",
+        citation: "Teasdale G, Jennett B. Lancet. 1974;2(7872):81–84.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/4136544/",
+      },
+      {
+        title: "The Glasgow Coma Scale at 40 years: standing the test of time",
+        citation: "Teasdale G, et al. Lancet Neurol. 2014;13(8):844–854.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/25030516/",
+      },
+    ],
+    reviewedAt: "2026-07-14",
+  },
   inputs: [
     {
       id: "eye",
@@ -66,13 +89,13 @@ export const gcs: CalculatorDefinition = {
       label,
       interpretation: `GCS ${score}/15 (E${eye} V${verbal} M${motor}) — ${label}.`,
       clinicalSignificance:
-        "GCS ≤8: severe injury — assess airway, call neurosurgery. GCS 9–12: moderate injury — close monitoring. GCS 13–15: mild injury — serial observations.",
+        "Published severity bands commonly describe scores ≤8 as severe, 9–12 as moderate, and 13–15 as mild. The component scores, confounders, and change over time are more informative than a total score in isolation.",
       recommendations:
         score <= 8
-          ? ["Assess airway — low threshold for intubation (GCS ≤8).", "Call neurosurgery and organise urgent CT head.", "Maintain spine precautions if trauma suspected, start ICP monitoring if indicated."]
+          ? ["Urgent airway and ventilation assessment may be warranted; seek senior support and follow local airway protocols.", "Review the need for urgent neuroimaging and neurosurgical input.", "Maintain spinal precautions when trauma is suspected and consider intracranial-pressure monitoring under specialist guidance."]
           : score <= 12
-            ? ["Admit to monitored bed (HDU/ICU) for close neurological observation.", "Repeat GCS hourly and report any drop of ≥2 points.", "CT head within 1 hour if not already done."]
-            : ["Admit for observation — neurology/neurosurgery review.", "Perform CT head if not already done, especially if anticoagulated.", "Serial GCS observations every 2–4 hours for 24 hours."],
+            ? ["Consider monitored care and senior neurological review according to the overall presentation.", "Trend GCS at the interval defined by the local observation protocol and escalate a clinically important decline.", "Review indications and timing for CT head imaging under the applicable guideline."]
+            : ["Consider observation and specialty review according to mechanism, symptoms, and risk factors.", "Review CT head criteria, including anticoagulation and other high-risk features.", "Use serial neurological observations at locally defined intervals."],
       limitations:
         "Less reliable in intubated/sedated patients, orbital trauma, or language barriers. FOUR score preferred in ICU.",
       details: [

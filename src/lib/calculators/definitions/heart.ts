@@ -7,9 +7,33 @@ export const heart: CalculatorDefinition = {
   description:
     "Estimates the 6-week risk of major adverse cardiac events (MACE) in patients presenting with chest pain.",
   category: "cardiology",
-  icon: "❤️",
+  icon: "activity",
   clinicalApplication:
-    "Used in ED for chest pain triage. Score 0–3: low risk, consider early discharge. Score 4–6: moderate risk, admit for observation. Score 7–10: high risk, early invasive strategy.",
+    "Supports short-term risk stratification for undifferentiated emergency chest pain. Disposition and testing should follow the full assessment and local chest-pain pathway.",
+  evidence: {
+    version: "Original 10-point HEART score",
+    intendedPopulation:
+      "Adults presenting to an emergency department with undifferentiated chest pain in whom acute coronary syndrome is being considered.",
+    exclusions: [
+      "ST-elevation myocardial infarction or another established diagnosis requiring immediate treatment",
+      "Children and young people under 18 years",
+      "Pregnancy, where validation is limited",
+      "Use without the local troponin assay's reference limit and clinical pathway",
+    ],
+    references: [
+      {
+        title: "Chest pain in the emergency room: value of the HEART score",
+        citation: "Six AJ, Backus BE, Kelder JC. Neth Heart J. 2008;16(6):191–196.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/18665203/",
+      },
+      {
+        title: "A prospective validation of the HEART score for chest pain patients at the emergency department",
+        citation: "Backus BE, et al. Int J Cardiol. 2013;168(3):2153–2158.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/23465250/",
+      },
+    ],
+    reviewedAt: "2026-07-14",
+  },
   inputs: [
     {
       id: "history",
@@ -72,9 +96,9 @@ export const heart: CalculatorDefinition = {
     const score = h + e + a + r + t;
 
     let severity: CalculatorResult["severity"] = "low";
-    let label = "Low risk (MACE 1.7%)";
-    if (score >= 7) { severity = "high"; label = "High risk (MACE 50–65%)"; }
-    else if (score >= 4) { severity = "moderate"; label = "Moderate risk (MACE 20%)"; }
+    let label = "Lower-risk score band";
+    if (score >= 7) { severity = "high"; label = "Higher-risk score band"; }
+    else if (score >= 4) { severity = "moderate"; label = "Intermediate-risk score band"; }
 
     return {
       score,
@@ -83,13 +107,13 @@ export const heart: CalculatorDefinition = {
       label,
       interpretation: `HEART score ${score}/10 — ${label}.`,
       clinicalSignificance:
-        "0–3: 6-week MACE risk ~1.7% — consider early discharge. 4–6: ~20% — admit for observation and serial troponins. 7–10: ~50–65% — early invasive management indicated.",
+        "Original validation studies grouped scores as 0–3, 4–6, and 7–10 with increasing short-term MACE rates. Absolute risk varies by population, troponin assay, endpoint definition, and pathway; the score does not determine disposition on its own.",
       recommendations:
         score <= 3
-          ? ["Consider early discharge with outpatient cardiology follow-up.", "Reassure patient — 6-week MACE risk ~1.7%.", "Advise to return if chest pain recurs or worsens."]
+          ? ["Review eligibility for an accelerated chest-pain pathway using serial troponin results and the complete assessment.", "Discuss follow-up and residual uncertainty without presenting the score as a guarantee.", "Provide clear safety-net advice for recurrent or worsening symptoms."]
           : score <= 6
-            ? ["Admit for observation and serial troponin measurements (0 and 3 hours).", "Obtain ECG on arrival and before each troponin draw.", "Consider non-invasive cardiac testing (CTCA or stress echo) before discharge."]
-            : ["Admit to cardiology or CCU for early invasive management (angiogram).", "Start dual antiplatelet therapy, anticoagulation, and monitor for arrhythmias.", "Discuss with interventional cardiology same day."],
+            ? ["Consider observation and serial troponin testing under the local chest-pain pathway.", "Repeat ECG assessment when clinically indicated and review for dynamic change.", "Review the need for non-invasive cardiac testing with the responsible team."]
+            : ["Prompt senior cardiology assessment and monitored care are commonly warranted.", "Review antithrombotic therapy, contraindications, and monitoring under the applicable acute-coronary-syndrome guideline.", "Consider early discussion with an interventional cardiology service based on the full presentation."],
       limitations:
         "Validated primarily in ED chest pain. Requires serial troponin. The 'history' component is subjective. May not apply to STEMI patients.",
       details: [

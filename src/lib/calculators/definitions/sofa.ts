@@ -7,9 +7,33 @@ export const sofa: CalculatorDefinition = {
   description:
     "Sequential Organ Failure Assessment quantifies organ dysfunction in critically ill patients and predicts mortality.",
   category: "critical-care",
-  icon: "🆘",
+  icon: "shield-alert",
   clinicalApplication:
-    "Used in ICU to track organ failure over time. A change in SOFA ≥2 defines sepsis (Sepsis-3). Baseline <2 has mortality <10%, >15 has >80%.",
+    "Supports serial description of organ dysfunction in critically ill adults. Trends and change from baseline should be interpreted with the complete clinical picture.",
+  evidence: {
+    version: "Original six-domain SOFA score",
+    intendedPopulation:
+      "Critically ill adults whose organ dysfunction can be assessed serially, including adults with suspected infection.",
+    exclusions: [
+      "Children, for whom an age-appropriate paediatric score should be used",
+      "Use as a stand-alone diagnostic test for sepsis",
+      "Interpretation without accounting for known pre-existing organ dysfunction",
+      "Incomplete assessment when required laboratory or treatment data are unavailable",
+    ],
+    references: [
+      {
+        title: "The SOFA score to describe organ dysfunction/failure",
+        citation: "Vincent JL, et al. Intensive Care Med. 1996;22(7):707–710.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/8844239/",
+      },
+      {
+        title: "The Third International Consensus Definitions for Sepsis and Septic Shock (Sepsis-3)",
+        citation: "Singer M, et al. JAMA. 2016;315(8):801–810.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/26903338/",
+      },
+    ],
+    reviewedAt: "2026-07-14",
+  },
   inputs: [
     {
       id: "resp",
@@ -92,7 +116,7 @@ export const sofa: CalculatorDefinition = {
 
     let severity: CalculatorResult["severity"] = "low";
     let label = "Mild dysfunction";
-    if (score >= 15) { severity = "critical"; label = "Critical — very high mortality"; }
+    if (score >= 15) { severity = "critical"; label = "Extensive organ dysfunction"; }
     else if (score >= 10) { severity = "severe"; label = "Severe dysfunction"; }
     else if (score >= 6) { severity = "moderate"; label = "Moderate dysfunction"; }
     else if (score >= 2) { severity = "low"; label = "Mild dysfunction"; }
@@ -104,15 +128,15 @@ export const sofa: CalculatorDefinition = {
       label,
       interpretation: `SOFA score ${score}/24 — ${label}.`,
       clinicalSignificance:
-        "0: normal. ΔSOFA ≥2 = sepsis. Predicts ICU mortality: 0 (<10%), 2–5 (~20%), 6–9 (~40%), 10–14 (~60%), >15 (>80%). Trends matter more than single values.",
+        "In a patient with suspected infection, an acute increase of 2 or more points represents organ dysfunction in the Sepsis-3 framework; it is not a stand-alone diagnosis of sepsis. Trends and change from baseline are more informative than a single value.",
       recommendations:
         score < 2
-          ? ["Continue monitoring — organ function is near normal.", "Reassess SOFA daily; any ΔSOFA ≥2 meets Sepsis-3 criteria.", "Address underlying condition and maintain standard ICU care."]
+          ? ["Continue clinical monitoring appropriate to the underlying condition.", "Use serial SOFA values only as one part of sepsis and organ-dysfunction assessment.", "Interpret change from baseline alongside treatment, comorbidity, and the full clinical trajectory."]
           : score <= 5
-            ? ["Escalate monitoring — consider HDU/ICU if not already admitted.", "Identify and treat the underlying sepsis source (cultures, imaging, antibiotics).", "Reassess SOFA in 24–48 hours to track trajectory."]
+            ? ["Consider a higher level of monitoring based on the affected organ systems and trajectory.", "Review for infection and other reversible causes using the applicable acute-care pathway.", "Repeat assessment at a clinically appropriate interval to understand direction of change."]
             : score <= 9
-              ? ["ICU-level care — start or escalate organ support (ventilation, vasopressors, RRT).", "Daily SOFA trending to guide therapeutic response and prognosis.", "Discuss with multidisciplinary ICU team — involve critical care consultant."]
-              : ["Prepare for prolonged ICU stay — very high mortality (60–80%).", "Consider palliative discussion if goals of care not yet established.", "Escalate to maximum organ support — ventilate, vasopressors, consider ECMO if eligible."],
+              ? ["Critical-care review and organ support may be required according to the complete presentation.", "Trend organ function to support, not replace, assessment of response and prognosis.", "Discuss trajectory and treatment priorities with the multidisciplinary critical-care team."]
+              : ["Seek senior multidisciplinary review because extensive organ dysfunction is associated with a poor prognosis.", "Ensure goals of care and the patient's preferences are understood and documented where appropriate.", "Review the proportionality and eligibility of organ-support options with the responsible critical-care team."],
       limitations:
         "Requires labs and GCS — not a quick bedside tool. Does not account for pre-existing organ dysfunction. Initiation of vasopressors and sedation affect scoring.",
       details: [

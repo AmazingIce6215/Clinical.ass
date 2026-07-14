@@ -7,9 +7,33 @@ export const wellsDVT: CalculatorDefinition = {
   description:
     "Pre-test probability assessment for lower extremity deep vein thrombosis.",
   category: "cardiology",
-  icon: "❤️",
+  icon: "activity",
   clinicalApplication:
-    "First-line clinical rule for suspected DVT. Low prob + neg D-dimer rules out DVT.",
+    "Supports pre-test probability assessment for suspected lower-extremity DVT before D-dimer or ultrasound within a validated local diagnostic pathway.",
+  evidence: {
+    version: "Three-tier Wells DVT model",
+    intendedPopulation:
+      "Adults with suspected acute lower-extremity deep vein thrombosis before diagnostic testing.",
+    exclusions: [
+      "Children and young people under 18 years",
+      "Pregnancy or the immediate postpartum period",
+      "Suspected upper-extremity thrombosis",
+      "Patients already receiving therapeutic anticoagulation",
+    ],
+    references: [
+      {
+        title: "Value of assessment of pretest probability of deep-vein thrombosis in clinical management",
+        citation: "Wells PS, et al. Lancet. 1997;350(9094):1795–1798.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/9428249/",
+      },
+      {
+        title: "Venous thromboembolic diseases: diagnosis, management and thrombophilia testing",
+        citation: "National Institute for Health and Care Excellence. NICE guideline NG158.",
+        url: "https://www.nice.org.uk/guidance/ng158",
+      },
+    ],
+    reviewedAt: "2026-07-14",
+  },
   inputs: [
     { id: "cancer", label: "Active malignancy (+1)", type: "boolean" },
     { id: "paralysis", label: "Paralysis, paresis, or plaster cast (+1)", type: "boolean" },
@@ -39,13 +63,13 @@ export const wellsDVT: CalculatorDefinition = {
       label,
       interpretation: `Wells DVT score ${score} — ${label}.`,
       clinicalSignificance:
-        "≤0: DVT ~5% — D-dimer. 1–2: ~17% — D-dimer, ultrasound if positive. ≥3: ~53% — venous duplex ultrasound.",
+        "This implementation uses the published three-tier model: 0 or less is low, 1–2 is moderate, and 3 or more is high pre-test probability. Diagnostic steps depend on the validated local pathway and access to D-dimer and ultrasound.",
       recommendations:
         score <= 0
-          ? ["Order D-dimer — if negative, DVT ruled out (negative predictive value ~99%).", "If D-dimer positive, arrange proximal venous duplex ultrasound.", "Look for alternative causes of leg symptoms (cellulitis, Baker's cyst, musculoskeletal)."]
+          ? ["A D-dimer may be appropriate within a validated local DVT pathway.", "Review the need and timing of proximal venous ultrasound if the D-dimer is positive or concern persists.", "Consider alternative explanations for leg symptoms as part of the complete assessment."]
           : score <= 2
-            ? ["Favoured — D-dimer first. If positive, arrange venous duplex ultrasound.", "If D-dimer negative and score ≤1, DVT unlikely clinically.", "Start LMWH if ultrasound confirms DVT and no contraindications."]
-            : ["Arrange venous duplex ultrasound urgently (high probability).", "Start empiric therapeutic LMWH while awaiting ultrasound.", "Assess for proximal DVT — if confirmed, start anticoagulation and schedule follow-up."],
+            ? ["Review whether D-dimer or ultrasound is indicated under the local DVT pathway.", "Interpret a negative D-dimer only in the population and pathway for which it is validated.", "If DVT is confirmed, review anticoagulation options and contraindications using current guidance."]
+            : ["Prompt venous ultrasound and senior review are commonly considered when pre-test probability is high.", "Review interim anticoagulation only after assessing bleeding risk and following the local pathway.", "If DVT is confirmed, review clot extent, anticoagulation, and planned follow-up."],
       limitations:
         "'Alternative diagnosis' is subjective. Less validated in hospitalised patients. Does not distinguish proximal vs distal DVT.",
       details: [

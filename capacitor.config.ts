@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.clincalass.app',
-  appName: 'Clincalass',
+  appName: 'DxFlow',
   server: {
     url: 'https://clinicalass.vercel.app',
     cleartext: true,
@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: '#0a0a0b',
+      backgroundColor: '#153f5b',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,
     },

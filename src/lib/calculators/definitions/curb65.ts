@@ -5,11 +5,34 @@ export const curb65: CalculatorDefinition = {
   title: "CURB-65 Score",
   shortName: "CURB-65",
   description:
-    "Predicts 30-day mortality in community-acquired pneumonia and guides admission decisions.",
+    "Estimates 30-day mortality risk in community-acquired pneumonia to support initial severity assessment.",
   category: "respiratory",
-  icon: "🫁",
+  icon: "air-vent",
   clinicalApplication:
-    "Used in ED and primary care to triage CAP — score 0–1 go home, 2 short-stay unit, 3+ urgent admission.",
+    "Supports initial severity assessment in community-acquired pneumonia alongside oxygenation, comorbidity, social factors, and the local care pathway.",
+  evidence: {
+    version: "CURB-65 five-item score",
+    intendedPopulation:
+      "Adults with a clinical diagnosis of community-acquired pneumonia assessed at first presentation.",
+    exclusions: [
+      "Children and young people under 18 years",
+      "Hospital-acquired or ventilator-associated pneumonia",
+      "Severe immunosuppression or another condition requiring an independent admission decision",
+    ],
+    references: [
+      {
+        title: "Defining community acquired pneumonia severity on presentation to hospital",
+        citation: "Lim WS, et al. Thorax. 2003;58(5):377–382.",
+        url: "https://thorax.bmj.com/content/58/5/377",
+      },
+      {
+        title: "Pneumonia: diagnosis and management",
+        citation: "National Institute for Health and Care Excellence. NICE guideline NG250.",
+        url: "https://www.nice.org.uk/guidance/ng250",
+      },
+    ],
+    reviewedAt: "2026-07-14",
+  },
   inputs: [
     { id: "confusion", label: "New confusion", type: "boolean" },
     { id: "urea", label: "Urea > 7 mmol/L (BUN > 20 mg/dL)", type: "boolean" },
@@ -24,7 +47,7 @@ export const curb65: CalculatorDefinition = {
 
     let severity: CalculatorResult["severity"] = "low";
     let label = "Low risk";
-    if (score >= 3) { severity = "severe"; label = "Severe (high mortality)"; }
+    if (score >= 3) { severity = "severe"; label = "High-severity band"; }
     else if (score === 2) { severity = "moderate"; label = "Moderate risk"; }
 
     return {
@@ -34,13 +57,13 @@ export const curb65: CalculatorDefinition = {
       label,
       interpretation: `CURB-65 ${score}/5 — ${label}.`,
       clinicalSignificance:
-        "0–1: mortality <3%, outpatient. 2: mortality ~9%, short-stay. 3+: mortality 15–40%, urgent admission.",
+        "In the derivation cohorts, higher score bands were associated with increasing 30-day mortality. Disposition should also account for oxygenation, comorbidity, complications, oral intake, pregnancy, and social circumstances.",
       recommendations:
         score <= 1
-          ? ["Manage as outpatient with oral antibiotics (e.g., amoxicillin or doxycycline).", "Arrange follow-up in 48 hours to reassess symptoms.", "Advise return if worsening dyspnoea, fever, or confusion."]
+          ? ["Review whether outpatient care is appropriate after considering oxygenation, comorbidity, oral intake, and social circumstances.", "Select antimicrobial therapy using the current local community-acquired-pneumonia guideline.", "Provide follow-up and clear safety-net advice for worsening breathlessness, fever, or confusion."]
           : score === 2
-            ? ["Admit to short-stay unit or ward for IV antibiotics and monitoring.", "Check baseline bloods: FBC, U&E, CRP, blood cultures.", "Review CURB-65 daily for escalation if deteriorating."]
-            : ["Urgent hospital admission — manage as severe pneumonia.", "Start empiric IV antibiotics (e.g., co-amoxiclav + clarithromycin) per local guidelines.", "Monitor for sepsis, consider ICU step-up if vasopressors or respiratory support needed."],
+            ? ["Consider supervised hospital assessment or short-stay care based on the complete severity assessment.", "Review locally recommended investigations and antimicrobial therapy.", "Reassess clinical trajectory and escalate care if deterioration occurs."]
+            : ["Urgent senior assessment and hospital-level care are commonly required for severe presentations.", "Use the local severe-pneumonia and antimicrobial protocol, including sepsis assessment where relevant.", "Review the need for critical-care support if respiratory or haemodynamic instability develops."],
       limitations:
         "Does not account for comorbidities, hypoxia, or social factors. May underestimate severity in young adults. Not for HAP or immunocompromised.",
       details: [

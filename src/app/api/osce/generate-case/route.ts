@@ -28,8 +28,10 @@ export async function POST(request: Request) {
     caseData.difficulty = difficulty;
 
     return NextResponse.json(caseData);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to generate case";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { error: "The practice station could not be generated. Please try again." },
+      { status: 500 },
+    );
   }
 }

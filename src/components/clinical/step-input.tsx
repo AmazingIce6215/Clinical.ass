@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useId } from "react";
 import { ChipGrid } from "@/components/ui/inputs";
 import type { ClinicalStepResponse } from "@/lib/types";
 import { isMultiSelectStep } from "@/lib/step-utils";
@@ -12,6 +13,7 @@ export function ReasonBanner({ reason }: { reason: string }) {
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: "auto" }}
       className="mb-5 rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3 text-sm text-muted"
+      role="note"
     >
       <span className="font-medium text-sky-600 dark:text-sky-400">Why we ask: </span>
       {reason}
@@ -37,6 +39,8 @@ export function StepInput({
   setCustomDetail: (v: string) => void;
 }) {
   const multi = isMultiSelectStep(step);
+  const textInputId = useId();
+  const customInputId = useId();
 
   const toggle = (value: string) => {
     if (multi) {
@@ -52,28 +56,38 @@ export function StepInput({
 
   if (step.inputType === "text") {
     return (
-      <textarea
-        value={textAnswer}
-        onChange={(e) => setTextAnswer(e.target.value)}
-        rows={4}
-        placeholder="Enter findings..."
-        className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
-      />
+      <div>
+        <label htmlFor={textInputId} className="sr-only">
+          {step.question}
+        </label>
+        <textarea
+          id={textInputId}
+          value={textAnswer}
+          onChange={(e) => setTextAnswer(e.target.value)}
+          rows={4}
+          placeholder="Enter findings…"
+          className="w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+        />
+      </div>
     );
   }
 
   if (step.inputType === "yesno") {
     return (
-      <ChipGrid
-        options={["Yes", "No"]}
-        selected={stepAnswer}
-        onToggle={toggle}
-      />
+      <fieldset>
+        <legend className="sr-only">{step.question}</legend>
+        <ChipGrid
+          options={["Yes", "No"]}
+          selected={stepAnswer}
+          onToggle={toggle}
+        />
+      </fieldset>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <fieldset className="space-y-4">
+      <legend className="sr-only">{step.question}</legend>
       {multi && (
         <p className="text-xs text-muted">Select all that apply</p>
       )}
@@ -83,15 +97,21 @@ export function StepInput({
         onToggle={toggle}
       />
       {step.allowCustom && (
-        <input
-          value={customDetail}
-          onChange={(e) => setCustomDetail(e.target.value)}
-          placeholder="Add custom detail..."
-          className={cn(
-            "w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm outline-none focus:border-accent/50",
-          )}
-        />
+        <div>
+          <label htmlFor={customInputId} className="sr-only">
+            Add a custom finding
+          </label>
+          <input
+            id={customInputId}
+            value={customDetail}
+            onChange={(e) => setCustomDetail(e.target.value)}
+            placeholder="Add custom finding…"
+            className={cn(
+              "w-full rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm outline-none focus:border-accent/50",
+            )}
+          />
+        </div>
       )}
-    </div>
+    </fieldset>
   );
 }

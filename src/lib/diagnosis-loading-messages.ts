@@ -1,110 +1,46 @@
 const GENERAL_MESSAGES = [
-  "Consulting Dr. Google… professionally.",
-  "Performing a totally-not-panicked differential diagnosis.",
-  "Trying to remember what the consultant would ask next.",
-  "Loading… because medicine apparently can't be solved with Ctrl+F.",
-  "Searching for zebras after ruling out horses.",
-  "Reading 14 years of medical education in 4 seconds.",
-  "Checking if it's lupus. It's probably not lupus.",
-  "Pretending we already know the answer.",
-  "Crossing fingers for a straightforward case.",
-  "Translating symptoms into medical student anxiety.",
-  "Generating differentials faster than your group discussion.",
-  "Finding diagnoses your consultant will ask about.",
-  "Making educated guesses look professional.",
-  "Trying not to miss the one diagnosis that appears in exams.",
-  "Asking the universal question: 'What else could this be?'",
-  "Loading… please remain clinically calm.",
-  "Searching UpToDate mentally.",
-  "Performing evidence-based wizardry.",
-  "Calculating how many investigations are too many investigations.",
-  "Turning patient complaints into consultant presentations.",
-  "Double-checking that everything isn't just dehydration.",
-  "Trying very hard not to diagnose stress.",
-  "Finding the diagnosis before the patient Googles it.",
-  "Converting chaos into a management plan.",
-  "Looking for the diagnosis hiding in plain sight.",
-  "Running a bedside-to-boards speedrun.",
-  "Channeling every ward round you've ever survived.",
-  "Organizing symptoms into something vaguely defensible.",
-  "Applying textbook logic to real-world chaos.",
-  "Summoning the confidence of a fourth-year on finals week.",
-];
+  "Reviewing the recorded history and examination findings.",
+  "Organizing the case by clinical problem.",
+  "Comparing the findings across the working differential.",
+  "Checking for red flags and time-sensitive features.",
+  "Reviewing suggested investigations and their rationale.",
+  "Preparing an educational management outline.",
+  "Summarizing the clinical reasoning and key uncertainties.",
+  "Structuring the case for a clear clinical review.",
+] as const;
 
-const RARE_MESSAGES = [
-  "Have you considered becoming a dermatologist?",
-  "The consultant is approaching. Think faster.",
-  "The answer is not 'observe and review later.'",
-  "If this loads slowly, blame the hospital Wi-Fi.",
-  "Generating confidence. Accuracy sold separately.",
-  "Running differential.exe…",
-  "Please wait while we respectfully overthink everything.",
-  "This differential is brought to you by caffeine and denial.",
-  "Somewhere, a medical student just said 'interesting case.'",
-  "Recalibrating the overconfidence module.",
-];
-
-const NAME_TEMPLATES = [
-  "Meanwhile, thank {{name}} for creating today's teaching opportunity.",
-  "{{name}} has unknowingly become part of medical education.",
-  "Attempting to impress {{name}} with diagnostic competence.",
-  "{{name}} provided symptoms. We're providing panic and analysis.",
-  "Building a management plan worthy of {{name}}'s trust.",
-  "{{name}} deserves answers. We're assembling our best guesses.",
-];
-
-const CONTEXT_MESSAGES: Record<string, string[]> = {
+const CONTEXT_MESSAGES: Record<string, readonly string[]> = {
   chest: [
-    "Attempting not to call every chest pain an MI.",
-    "Differentiating cardiac drama from musculoskeletal theatre.",
-    "Checking if this chest pain is 'just anxiety' (it never is, until it is).",
-    "Running the chest pain algorithm at medically unsafe speeds.",
-    "Troponin thoughts loading…",
+    "Reviewing cardiovascular, respiratory, and musculoskeletal features.",
+    "Checking the chest-pain history for time-sensitive features.",
   ],
   fever: [
-    "It's either an infection… or medicine trying to be interesting.",
-    "Fever workup: infection, inflammation, or inconvenient timing.",
-    "Calculating how many cultures one patient can reasonably provide.",
-    "Separating viral vibes from bacterial bad news.",
-    "Asking the timeless question: where is the source?",
+    "Reviewing possible infectious and inflammatory sources.",
+    "Checking the recorded observations for sepsis-related features.",
   ],
   abdominal: [
-    "Somewhere, an appendix is sweating.",
-    "Mapping abdominal pain to organs with questionable confidence.",
-    "Deciding if this needs surgery, fluids, or both.",
-    "Performing the sacred art of abdominal exam interpretation.",
-    "Ruling out surgical emergencies with academic enthusiasm.",
+    "Reviewing gastrointestinal, urinary, and surgical features.",
+    "Checking the abdominal history for urgent surgical features.",
   ],
   headache: [
-    "Checking whether the patient needs paracetamol or a neurology textbook.",
-    "Sorting benign headaches from the ones that ruin your afternoon.",
-    "Applying the 'worst headache of their life' filter.",
-    "Neurology referral thoughts intensifying.",
-    "Differentiating migraine from 'maybe just needs sleep.'",
+    "Reviewing the headache history for secondary causes and red flags.",
+    "Comparing neurological features across the differential.",
   ],
   breath: [
-    "Counting respirations and existential dread simultaneously.",
-    "Deciding if this is lungs, heart, or panic with oxygen saturations.",
-    "Preparing a differential that respects the airway.",
-    "Shortness of breath: always simple until it isn't.",
+    "Reviewing respiratory and cardiovascular causes of breathlessness.",
+    "Checking the recorded findings for respiratory compromise.",
   ],
   cough: [
-    "Building a cough differential longer than your revision notes.",
-    "Separating post-viral nuisance from something worth admitting.",
-    "Listening to the cough in your head. Clinical, obviously.",
+    "Reviewing the duration, associated symptoms, and respiratory findings.",
   ],
   rash: [
-    "Consulting the dermatology corner of your brain.",
-    "Is it allergic, infectious, or mysteriously educational?",
-    "Describing this rash using words you half remember.",
+    "Reviewing the morphology, distribution, and associated systemic features.",
   ],
   dizzy: [
-    "Sorting vertigo from near-syncope from 'stood up too fast.'",
-    "Running the dizziness flowchart at student velocity.",
+    "Comparing vestibular, cardiovascular, and neurological features.",
   ],
   nausea: [
-    "Tracing nausea back to one of seventeen organ systems.",
-    "GI, metabolic, or medication? The eternal student trilogy.",
+    "Reviewing gastrointestinal, metabolic, medication, and neurological features.",
   ],
 };
 
@@ -120,35 +56,7 @@ const COMPLAINT_KEYWORDS: Array<{ keys: string[]; context: string }> = [
   { keys: ["nausea", "vomit", "emesis"], context: "nausea" },
 ];
 
-const DYNAMIC_OPENERS = [
-  "Currently",
-  "Right now",
-  "At this moment",
-  "Statistically speaking",
-  "Medically speaking",
-  "Between us",
-];
-
-const DYNAMIC_MIDDLES = [
-  "we are overthinking",
-  "we are heroically analyzing",
-  "we are academically panicking about",
-  "we are professionally guessing about",
-  "we are evidence-basing",
-  "we are differential-ing",
-];
-
-function pickRandom<T>(items: T[]): T {
-  return items[Math.floor(Math.random() * items.length)]!;
-}
-
-function applyName(template: string, patientName?: string): string {
-  const name = patientName?.trim();
-  if (!name) return template;
-  return template.replace(/\{\{name\}\}/g, name);
-}
-
-function detectContexts(complaints: string[]): string[] {
+function detectContexts(complaints: string[]) {
   const joined = complaints.join(" ").toLowerCase();
   const found = new Set<string>();
 
@@ -161,32 +69,8 @@ function detectContexts(complaints: string[]): string[] {
   return [...found];
 }
 
-function generateDynamicMessage(complaints: string[], patientName?: string): string {
-  const contexts = detectContexts(complaints);
-  const complaintLabel = complaints.length
-    ? pickRandom(complaints)
-    : "this presentation";
-
-  const variants = [
-    `${pickRandom(DYNAMIC_OPENERS)}, ${pickRandom(DYNAMIC_MIDDLES)} ${complaintLabel.toLowerCase()}.`,
-    `Running a ${complaintLabel.toLowerCase()} differential with maximum student energy.`,
-    `Turning "${complaintLabel}" into something you can say on ward round.`,
-  ];
-
-  if (contexts.length > 0) {
-    const contextPool = contexts.flatMap((c) => CONTEXT_MESSAGES[c] ?? []);
-    if (contextPool.length) {
-      variants.push(pickRandom(contextPool));
-    }
-  }
-
-  if (patientName?.trim()) {
-    variants.push(
-      `${patientName.trim()} presented with ${complaintLabel.toLowerCase()}. We present: diagnostic chaos.`,
-    );
-  }
-
-  return pickRandom(variants);
+function pickRandom(items: readonly string[]) {
+  return items[Math.floor(Math.random() * items.length)]!;
 }
 
 export function pickDiagnosisLoadingMessage(options: {
@@ -194,45 +78,10 @@ export function pickDiagnosisLoadingMessage(options: {
   complaints?: string[];
   exclude?: string;
 }): string {
-  const complaints = options.complaints ?? [];
-  const patientName = options.patientName?.trim();
-  const exclude = options.exclude;
-  const contexts = detectContexts(complaints);
+  const contexts = detectContexts(options.complaints ?? []);
+  const contextualMessages = contexts.flatMap((context) => CONTEXT_MESSAGES[context] ?? []);
+  const candidates = [...GENERAL_MESSAGES, ...contextualMessages];
+  const filtered = candidates.filter((message) => message !== options.exclude);
 
-  const pools: Array<{ weight: number; messages: string[] }> = [];
-
-  if (Math.random() < 0.05) {
-    pools.push({ weight: 100, messages: RARE_MESSAGES });
-  } else {
-    if (contexts.length > 0) {
-      const contextMessages = contexts.flatMap((c) => CONTEXT_MESSAGES[c] ?? []);
-      pools.push({ weight: 40, messages: contextMessages });
-    }
-
-    if (patientName) {
-      pools.push({
-        weight: 25,
-        messages: NAME_TEMPLATES.map((t) => applyName(t, patientName)),
-      });
-    }
-
-    pools.push({ weight: 35, messages: GENERAL_MESSAGES });
-    pools.push({ weight: 15, messages: [generateDynamicMessage(complaints, patientName)] });
-  }
-
-  const totalWeight = pools.reduce((sum, pool) => sum + pool.weight, 0);
-  let roll = Math.random() * totalWeight;
-
-  let candidates: string[] = GENERAL_MESSAGES;
-  for (const pool of pools) {
-    roll -= pool.weight;
-    if (roll <= 0) {
-      candidates = pool.messages;
-      break;
-    }
-  }
-
-  const filtered = candidates.filter((m) => m !== exclude);
-  const message = pickRandom(filtered.length ? filtered : candidates);
-  return applyName(message, patientName);
+  return pickRandom(filtered.length > 0 ? filtered : candidates);
 }

@@ -1,9 +1,16 @@
 export type {
   CalculatorDefinition,
+  CalculatorEvidence,
   CalculatorField,
+  CalculatorIconKey,
+  CalculatorReference,
   CalculatorResult,
+  CalculatorValue,
+  CalculatorValues,
+  CalculatorCategory,
   FieldOption,
   FieldType,
+  ISODate,
 } from "./types";
 
 export {
@@ -12,4 +19,6 @@ export {
   searchCalculators,
   getCalculatorsByCategory,
   getCategories,
+  formatCalculatorCategory,
+  CALCULATOR_FAVORITES_STORAGE_KEY,
 } from "./registry";

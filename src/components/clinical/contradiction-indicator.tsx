@@ -1,25 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useId, useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { TriangleAlert } from "lucide-react";
 import type { ClinicalContradiction } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-function RippleRing({ delay = 0 }: { delay?: number }) {
-  return (
-    <motion.span
-      className="pointer-events-none absolute inset-0 rounded-full border border-red-500/30"
-      initial={{ scale: 1, opacity: 0.6 }}
-      animate={{ scale: 3, opacity: 0 }}
-      transition={{
-        duration: 3,
-        delay,
-        repeat: Infinity,
-        ease: "easeOut",
-      }}
-    />
-  );
-}
 
 export function ContradictionIndicator({
   contradictions,
@@ -35,20 +20,25 @@ export function ContradictionIndicator({
   onDismiss: (idx: number) => void;
 }) {
   const [clarifications, setClarifications] = useState<Record<number, string>>({});
+  const panelId = useId();
+  const reduceMotion = useReducedMotion();
 
   if (contradictions.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+    <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 flex flex-col items-end gap-2 lg:bottom-6 lg:right-6">
       <AnimatePresence>
         {expandedIdx !== null && contradictions[expandedIdx] && (
           <motion.div
             key={expandedIdx}
-            initial={{ opacity: 0, y: 12, scale: 0.96 }}
+            initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.96 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="w-80 rounded-2xl border border-border/70 bg-surface/95 p-4 shadow-xl backdrop-blur-xl"
+            exit={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
+            transition={{ duration: reduceMotion ? 0 : 0.15 }}
+            className="w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-border bg-surface p-4 shadow-xl"
+            id={panelId}
+            role="region"
+            aria-label="Clinical inconsistency details"
           >
             <ContradictionDetail
               contradiction={contradictions[expandedIdx]}
@@ -77,12 +67,9 @@ export function ContradictionIndicator({
         )}
       </AnimatePresence>
 
-      <div className="relative">
-        <RippleRing delay={0} />
-        <RippleRing delay={1} />
-        <RippleRing delay={2} />
-
+      <div>
         <motion.button
+          type="button"
           onClick={() => {
             if (expandedIdx !== null) {
               onToggleExpand(expandedIdx);
@@ -90,35 +77,14 @@ export function ContradictionIndicator({
               onToggleExpand(0);
             }
           }}
-          animate={{
-            scale: [1, 1.08, 1],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          whileHover={{ scale: 1.12 }}
-          whileTap={{ scale: 0.92 }}
-          className="relative flex h-11 w-11 items-center justify-center rounded-full bg-red-500/15 shadow-lg backdrop-blur-md transition-colors hover:bg-red-500/25"
+          whileHover={reduceMotion ? undefined : { scale: 1.04 }}
+          whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+          className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-red-300 bg-red-50 text-red-700 shadow-lg transition-colors hover:bg-red-100 dark:border-red-700 dark:bg-red-950 dark:text-red-300"
+          aria-expanded={expandedIdx !== null}
+          aria-controls={expandedIdx !== null ? panelId : undefined}
+          aria-label={`${contradictions.length} clinical ${contradictions.length === 1 ? "inconsistency" : "inconsistencies"} detected`}
         >
-          <motion.span
-            className="text-sm font-bold text-red-500"
-            animate={{
-              textShadow: [
-                "0 0 4px rgba(239,68,68,0.3)",
-                "0 0 12px rgba(239,68,68,0.6)",
-                "0 0 4px rgba(239,68,68,0.3)",
-              ],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            !
-          </motion.span>
+          <TriangleAlert className="h-5 w-5" aria-hidden="true" />
 
           {contradictions.length > 1 && (
             <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-sm">
@@ -144,6 +110,7 @@ function ContradictionDetail({
   onResolve: () => void;
   onDismiss: () => void;
 }) {
+  const clarificationId = useId();
   const typeLabel: Record<string, string> = {
     direct: "Direct contradiction",
     timeline: "Timeline conflict",
@@ -185,26 +152,32 @@ function ContradictionDetail({
         </p>
       </div>
 
-      <textarea
-        value={clarification}
-        onChange={(e) => onClarificationChange(e.target.value)}
-        placeholder="Your clarification..."
-        rows={2}
-        className="w-full rounded-xl border border-border/60 bg-surface/60 px-3 py-2 text-xs outline-none focus:border-accent/50"
-      />
+      <div className="space-y-1.5">
+        <label htmlFor={clarificationId} className="text-xs font-medium text-foreground">
+          Clarification (optional)
+        </label>
+        <textarea
+          id={clarificationId}
+          value={clarification}
+          onChange={(e) => onClarificationChange(e.target.value)}
+          placeholder="Add relevant context"
+          rows={2}
+          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+        />
+      </div>
 
       <div className="flex gap-2">
         <button
           type="button"
           onClick={onResolve}
-          className="flex-1 rounded-xl bg-accent/15 px-3 py-2 text-xs font-medium text-accent transition hover:bg-accent/25"
+          className="min-h-11 flex-1 rounded-xl bg-accent px-3 py-2 text-xs font-medium text-accent-foreground transition hover:bg-accent/90"
         >
           Clarify & resolve
         </button>
         <button
           type="button"
           onClick={onDismiss}
-          className="rounded-xl border border-border/60 px-3 py-2 text-xs text-muted transition hover:bg-surface/60"
+          className="min-h-11 rounded-xl border border-border px-3 py-2 text-xs text-muted transition hover:bg-background"
         >
           Dismiss
         </button>

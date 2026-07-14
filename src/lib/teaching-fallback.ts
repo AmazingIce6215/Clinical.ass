@@ -44,10 +44,10 @@ export function getFallbackTeachingCase(
     id: `${subjectId}-offline-${Date.now()}`,
     subject: subjectId,
     subjectName,
-    title: `${subjectName} Offline Practice`,
+    title: `${subjectName} Local Practice`,
     difficulty: "medium",
     vignette:
-      "Offline practice session. Add GROQ_API_KEY in Vercel to enable live AI-generated cases.",
+      "The generated case service is unavailable, so this session uses a clearly labelled local practice template.",
     questions: [
       makeQuestion(
         "q1",

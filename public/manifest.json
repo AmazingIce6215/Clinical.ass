@@ -1,11 +1,11 @@
 {
-  "name": "Clincalass",
-  "short_name": "Clincalass",
-  "description": "Clincalass — clinical reasoning companion for medical students",
+  "name": "DxFlow",
+  "short_name": "DxFlow",
+  "description": "Structured clinical learning for medical students and junior clinicians",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f4f6fb",
-  "theme_color": "#2563eb",
+  "background_color": "#f4f7f9",
+  "theme_color": "#153f5b",
   "orientation": "portrait-primary",
   "icons": [
     {

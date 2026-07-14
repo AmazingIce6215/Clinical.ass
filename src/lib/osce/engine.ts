@@ -14,7 +14,7 @@ export async function getPatientResponse(
 
   const groq = getGroqClient();
   if (!groq) {
-    throw new Error("GROQ_API_KEY is not configured");
+    throw new Error("The simulated patient service is unavailable.");
   }
 
   const messages = [

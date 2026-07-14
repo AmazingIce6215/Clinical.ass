@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { aiJsonCompletion, AI_MODELS } from "@/lib/ai";
 import type { ClinicalAiInsight, CoPilotInsight, PatientCase } from "@/lib/types";
 
-const CO_PILOT_SYSTEM = `You are a clinical thinking coach for a learner using Clinicalass' Clinical Companion. Do NOT generate final diagnoses, ranked differentials, or treatment plans. You only help with:
+const CO_PILOT_SYSTEM = `You are a clinical thinking coach for a learner using DxFlow. Do NOT generate final diagnoses, ranked differentials, or treatment plans. You only help with:
 - what to ask next
 - what to examine next
 - what findings to expect
@@ -91,12 +91,12 @@ export async function POST(request: Request) {
       aiPowered: !!result.data,
       aiError: result.error?.message,
     });
-  } catch (error) {
+    } catch {
     return NextResponse.json(
       {
         insight: null,
         aiPowered: false,
-        aiError: (error as Error)?.message ?? "Co-Pilot request failed.",
+        aiError: "Generated coaching is temporarily unavailable.",
       },
       { status: 500 },
     );

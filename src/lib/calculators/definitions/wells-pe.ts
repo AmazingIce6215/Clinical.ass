@@ -7,9 +7,33 @@ export const wellsPE: CalculatorDefinition = {
   description:
     "Pre-test probability for pulmonary embolism using clinical signs, risk factors, and alternative diagnosis likelihood.",
   category: "cardiology",
-  icon: "❤️",
+  icon: "activity",
   clinicalApplication:
-    "First-line risk stratification for suspected PE in ED. Low prob + neg D-dimer rules out PE.",
+    "Supports pre-test probability assessment for suspected pulmonary embolism before D-dimer or imaging within a validated local diagnostic pathway.",
+  evidence: {
+    version: "Three-tier Wells PE model",
+    intendedPopulation:
+      "Haemodynamically stable adults with clinically suspected acute pulmonary embolism before diagnostic testing.",
+    exclusions: [
+      "Children and young people under 18 years",
+      "Pregnancy or the immediate postpartum period",
+      "Haemodynamic instability requiring urgent assessment and treatment",
+      "Patients already receiving therapeutic anticoagulation",
+    ],
+    references: [
+      {
+        title: "Excluding pulmonary embolism at the bedside without diagnostic imaging",
+        citation: "Wells PS, et al. Ann Intern Med. 2001;135(2):98–107.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/11453709/",
+      },
+      {
+        title: "Venous thromboembolic diseases: diagnosis, management and thrombophilia testing",
+        citation: "National Institute for Health and Care Excellence. NICE guideline NG158.",
+        url: "https://www.nice.org.uk/guidance/ng158",
+      },
+    ],
+    reviewedAt: "2026-07-14",
+  },
   inputs: [
     { id: "dvt_sx", label: "Clinical signs of DVT (+3)", type: "boolean", helpText: "Unilateral leg swelling, pain, tenderness" },
     { id: "pe_likely", label: "PE is #1 diagnosis or equally likely (+3)", type: "boolean", helpText: "Based on H&P — is PE the most likely?" },
@@ -38,13 +62,13 @@ export const wellsPE: CalculatorDefinition = {
       label,
       interpretation: `Wells PE score ${score.toFixed(1)} — ${label}.`,
       clinicalSignificance:
-        `<2: PE ~3.6% — D-dimer first. 2–6: ~14% — D-dimer; CTPA if positive. >6: ~50% — direct to CTPA.`,
+        "This implementation uses the published three-tier model: less than 2 is low, 2–6 is moderate, and greater than 6 is high pre-test probability. Testing decisions depend on the validated pathway, assay, age adjustment, contraindications, and local guidance.",
       recommendations:
         score < 2
-          ? ["Order a high-sensitivity D-dimer (age-adjusted >50 years).", "D-dimer negative: PE ruled out — stop, look for alternative diagnosis.", "D-dimer positive: proceed to CTPA (or V/Q if contrast contraindicated)."]
+          ? ["A high-sensitivity D-dimer may be appropriate within a validated local pathway.", "Interpret a negative result only with the assay, age adjustment, and pathway for which it is validated.", "Review imaging options with the responsible team if the D-dimer is positive or clinical concern persists."]
           : score <= 6
-            ? ["Order D-dimer first. If positive, proceed to CTPA.", "If D-dimer negative but clinical suspicion remains high, discuss with radiology.", "Start therapeutic LMWH if CTPA confirms PE and no contraindications."]
-            : ["Proceed directly to CTPA (high pre-test probability, D-dimer will not change management).", "Start empiric therapeutic LMWH while awaiting imaging.", "Assess severity — consider echo for right heart strain, troponin for risk stratification."],
+            ? ["Review whether D-dimer or direct imaging is indicated under the local PE pathway.", "Discuss discordant results or persistent clinical concern with a senior clinician and radiology.", "If PE is confirmed, review anticoagulation choice, contraindications, and severity using current guidance."]
+            : ["Prompt definitive imaging and senior review are commonly considered when pre-test probability is high.", "Review interim anticoagulation only after assessing bleeding risk and following the local pathway.", "Assess haemodynamic severity and right-heart strain using the investigations appropriate to the presentation."],
       limitations:
         "'PE most likely' is subjective. Not validated in pregnancy. D-dimer is age-adjusted >50y.",
       details: [

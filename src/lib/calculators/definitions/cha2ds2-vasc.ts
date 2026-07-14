@@ -5,11 +5,35 @@ export const cha2ds2Vasc: CalculatorDefinition = {
   title: "CHA₂DS₂-VASc Score",
   shortName: "CHA₂DS₂-VASc",
   description:
-    "Estimates annual stroke risk in patients with atrial fibrillation to guide anticoagulation decisions.",
+    "Estimates thromboembolic risk in adults with atrial fibrillation for use in anticoagulation discussions.",
   category: "cardiology",
-  icon: "❤️",
+  icon: "activity",
   clinicalApplication:
-    "Used to determine need for anticoagulation in AF. Score ≥2 (men) or ≥3 (women) generally warrants OAC therapy.",
+    "Supports thromboembolic risk review and shared anticoagulation decisions in atrial fibrillation alongside current guidance and individual clinical factors.",
+  evidence: {
+    version: "CHA₂DS₂-VASc nine-point score",
+    intendedPopulation:
+      "Adults with atrial fibrillation or atrial flutter being assessed for thromboembolic risk.",
+    exclusions: [
+      "Mechanical prosthetic heart valves or moderate-to-severe mitral stenosis",
+      "Patients without documented atrial fibrillation or atrial flutter",
+      "Children and young people under 18 years",
+      "Use as a substitute for shared decision-making and current local anticoagulation guidance",
+    ],
+    references: [
+      {
+        title: "Refining clinical risk stratification for predicting stroke and thromboembolism in atrial fibrillation",
+        citation: "Lip GYH, et al. Chest. 2010;137(2):263–272.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/19762550/",
+      },
+      {
+        title: "ESC Clinical Practice Guidelines for the management of atrial fibrillation",
+        citation: "European Society of Cardiology. 2024 ESC guideline.",
+        url: "https://www.escardio.org/guidelines/clinical-practice-guidelines/all-esc-practice-guidelines/atrial-fibrillation/",
+      },
+    ],
+    reviewedAt: "2026-07-14",
+  },
   inputs: [
     { id: "chf", label: "CHF / LVEF ≤ 40% (+1)", type: "boolean" },
     { id: "htn", label: "Hypertension (+1)", type: "boolean" },
@@ -27,9 +51,9 @@ export const cha2ds2Vasc: CalculatorDefinition = {
       + pts(values.age_65) + pts(values.female);
 
     let severity: CalculatorResult["severity"] = "low";
-    let label = "Low risk (annual stroke ~0.2%)";
-    if (score >= 5) { severity = "high"; label = "High risk (annual stroke ~5–10%)"; }
-    else if (score >= 2) { severity = "moderate"; label = "Moderate risk (annual stroke ~2–4%)"; }
+    let label = "Lower score band";
+    if (score >= 5) { severity = "high"; label = "Higher score band"; }
+    else if (score >= 2) { severity = "moderate"; label = "Intermediate score band"; }
 
     return {
       score,
@@ -38,13 +62,13 @@ export const cha2ds2Vasc: CalculatorDefinition = {
       label,
       interpretation: `CHA₂DS₂-VASc score ${score}/9 — ${label}.`,
       clinicalSignificance:
-        `${score <= 1 ? `${score === 0 ? "CHA₂DS₂-VASc 0: consider no antithrombotic therapy." : "CHA₂DS₂-VASc 1: consider OAC in women only if other risk factors present."}` : `Score ≥2 (men) / ≥3 (women): oral anticoagulation recommended (DOAC or warfarin). Adjusted stroke rate: ${["0.2%", "0.6%", "2.2%", "3.2%", "4.0%", "5.7%", "7.8%", "9.6%", "10.8%", "12.2%"][Math.min(score, 9)]} per year.`}`,
+        "Thromboembolic risk generally rises as the score increases. Current guidelines interpret sex as a risk modifier and apply treatment thresholds within a broader review of bleeding risk, contraindications, and patient preferences.",
       recommendations:
         score === 0
-          ? ["Consider no antithrombotic therapy — annual stroke risk ~0.2%.", "Reassess risk annually and whenever new risk factors develop."]
+          ? ["Review whether antithrombotic therapy is indicated under the current atrial-fibrillation guideline.", "Reassess thromboembolic risk periodically and when clinical risk factors change."]
           : score === 1
-            ? ["Consider OAC (DOAC preferred) for men with one risk factor.", "For women, OAC only if additional risk factors beyond female sex.", "Discuss shared decision-making with patient."]
-            : ["Start oral anticoagulation — DOAC (apixaban, rivaroxaban, edoxaban, dabigatran) preferred over warfarin.", "Assess bleeding risk with HAS-BLED score before initiating.", "Schedule follow-up in 4 weeks to check adherence, side effects, and renal function."],
+            ? ["Review anticoagulation benefit and uncertainty using current sex-specific guideline thresholds.", "Female sex alone is generally treated as a risk modifier rather than an independent indication.", "Use shared decision-making that includes stroke risk, bleeding risk, and patient preferences."]
+            : ["Review the indication and choice of oral anticoagulation using current guidance and individual contraindications.", "Identify and address modifiable bleeding risks rather than using a bleeding score alone to withhold treatment.", "Plan follow-up appropriate to the selected therapy, renal function, adherence, and adverse effects."],
       limitations:
         "Does not include bleeding risk — always balance with HAS-BLED score. Does not capture time in AF or other stroke risk factors (e.g., renal impairment, cancer).",
       details: [

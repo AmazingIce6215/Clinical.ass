@@ -1,178 +1,85 @@
-"use client";
-
-import { use, useCallback, useMemo, useState } from "react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { AppShell, GlassCard } from "@/components/app-shell";
-import { CalculatorForm } from "@/components/calculators/calculator-form";
-import { CalculatorResultDisplay } from "@/components/calculators/calculator-result";
-import { getCalculator } from "@/lib/calculators/registry";
-import type { CalculatorResult } from "@/lib/calculators/types";
+import { Info } from "lucide-react";
+import { AppShell } from "@/components/app-shell";
+import { CalculatorEvidencePanel } from "@/components/calculators/calculator-evidence";
+import { CalculatorIcon } from "@/components/calculators/calculator-icon";
+import { CalculatorWorkspace } from "@/components/calculators/calculator-workspace";
+import {
+  formatCalculatorCategory,
+  getAllCalculators,
+  getCalculator,
+} from "@/lib/calculators/registry";
 
-const defaultValues: Record<string, string | number | boolean | string[]> = {};
-
-function buildDefaults(calc: ReturnType<typeof getCalculator>) {
-  if (!calc) return {};
-  const vals: Record<string, string | number | boolean | string[]> = {};
-  for (const input of calc.inputs) {
-    if (input.type === "boolean") vals[input.id] = false;
-    else if (input.type === "number") vals[input.id] = 0;
-    else if (input.type === "select") vals[input.id] = "";
-    else vals[input.id] = [];
-  }
-  return vals;
+interface CalculatorPageProps {
+  params: Promise<{ slug: string }>;
 }
 
-export default function CalculatorPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = use(params);
-  const calculator = useMemo(() => getCalculator(slug), [slug]);
+export const dynamicParams = false;
 
-  const [values, setValues] = useState<Record<string, string | number | boolean | string[]>>({});
-  const [result, setResult] = useState<CalculatorResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [hasCalculated, setHasCalculated] = useState(false);
+export function generateStaticParams() {
+  return getAllCalculators().map((calculator) => ({ slug: calculator.slug }));
+}
 
-  const initialized = useMemo(() => {
-    if (!calculator) return false;
-    const defaults = buildDefaults(calculator);
-    setValues(defaults);
-    setResult(null);
-    setError(null);
-    setHasCalculated(false);
-    return true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+export async function generateMetadata({ params }: CalculatorPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const calculator = getCalculator(slug);
 
-  const handleFieldChange = useCallback(
-    (id: string, value: string | number | boolean | string[]) => {
-      setValues((prev) => ({ ...prev, [id]: value }));
-      setResult(null);
-    },
-    [],
-  );
+  if (!calculator) return {};
 
-  const handleSubmit = useCallback(() => {
-    if (!calculator) return;
-    setError(null);
+  return {
+    title: `${calculator.shortName} calculator`,
+    description: calculator.description,
+  };
+}
 
-    const missing = calculator.inputs.filter(
-      (i) => {
-        const v = values[i.id];
-        return v === "" || v === undefined || v === null;
-      },
-    );
+export default async function CalculatorPage({ params }: CalculatorPageProps) {
+  const { slug } = await params;
+  const calculator = getCalculator(slug);
 
-    if (missing.length > 0) {
-      setError(`Please fill in: ${missing.map((m) => m.label).join(", ")}`);
-      return;
-    }
-
-    try {
-      const res = calculator.calculate(values);
-      setResult(res);
-      setHasCalculated(true);
-    } catch {
-      setError("Calculation error. Check your inputs.");
-    }
-  }, [calculator, values]);
-
-  const handleReset = useCallback(() => {
-    setResult(null);
-    setHasCalculated(false);
-    const defaults = buildDefaults(calculator);
-    setValues(defaults);
-    setError(null);
-  }, [calculator]);
-
-  if (!calculator) {
-    notFound();
-  }
+  if (!calculator) notFound();
 
   return (
     <AppShell
       backHref="/calculators"
       title={calculator.shortName}
-      subtitle={calculator.title}
+      subtitle="Clinical calculator"
     >
-      <div className="mx-auto w-full max-w-4xl">
-        <div className="mb-6">
-          <span className="inline-flex items-center gap-2 rounded-2xl bg-surface/60 px-4 py-2 text-sm">
-            <span className="text-xl">{calculator.icon}</span>
-            <span>
-              <span className="font-medium text-foreground">{calculator.title}</span>
-              <span className="ml-2 rounded-full border border-border/60 px-2 py-0.5 text-[11px] capitalize text-muted">
-                {calculator.category}
-              </span>
+      <div className="mx-auto w-full max-w-6xl space-y-5">
+        <header className="rounded-xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+          <div className="flex items-start gap-4">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-accent">
+              <CalculatorIcon name={calculator.icon} className="size-5" />
             </span>
-          </span>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-2">
-            <div>
-              <GlassCard>
-                <h2 className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">
-                  Inputs
-                </h2>
-                <p className="mb-4 text-xs leading-relaxed text-muted/70">
-                  {calculator.clinicalApplication}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
+                  {formatCalculatorCategory(calculator.category)}
                 </p>
-
-                {error && (
-                  <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
-                    {error}
-                  </div>
-                )}
-
-                <CalculatorForm
-                  calculator={calculator}
-                  values={values}
-                  onFieldChange={handleFieldChange}
-                  onSubmit={handleSubmit}
-                  hasResult={hasCalculated}
-                />
-              </GlassCard>
+                <span className="rounded-md border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted">
+                  {calculator.shortName}
+                </span>
+              </div>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+                {calculator.title}
+              </h1>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted sm:text-base">
+                {calculator.description}
+              </p>
             </div>
           </div>
 
-          <div className="lg:col-span-3">
-            <AnimatePresence mode="wait">
-              {result ? (
-                <motion.div
-                  key="result"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <CalculatorResultDisplay result={result} onReset={handleReset} />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="placeholder"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <GlassCard className="flex flex-col items-center justify-center py-16 text-center">
-                    <span className="text-5xl mb-4">{calculator.icon}</span>
-                    <h3 className="text-lg font-semibold text-foreground">{calculator.title}</h3>
-                    <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
-                      {calculator.description}
-                    </p>
-                    <p className="mt-4 text-xs text-muted/60">
-                      Enter values on the left, then tap Calculate.
-                    </p>
-                  </GlassCard>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          <div className="mt-5 flex gap-3 rounded-lg border border-border bg-background p-3 text-xs leading-5 text-muted">
+            <Info className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
+            <p>
+              Educational tool only. Verify all inputs and interpret the result alongside current
+              local guidance and the complete clinical assessment.
+            </p>
           </div>
-        </div>
+        </header>
+
+        <CalculatorWorkspace key={calculator.slug} slug={calculator.slug} />
+        <CalculatorEvidencePanel evidence={calculator.evidence} />
       </div>
     </AppShell>
   );

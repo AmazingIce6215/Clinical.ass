@@ -351,7 +351,7 @@ export function getOverallStats() {
 export function getSubjectBreakdown() {
   const stats = readStats();
   return teachingSubjects
-    .map((s: { id: string; name: string; icon: string }) => {
+    .map((s) => {
       const stat = stats.subjectStats[s.id];
       return {
         id: s.id,
@@ -362,11 +362,8 @@ export function getSubjectBreakdown() {
         accuracy: stat?.accuracy ?? 0,
       };
     })
-    .filter((s: { attempted: number }) => s.attempted > 0)
-    .sort(
-      (a: { accuracy: number }, b: { accuracy: number }) =>
-        a.accuracy - b.accuracy,
-    );
+    .filter((s) => s.attempted > 0)
+    .sort((a, b) => a.accuracy - b.accuracy);
 }
 
 export function getActivityHeatmapData(): Array<{

@@ -7,9 +7,33 @@ export const bishop: CalculatorDefinition = {
   description:
     "Predicts favourability for induction of labour and the likelihood of vaginal delivery.",
   category: "obstetrics",
-  icon: "👶",
+  icon: "baby",
   clinicalApplication:
-    "Assesses cervical ripening before induction of labour. Score ≥ 8 suggests favourable cervix and high likelihood of vaginal delivery with induction.",
+    "Supports structured cervical assessment before induction of labour. Interpretation should include parity, gestation, maternal and fetal status, and the local induction protocol.",
+  evidence: {
+    version: "Original 13-point Bishop score",
+    intendedPopulation:
+      "Pregnant patients undergoing cervical assessment before a planned induction of labour.",
+    exclusions: [
+      "Any contraindication to induction or vaginal delivery",
+      "Preterm, multiple, or non-cephalic pregnancies where validation and interpretation may differ",
+      "Use without obstetric assessment of maternal and fetal status",
+      "Use as the sole determinant of induction method or timing",
+    ],
+    references: [
+      {
+        title: "Pelvic scoring for elective induction",
+        citation: "Bishop EH. Obstet Gynecol. 1964;24:266–268.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/14199536/",
+      },
+      {
+        title: "Inducing labour",
+        citation: "National Institute for Health and Care Excellence. NICE guideline NG207, updated 2026.",
+        url: "https://www.nice.org.uk/guidance/ng207",
+      },
+    ],
+    reviewedAt: "2026-07-14",
+  },
   inputs: [
     {
       id: "dilation",
@@ -90,10 +114,10 @@ export const bishop: CalculatorDefinition = {
             : "Unfavourable cervix. Cervical ripening recommended (PGE2 gel, balloon catheter, or misoprostol). Lower success rate for IOL; higher risk of Caesarean.",
       recommendations:
         score >= 8
-          ? ["Proceed with induction of labour as planned.", "High likelihood of successful vaginal delivery — counsel and monitor progress.", "Consider amniotomy ± oxytocin if spontaneous labour does not ensue."]
+          ? ["Review the planned induction approach with the obstetric team and confirm there is no contraindication.", "Discuss that a favourable score supports, but does not guarantee, vaginal delivery.", "Choose subsequent induction steps according to maternal-fetal assessment and the local protocol."]
           : score >= 5
-            ? ["Consider cervical ripening with prostaglandins (PGE2 gel, misoprostol) or mechanical methods.", "Reassess Bishop score in 6–12 hours after ripening agent.", "Counsel patient — moderate probability of successful vaginal delivery."]
-            : ["Start cervical ripening — prostaglandin (PGE2, misoprostol) or mechanical (balloon catheter).", "Reassess after ripening course — low Bishop score is associated with higher Caesarean risk.", "Discuss alternative options with obstetric consultant if repeat Bishop remains low."],
+            ? ["Review whether cervical ripening is appropriate and select a method under the local induction protocol.", "Reassess the cervix and maternal-fetal status at the interval specified by the selected method.", "Discuss the uncertainty in predicting vaginal delivery from the score alone."]
+            : ["Review cervical-ripening options, contraindications, and patient preferences with the obstetric team.", "Reassess after the planned ripening course; a low score is associated with a higher chance of unsuccessful induction.", "Seek senior obstetric review if the score remains low or clinical circumstances change."],
       limitations:
         "Subjective scoring with inter-observer variability. Does not account for parity, gestational age, or other obstetric factors. Modified Bishop score is also used in some centres.",
       details: [

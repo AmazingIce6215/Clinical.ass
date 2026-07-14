@@ -11,7 +11,6 @@ import {
 import { CaseSidebar, CaseSummarySidebar, CoPilotSidebar } from "@/components/clinical/case-sidebar";
 import { ReasoningTreeView } from "@/components/clinical/reasoning-tree";
 import { DiagnosisLoadingOverlay } from "@/components/clinical/diagnosis-loading-overlay";
-import { LoadingPanel } from "@/components/loading-panel";
 import { ReasonBanner, StepInput } from "@/components/clinical/step-input";
 import { ContradictionIndicator } from "@/components/clinical/contradiction-indicator";
 import { FadeSlide, ProgressBar } from "@/components/motion";
@@ -35,22 +34,27 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
       complaints={w.patientCase.chiefComplaints}
     />
     <AppShell
-      backHref="/"
-      title={isClassic ? "Classic Mode" : "Clincalass Companion"}
+      backHref="/dashboard"
+      title={isClassic ? "Classic practice" : "DxFlow Clinical"}
       subtitle={
         isClassic
-          ? "Full history → ward-round presentation"
-          : "Triage → history → exam → investigations → diagnosis"
+          ? "Structured history → educational case presentation"
+          : "Triage → history → examination → investigations → assessment"
       }
     >
+      <h1 className="sr-only">{isClassic ? "Classic practice" : "DxFlow Clinical"}</h1>
+      <p className="mb-3 rounded-xl border border-border bg-surface p-3 text-xs leading-5 text-muted">
+        Educational use only. Do not enter identifiable patient information or rely on generated
+        suggestions as a substitute for supervised clinical judgment.
+      </p>
       {!isClassic && (
         <p className="mb-4 text-xs text-muted">
-          Structured like a real clinic review — each step once, in order. Select multiple answers where needed.
+          Follow the case in order and select multiple findings where appropriate.
         </p>
       )}
       {isClassic && (
         <p className="mb-4 text-xs text-muted">
-          Systematic history for ward rounds. Skip any question you don't need.
+          Build a systematic history and learning presentation. Skip questions that are not relevant.
         </p>
       )}
       <div className="mb-6">
@@ -58,7 +62,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row">
-        <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-80">
+        <div className="flex w-full shrink-0 flex-col gap-4 lg:w-80">
           <div className="space-y-4 lg:sticky lg:top-6">
             <CaseSidebar
               key={w.phase === "results" ? "results" : "workup"}
@@ -87,9 +91,9 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
               <CaseSummarySidebar patientCase={w.patientCase} />
             </div>
           </div>
-        </aside>
+        </div>
 
-        <main className="flex min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1">
           <AnimatePresence mode="wait">
             {w.phase === "demographics" && (
               <FadeSlide key="demo">
@@ -149,7 +153,8 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
                       value={w.customComplaint}
                       onChange={(e) => w.setCustomComplaint(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && w.addCustomComplaint()}
-                      placeholder="Add another complaint..."
+                      placeholder="Add another complaint…"
+                      aria-label="Add another presenting complaint"
                       className="flex-1 rounded-xl border border-border/80 bg-surface/60 px-4 py-3 text-sm outline-none focus:border-accent/50"
                     />
                     <SecondaryButton onClick={w.addCustomComplaint}>Add</SecondaryButton>
@@ -167,7 +172,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
               <FadeSlide key="load">
                 <GlassCard className="max-w-2xl py-12 text-center">
                   <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-accent/20 border-t-accent" />
-                  <p className="mt-4 text-sm text-muted">Loading next step...</p>
+                  <p className="mt-4 text-sm text-muted">Preparing the next clinical question…</p>
                 </GlassCard>
               </FadeSlide>
             )}
@@ -208,9 +213,9 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
                           ? (isClassic ? "Generating presentation…" : "Analyzing case…")
                           : isClassic
                             ? "Generate presentation"
-                            : "Diagnose"
+                            : "Generate assessment"
                         : w.loading
-                          ? "Loading..."
+                          ? "Loading…"
                           : "Continue"
                     }
                     nextDisabled={
@@ -252,7 +257,7 @@ export function CaseWizardView({ mode }: { mode: "clinical" | "classic" }) {
               </FadeSlide>
             )}
           </AnimatePresence>
-        </main>
+        </div>
       </div>
       <ContradictionIndicator
         contradictions={w.activeContradictions}
@@ -284,7 +289,7 @@ function WizardCard({
           {step}
         </motion.div>
         <div>
-          <h1 className="text-xl font-semibold sm:text-2xl">{title}</h1>
+          <h2 className="text-xl font-semibold sm:text-2xl">{title}</h2>
           <p className="mt-1 text-sm text-muted sm:text-base">{subtitle}</p>
         </div>
       </div>
@@ -328,7 +333,6 @@ function NavRow({
 function ClinicalResults({
   diagnosis,
   aiPowered,
-  aiNotice,
   onRetry,
   retrying,
   onReset,
@@ -355,24 +359,30 @@ function ClinicalResults({
       {!aiPowered && (
         <GlassCard className="border-amber-500/30 bg-amber-500/10">
           <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
-            {aiNotice ??
-              "AI diagnosis was unavailable — showing an offline clinical template. Wait a minute and try again, or upgrade your Groq tier."}
+            AI-generated assistance is temporarily unavailable. A template-based educational
+            assessment is shown instead; verify it independently.
           </p>
           <SecondaryButton className="mt-4" onClick={onRetry} disabled={retrying}>
-            {retrying ? "Retrying diagnosis…" : "Retry diagnosis"}
+            {retrying ? "Retrying assessment…" : "Retry AI assessment"}
           </SecondaryButton>
         </GlassCard>
       )}
       <GlassCard>
-        <p className="text-xs font-semibold uppercase text-accent">Primary diagnosis</p>
+        <p className="text-xs font-semibold uppercase text-accent">
+          {aiPowered ? "AI-generated suggested diagnosis" : "Template-based suggested diagnosis"}
+        </p>
         <h2 className="mt-2 text-2xl font-semibold">{diagnosis.primaryDiagnosis}</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted">{diagnosis.clinicalReasoningSummary}</p>
+        <p className="mt-4 border-t border-border pt-3 text-xs leading-5 text-muted">
+          This is an educational suggestion, not a confirmed diagnosis. Reconcile it with the
+          complete clinical picture and local guidance.
+        </p>
       </GlassCard>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <ListCard title="Red flags" items={redFlags} variant="danger" />
-        <ListCard title="Investigations" items={diagnosis.investigations} />
-        <ListCard title="Management" items={diagnosis.management} className="sm:col-span-2" />
+        <ListCard title="Suggested investigations" items={diagnosis.investigations} />
+        <ListCard title="Management considerations" items={diagnosis.management} className="sm:col-span-2" />
         <ListCard title="Teaching points" items={diagnosis.teachingPoints} className="sm:col-span-2" variant="accent" />
       </div>
 
@@ -386,9 +396,6 @@ function ClinicalResults({
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <span className="font-medium">{d.diagnosis}</span>
-                  {typeof d.probability === "number" && (
-                    <span className="ml-2 text-xs text-muted">{d.probability}%</span>
-                  )}
                 </div>
                 <span className="shrink-0 text-xs uppercase text-muted">{d.likelihood}</span>
               </div>
@@ -424,7 +431,7 @@ function ClinicalResults({
           {saved ? "Saved to library" : "Save to library"}
         </SecondaryButton>
         <ButtonLink href="/library">Library</ButtonLink>
-        <ButtonLink href="/">Home</ButtonLink>
+        <ButtonLink href="/dashboard">Dashboard</ButtonLink>
       </div>
     </div>
   );
@@ -454,10 +461,14 @@ function ClassicResults({
               aiPowered ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700",
             )}
           >
-            {aiPowered ? "AI generated" : "Manual summary"}
+            {aiPowered ? "AI-generated learning summary" : "Template-based summary"}
           </span>
         </div>
         <p className="mt-2 text-lg font-medium">{presentation.oneLiner}</p>
+        <p className="mt-4 border-t border-border pt-3 text-xs leading-5 text-muted">
+          Review generated wording against the recorded history before using it in teaching or
+          supervised discussion.
+        </p>
       </GlassCard>
 
       <GlassCard>
@@ -468,7 +479,7 @@ function ClassicResults({
       </GlassCard>
 
       <ListCard title="Key points" items={presentation.keyPoints} variant="accent" />
-      <ListCard title="Questions your consultant might ask" items={presentation.suggestedQuestions} />
+      <ListCard title="Questions a supervisor may ask" items={presentation.suggestedQuestions} />
 
       <div className="flex flex-wrap gap-3 pt-2">
         <PrimaryButton onClick={onReset}>New case</PrimaryButton>
@@ -476,7 +487,7 @@ function ClassicResults({
           {saved ? "Saved to library" : "Save to library"}
         </SecondaryButton>
         <ButtonLink href="/library">Library</ButtonLink>
-        <ButtonLink href="/">Home</ButtonLink>
+        <ButtonLink href="/dashboard">Dashboard</ButtonLink>
       </div>
     </div>
   );

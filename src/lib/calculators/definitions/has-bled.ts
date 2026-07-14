@@ -7,9 +7,33 @@ export const hasBled: CalculatorDefinition = {
   description:
     "Estimates 1-year major bleeding risk in patients with atrial fibrillation on anticoagulation.",
   category: "cardiology",
-  icon: "🩸",
+  icon: "droplets",
   clinicalApplication:
-    "Used alongside CHA₂DS₂-VASc to weigh bleeding risk vs stroke prevention benefit. Score ≥3 indicates caution.",
+    "Supports identification of bleeding risk factors in atrial fibrillation, particularly modifiable factors that warrant review and closer follow-up.",
+  evidence: {
+    version: "HAS-BLED nine-point score",
+    intendedPopulation:
+      "Adults with atrial fibrillation who are receiving or being considered for oral anticoagulation.",
+    exclusions: [
+      "Patients without atrial fibrillation",
+      "Children and young people under 18 years",
+      "Use of the score alone to withhold indicated anticoagulation",
+      "Use without reviewing and addressing modifiable bleeding risk factors",
+    ],
+    references: [
+      {
+        title: "A novel user-friendly score to assess one-year risk of major bleeding in atrial fibrillation",
+        citation: "Pisters R, et al. Chest. 2010;138(5):1093–1100.",
+        url: "https://pubmed.ncbi.nlm.nih.gov/20299623/",
+      },
+      {
+        title: "ESC Clinical Practice Guidelines for the management of atrial fibrillation",
+        citation: "European Society of Cardiology. 2024 ESC guideline.",
+        url: "https://www.escardio.org/guidelines/clinical-practice-guidelines/all-esc-practice-guidelines/atrial-fibrillation/",
+      },
+    ],
+    reviewedAt: "2026-07-14",
+  },
   inputs: [
     { id: "htn", label: "Uncontrolled hypertension (SBP > 160 mmHg) (+1)", type: "boolean" },
     { id: "renal", label: "Abnormal renal function (dialysis, transplant, Cr > 2.26) (+1)", type: "boolean" },
@@ -39,11 +63,11 @@ export const hasBled: CalculatorDefinition = {
       label,
       interpretation: `HAS-BLED score ${score}/9 — ${label}.`,
       clinicalSignificance:
-        "Score 0–2: low risk (bleeds/100 patient-years: 1–4). Score ≥3: high risk (6–15 bleeds/100 patient-years); address modifiable risk factors and consider closer monitoring. A high score alone should not preclude OAC — balance with CHA₂DS₂-VASc.",
+        "Scores of 3 or more identify a group with increased bleeding risk and should prompt review of modifiable factors and follow-up intensity. A high score alone should not be used to withhold indicated anticoagulation.",
       recommendations:
         score < 3
-          ? ["Bleeding risk is low — OAC is safe if CHA₂DS₂-VASc indicates benefit.", "Monitor renal function and blood pressure at follow-up visits.", "Review medication list for interacting drugs (NSAIDs, antiplatelets)."]
-          : ["Address modifiable risk factors: uncontrolled HTN, NSAID use, alcohol excess, labile INR.", "If on warfarin, improve TTR — consider switching to DOAC if consistently labile.", "A high HAS-BLED is not a contraindication to OAC — assess net clinical benefit with CHA₂DS₂-VASc.", "Schedule closer monitoring — 1-month follow-up after OAC initiation."],
+          ? ["Interpret bleeding risk alongside thromboembolic benefit; the score does not establish that anticoagulation is safe for an individual.", "Review blood pressure, renal and hepatic function, and other changing risk factors during follow-up.", "Check for modifiable medication risks, including NSAIDs and concurrent antiplatelet therapy."]
+          : ["Prioritise review of modifiable factors such as uncontrolled hypertension, NSAID use, alcohol excess, and labile INR.", "For warfarin therapy, review time in therapeutic range and alternative options under current guidance.", "Do not use a high HAS-BLED score alone as a contraindication to anticoagulation; assess net clinical benefit.", "Consider closer follow-up based on the treatment plan and individual risk factors."],
       limitations:
         "Moderate predictive value (c-statistic ~0.65). Not validated outside AF. 'Labile INR' criterion may not apply to DOACs. Does not capture fall risk or frailty.",
       details: [
