@@ -25,19 +25,16 @@ export type HeartCanvasController = {
   pointerMove: (clientX: number, clientY: number) => void;
   pointerLeave: () => void;
   rippleAt: (clientX: number, clientY: number) => void;
-  setDissolveOrigin: (clientX?: number, clientY?: number) => void;
 };
 
 type ParticleHeartCanvasProps = {
   controllerRef: Ref<HeartCanvasController>;
   fallback: ReactNode;
-  mode: "heart" | "case";
   reducedMotion: boolean;
 };
 
 type HeartSceneProps = {
   controllerRef: Ref<HeartCanvasController>;
-  mode: "heart" | "case";
   particleCount: number;
   pixelRatio: number;
   reducedMotion: boolean;
@@ -55,7 +52,11 @@ function createRadialSpriteTexture() {
         normalizedX * normalizedX + normalizedY * normalizedY,
       );
       const normalizedDistance = Math.min(1, distance / 0.5);
-      const alpha = Math.pow(1 - normalizedDistance, 1.7);
+      const edge = Math.min(
+        1,
+        Math.max(0, (1 - normalizedDistance) / 0.22),
+      );
+      const alpha = edge * edge * (3 - 2 * edge);
       const offset = (y * size + x) * 4;
 
       data[offset] = 255;
@@ -81,7 +82,6 @@ function createRadialSpriteTexture() {
 
 function HeartScene({
   controllerRef,
-  mode,
   particleCount,
   pixelRatio,
   reducedMotion,
@@ -90,10 +90,7 @@ function HeartScene({
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const beatTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const emphasisTimelineRef = useRef<gsap.core.Timeline | null>(null);
-  const transitionTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const rippleSlotRef = useRef(0);
-  const pausedRef = useRef(false);
-  const initialModeRef = useRef(true);
   const pointerRef = useRef({ clientX: 0, clientY: 0, active: false });
   const mouseStrengthRef = useRef(0);
   const { camera, clock, gl, raycaster } = useThree();
@@ -114,7 +111,6 @@ function HeartScene({
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uOpacity: { value: 1 },
       uBeatScale: { value: 1 },
       uMouse: { value: new THREE.Vector3() },
       uMouseStrength: { value: 0 },
@@ -124,8 +120,6 @@ function HeartScene({
         value: [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()],
       },
       uRippleStartTimes: { value: [-100, -100, -100] },
-      uDissolve: { value: 0 },
-      uDissolveOrigin: { value: new THREE.Vector3() },
     }),
     [pixelRatio, spriteTexture],
   );
@@ -154,7 +148,7 @@ function HeartScene({
   );
 
   const playEmphasisBeat = useCallback(() => {
-    if (reducedMotion || pausedRef.current) return;
+    if (reducedMotion) return;
     const material = materialRef.current;
     if (!material) return;
 
@@ -162,18 +156,16 @@ function HeartScene({
     emphasisTimelineRef.current?.kill();
     emphasisTimelineRef.current = gsap
       .timeline({
-        onComplete: () => {
-          if (!pausedRef.current) beatTimelineRef.current?.restart();
-        },
+        onComplete: () => beatTimelineRef.current?.restart(),
       })
       .to(material.uniforms.uBeatScale, {
-        value: 1.08,
-        duration: 0.12,
+        value: 1.07,
+        duration: 0.11,
         ease: "power2.out",
       })
       .to(material.uniforms.uBeatScale, {
         value: 1,
-        duration: 0.18,
+        duration: 0.17,
         ease: "power2.inOut",
       });
   }, [reducedMotion]);
@@ -190,7 +182,7 @@ function HeartScene({
         pointerRef.current.active = false;
       },
       rippleAt(clientX, clientY) {
-        if (reducedMotion || pausedRef.current) return;
+        if (reducedMotion) return;
         const point = projectClientPoint(clientX, clientY);
         const material = materialRef.current;
         if (!point || !material) return;
@@ -201,26 +193,8 @@ function HeartScene({
         rippleSlotRef.current = (slot + 1) % 3;
         playEmphasisBeat();
       },
-      setDissolveOrigin(clientX, clientY) {
-        const material = materialRef.current;
-        if (!material) return;
-        const point =
-          clientX == null || clientY == null
-            ? null
-            : projectClientPoint(clientX, clientY);
-        material.uniforms.uDissolveOrigin.value.copy(
-          point ?? targetMouse.set(0, 0, 0),
-        );
-        material.uniforms.uRippleStartTimes.value.fill(-100);
-      },
     }),
-    [
-      clock,
-      playEmphasisBeat,
-      projectClientPoint,
-      reducedMotion,
-      targetMouse,
-    ],
+    [clock, playEmphasisBeat, projectClientPoint, reducedMotion],
   );
 
   useEffect(() => {
@@ -235,7 +209,7 @@ function HeartScene({
     const beat = gsap
       .timeline({ repeat: -1 })
       .to(material.uniforms.uBeatScale, {
-        value: 1.055,
+        value: 1.045,
         duration: 0.11,
         ease: "power2.out",
       })
@@ -245,7 +219,7 @@ function HeartScene({
         ease: "power2.inOut",
       })
       .to(material.uniforms.uBeatScale, {
-        value: 1.032,
+        value: 1.025,
         duration: 0.1,
         ease: "power2.out",
       })
@@ -264,74 +238,8 @@ function HeartScene({
   }, [reducedMotion]);
 
   useEffect(() => {
-    if (initialModeRef.current) {
-      initialModeRef.current = false;
-      if (mode === "heart") return undefined;
-
-      const initialMaterial = materialRef.current;
-      if (!initialMaterial) return undefined;
-      pausedRef.current = true;
-      beatTimelineRef.current?.pause();
-      initialMaterial.uniforms.uOpacity.value = 0;
-      initialMaterial.uniforms.uDissolve.value = reducedMotion ? 0 : 1;
-      return undefined;
-    }
-
-    transitionTimelineRef.current?.kill();
-    emphasisTimelineRef.current?.kill();
-    const material = materialRef.current;
-    if (!material) return undefined;
-    const duration = reducedMotion ? 0.2 : 0.9;
-
-    if (mode === "case") {
-      pausedRef.current = true;
-      beatTimelineRef.current?.pause();
-      material.uniforms.uRippleStartTimes.value.fill(-100);
-      transitionTimelineRef.current = gsap
-        .timeline()
-        .to(
-          material.uniforms.uDissolve,
-          {
-            value: reducedMotion ? 0 : 1,
-            duration,
-            ease: "power2.out",
-          },
-          0,
-        )
-        .to(
-          material.uniforms.uOpacity,
-          { value: 0, duration, ease: "power2.out" },
-          0,
-        );
-    } else {
-      transitionTimelineRef.current = gsap
-        .timeline({
-          onComplete: () => {
-            pausedRef.current = false;
-            if (!reducedMotion) beatTimelineRef.current?.restart();
-          },
-        })
-        .to(
-          material.uniforms.uOpacity,
-          { value: 1, duration, ease: "power2.inOut" },
-          0,
-        )
-        .to(
-          material.uniforms.uDissolve,
-          { value: 0, duration, ease: "power2.inOut" },
-          0,
-        );
-    }
-
-    return () => {
-      transitionTimelineRef.current?.kill();
-    };
-  }, [mode, reducedMotion]);
-
-  useEffect(() => {
     return () => {
       emphasisTimelineRef.current?.kill();
-      transitionTimelineRef.current?.kill();
       spriteTexture.dispose();
     };
   }, [spriteTexture]);
@@ -339,14 +247,19 @@ function HeartScene({
   useFrame((state, delta) => {
     const material = materialRef.current;
     if (!material) return;
-    material.uniforms.uTime.value = state.clock.getElapsedTime();
+
+    const elapsed = state.clock.getElapsedTime();
+    material.uniforms.uTime.value = elapsed;
 
     const group = groupRef.current;
-    if (group && !pausedRef.current) {
-      group.rotation.y += delta * (reducedMotion ? 0.012 : 0.05);
+    if (group) {
+      const swaySpeed = reducedMotion ? 0.1 : 0.22;
+      const swayAmount = reducedMotion ? 0.035 : 0.12;
+      group.rotation.y = -0.06 + Math.sin(elapsed * swaySpeed) * swayAmount;
+      group.rotation.x = 0.015 + Math.sin(elapsed * 0.16) * 0.012;
     }
 
-    if (!reducedMotion && mode === "heart" && pointerRef.current.active) {
+    if (!reducedMotion && pointerRef.current.active) {
       const projected = projectClientPoint(
         pointerRef.current.clientX,
         pointerRef.current.clientY,
@@ -358,7 +271,7 @@ function HeartScene({
     const strengthDamping = 1 - Math.exp(-delta * 9);
     smoothedMouse.lerp(targetMouse, mouseDamping);
     const targetStrength =
-      !reducedMotion && mode === "heart" && pointerRef.current.active ? 1 : 0;
+      !reducedMotion && pointerRef.current.active ? 1 : 0;
     mouseStrengthRef.current +=
       (targetStrength - mouseStrengthRef.current) * strengthDamping;
     material.uniforms.uMouse.value.copy(smoothedMouse);
@@ -366,7 +279,7 @@ function HeartScene({
   });
 
   return (
-    <group ref={groupRef} rotation={[0.02, -0.18, 0]}>
+    <group ref={groupRef}>
       <points frustumCulled={false}>
         <bufferGeometry>
           <bufferAttribute
@@ -392,7 +305,7 @@ function HeartScene({
           vertexShader={particleHeartVertexShader}
           fragmentShader={particleHeartFragmentShader}
           transparent
-          blending={THREE.AdditiveBlending}
+          blending={THREE.NormalBlending}
           depthTest
           depthWrite={false}
           toneMapped={false}
@@ -405,7 +318,6 @@ function HeartScene({
 export function ParticleHeartCanvas({
   controllerRef,
   fallback,
-  mode,
   reducedMotion,
 }: ParticleHeartCanvasProps) {
   const profile = useMemo(
@@ -426,20 +338,19 @@ export function ParticleHeartCanvas({
   return (
     <Canvas
       className="heart-particle-canvas"
-      camera={{ position: [0, 0, 4.25], fov: 39, near: 0.1, far: 20 }}
+      camera={{ position: [0, 0, 4.1], fov: 38, near: 0.1, far: 20 }}
       dpr={[1, profile.maxDpr]}
       fallback={fallback}
       frameloop="always"
       gl={{
         alpha: true,
-        antialias: false,
+        antialias: true,
         powerPreference: "high-performance",
       }}
       onCreated={({ gl: renderer }) => renderer.setClearColor(0x000000, 0)}
     >
       <HeartScene
         controllerRef={controllerRef}
-        mode={mode}
         particleCount={profile.particleCount}
         pixelRatio={pixelRatio}
         reducedMotion={reducedMotion}
