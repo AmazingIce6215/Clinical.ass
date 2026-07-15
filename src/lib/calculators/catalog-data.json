@@ -156,10 +156,10 @@
     "status": "shipped"
   },
   {
-    "slug": "bode-index-for-copd",
+    "slug": "bode-index",
     "title": "BODE Index for COPD",
     "externalId": 29,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "bmi-bsa-dubois",
@@ -216,10 +216,10 @@
     "status": "shipped"
   },
   {
-    "slug": "framingham-chf-criteria",
+    "slug": "framingham-chf",
     "title": "Framingham CHF Criteria",
     "externalId": 42,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "child-pugh",
@@ -270,16 +270,16 @@
     "status": "planned"
   },
   {
-    "slug": "crusade-score-for-post-mi-bleeding-risk",
+    "slug": "crusade",
     "title": "CRUSADE Score for Post-MI Bleeding Risk",
     "externalId": 53,
-    "status": "planned"
+    "status": "shipped"
   },
   {
-    "slug": "ct-severity-index-pancreatitis",
+    "slug": "ct-severity-pancreatitis",
     "title": "CT Severity Index (Pancreatitis)",
     "externalId": 54,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "ecg-cycle-length",
@@ -312,10 +312,10 @@
     "status": "planned"
   },
   {
-    "slug": "duke-criteria-for-endocarditis",
+    "slug": "duke-endocarditis",
     "title": "Duke Criteria for Endocarditis",
     "externalId": 67,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "duke-treadmill-score",
@@ -360,10 +360,10 @@
     "status": "planned"
   },
   {
-    "slug": "epworth-sleepiness-scale",
+    "slug": "epworth",
     "title": "Epworth Sleepiness Scale",
     "externalId": 85,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "pesi",
@@ -399,7 +399,7 @@
     "slug": "forrest-classification",
     "title": "Forrest Classification",
     "externalId": 92,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "four-score",
@@ -483,7 +483,7 @@
     "slug": "henderson-hasselbalch",
     "title": "Henderson-Hasselbalch",
     "externalId": 112,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "hit-4ts",
@@ -513,7 +513,7 @@
     "slug": "ich-score",
     "title": "ICH Score",
     "externalId": 118,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "ich-volume",
@@ -588,10 +588,10 @@
     "status": "planned"
   },
   {
-    "slug": "mascc-febrile-neutropenia-risk",
+    "slug": "mascc",
     "title": "MASCC Febrile Neutropenia Risk",
     "externalId": 134,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "6-month-mortality-on-hd",
@@ -627,7 +627,7 @@
     "slug": "mdrd-egfr",
     "title": "MDRD eGFR",
     "externalId": 140,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "mdrd-egfr-6-variable",
@@ -906,10 +906,10 @@
     "status": "planned"
   },
   {
-    "slug": "ranson-s-criteria",
+    "slug": "ranson",
     "title": "Ranson's Criteria",
     "externalId": 190,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "rate-pressure-product",
@@ -954,10 +954,10 @@
     "status": "planned"
   },
   {
-    "slug": "rockall-score",
+    "slug": "rockall",
     "title": "Rockall Score",
     "externalId": 199,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "rv-systolic-pressure-tr-jet",
@@ -1056,10 +1056,10 @@
     "status": "planned"
   },
   {
-    "slug": "water-deficit-in-hypernatremia",
+    "slug": "water-deficit-hypernatremia",
     "title": "Water Deficit in Hypernatremia",
     "externalId": 223,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "westley-croup",
@@ -1179,7 +1179,7 @@
     "slug": "grace",
     "title": "GRACE",
     "externalId": 262,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "corrected-calcium",
@@ -1203,7 +1203,7 @@
     "slug": "ciwa-ar",
     "title": "CIWA-Ar",
     "externalId": 270,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "phq-9",
@@ -1260,10 +1260,10 @@
     "status": "planned"
   },
   {
-    "slug": "surgical-apgar-score",
+    "slug": "surgical-apgar",
     "title": "Surgical Apgar Score",
     "externalId": 280,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "schwartz-pediatric-bedside-egfr-2009",
@@ -1374,10 +1374,10 @@
     "status": "shipped"
   },
   {
-    "slug": "bleeding-risk-in-atrial-fibrillation-atria",
+    "slug": "atria-bleed",
     "title": "Bleeding Risk in Atrial Fibrillation: ATRIA",
     "externalId": 314,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "dipss-plus-score-for-prognosis-in-myelofibrosis",
@@ -1650,10 +1650,10 @@
     "status": "planned"
   },
   {
-    "slug": "padua-prediction-score-for-risk-of-vte",
+    "slug": "padua",
     "title": "Padua Prediction Score for Risk of VTE",
     "externalId": 388,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "30-day-stroke-risk-index-for-cea",
@@ -1686,10 +1686,10 @@
     "status": "planned"
   },
   {
-    "slug": "khorana-risk-score",
+    "slug": "khorana",
     "title": "Khorana risk score",
     "externalId": 433,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "port-score-for-perioperative-risk-of-blood-transfusion-in-cardiac-surgery-by-acta",
@@ -1848,10 +1848,10 @@
     "status": "planned"
   },
   {
-    "slug": "lille-model-for-alcoholic-hepatitis",
+    "slug": "lille-model",
     "title": "Lille Model for Alcoholic Hepatitis",
     "externalId": 483,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "cll-ball-score-for-relapsed-refractory-cll",
@@ -1872,10 +1872,10 @@
     "status": "planned"
   },
   {
-    "slug": "sgarbossa-s-criteria-for-mi-in-left-bundle-branch-block",
+    "slug": "sgarbossa",
     "title": "Sgarbossa\u2019s Criteria for MI in Left Bundle Branch Block",
     "externalId": 488,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "centor",
@@ -1920,10 +1920,10 @@
     "status": "planned"
   },
   {
-    "slug": "pecarn-rule-for-pediatric-head-injury-ge-2-years-old",
+    "slug": "pecarn-head",
     "title": "PECARN Rule for Pediatric Head Injury \u2265 2 years old",
     "externalId": 501,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "be3a-score",
@@ -2040,10 +2040,10 @@
     "status": "planned"
   },
   {
-    "slug": "cows-score-for-opiate-withdrawal",
+    "slug": "cows",
     "title": "COWS Score for Opiate Withdrawal",
     "externalId": 530,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "stop-bang",
@@ -2361,13 +2361,13 @@
     "slug": "dic-score",
     "title": "DIC Score",
     "externalId": 649,
-    "status": "planned"
+    "status": "shipped"
   },
   {
-    "slug": "sodium-deficit-in-hyponatremia",
+    "slug": "sodium-deficit-hyponatremia",
     "title": "Sodium Deficit in Hyponatremia",
     "externalId": 652,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "cdc-height-for-age-percentiles-for-boys-2-20-years",
@@ -2562,16 +2562,16 @@
     "status": "planned"
   },
   {
-    "slug": "plasmic-score-for-ttp",
+    "slug": "plasmic",
     "title": "Plasmic Score for TTP",
     "externalId": 722,
-    "status": "planned"
+    "status": "shipped"
   },
   {
-    "slug": "rox-index-to-predict-risk-of-intubation",
+    "slug": "rox-index",
     "title": "ROX Index to Predict Risk of Intubation",
     "externalId": 724,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "sexual-desire-inventory-2-sdi-2",
@@ -2835,13 +2835,13 @@
     "slug": "mentzer-index",
     "title": "Mentzer Index",
     "externalId": 878,
-    "status": "planned"
+    "status": "shipped"
   },
   {
-    "slug": "charlson-comorbidity-index-score-cci-score",
+    "slug": "charlson",
     "title": "Charlson comorbidity Index score (CCI Score)",
     "externalId": 879,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "new-england-spinal-metastatic-score-nesms",
