@@ -162,10 +162,10 @@
     "status": "planned"
   },
   {
-    "slug": "bmi-and-bsa-du-bois",
+    "slug": "bmi-bsa-dubois",
     "title": "BMI and BSA (Du Bois)",
     "externalId": 30,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "pretest-probablity-of-cad",
@@ -174,16 +174,16 @@
     "status": "planned"
   },
   {
-    "slug": "canadian-ct-head-rule",
+    "slug": "canadian-ct-head",
     "title": "Canadian CT Head Rule",
     "externalId": 33,
-    "status": "planned"
+    "status": "shipped"
   },
   {
-    "slug": "canadian-c-spine-rule",
+    "slug": "canadian-cspine",
     "title": "Canadian C-Spine Rule",
     "externalId": 34,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "heart-score",
@@ -240,10 +240,10 @@
     "status": "planned"
   },
   {
-    "slug": "ecg-corrected-qt",
+    "slug": "qtc-bazett",
     "title": "ECG: Corrected QT",
     "externalId": 48,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "corticosteroid-equivalence",
@@ -255,7 +255,7 @@
     "slug": "cerebral-perfusion-pressure",
     "title": "Cerebral Perfusion Pressure",
     "externalId": 50,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "cockcroft-gault",
@@ -294,10 +294,10 @@
     "status": "planned"
   },
   {
-    "slug": "discriminant-function-alcoholic-hepatitis",
+    "slug": "maddrey-discriminant-function",
     "title": "Discriminant Function (Alcoholic Hepatitis)",
     "externalId": 63,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "diffuse-large-b-cell-lymphoma-prognosis-r-ipi",
@@ -405,7 +405,7 @@
     "slug": "four-score",
     "title": "FOUR Score",
     "externalId": 94,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "fractional-shortening",
@@ -420,10 +420,10 @@
     "status": "shipped"
   },
   {
-    "slug": "fractional-excretion-of-urea",
+    "slug": "fractional-excretion-urea",
     "title": "Fractional Excretion of Urea",
     "externalId": 97,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "lipid-lowering-guidelines-using-framingham-2008",
@@ -486,10 +486,10 @@
     "status": "planned"
   },
   {
-    "slug": "hit-4t-s-score",
+    "slug": "hit-4ts",
     "title": "HIT 4T's score",
     "externalId": 113,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "hodgkin-s-marrow-involvement",
@@ -498,10 +498,10 @@
     "status": "planned"
   },
   {
-    "slug": "sah-hunt-hess-scale",
+    "slug": "hunt-hess",
     "title": "SAH Hunt & Hess Scale",
     "externalId": 116,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "ich-func-score",
@@ -810,10 +810,10 @@
     "status": "shipped"
   },
   {
-    "slug": "ottawa-knee-rules",
+    "slug": "ottawa-knee",
     "title": "Ottawa Knee Rules",
     "externalId": 173,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "pao-fio-ratio",
@@ -1002,10 +1002,10 @@
     "status": "planned"
   },
   {
-    "slug": "timi-risk-score-stemi",
+    "slug": "timi-stemi",
     "title": "TIMI Risk Score (STEMI)",
     "externalId": 208,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "stevenson-hf-class",
@@ -1062,10 +1062,10 @@
     "status": "planned"
   },
   {
-    "slug": "westley-croup-score",
+    "slug": "westley-croup",
     "title": "Westley Croup Score",
     "externalId": 224,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "wfns-sah-scale",
@@ -1140,16 +1140,16 @@
     "status": "planned"
   },
   {
-    "slug": "pneumonia-severity-index-port-score",
+    "slug": "psi-port",
     "title": "Pneumonia Severity Index (PORT Score)",
     "externalId": 248,
-    "status": "planned"
+    "status": "shipped"
   },
   {
-    "slug": "serum-ascites-to-albumin-gradient-saag",
+    "slug": "saag",
     "title": "Serum Ascites to Albumin Gradient (SAAG)",
     "externalId": 249,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "mangled-extremity-severity-score-mess",
@@ -1368,10 +1368,10 @@
     "status": "planned"
   },
   {
-    "slug": "the-richmond-agitation-sedation-score-rass",
+    "slug": "rass",
     "title": "The Richmond Agitation Sedation Score (RASS)",
     "externalId": 313,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "bleeding-risk-in-atrial-fibrillation-atria",
@@ -1404,10 +1404,10 @@
     "status": "planned"
   },
   {
-    "slug": "san-francisco-syncope-rule",
+    "slug": "san-francisco-syncope",
     "title": "San Francisco Syncope Rule",
     "externalId": 321,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "respiratory-adverse-event-risk-post-vascular-surgery",
@@ -1422,10 +1422,10 @@
     "status": "shipped"
   },
   {
-    "slug": "apri-ast-to-platelet-ratio-index",
+    "slug": "apri",
     "title": "APRI (AST to Platelet Ratio Index)",
     "externalId": 327,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "perc",
@@ -1446,10 +1446,10 @@
     "status": "planned"
   },
   {
-    "slug": "bisap-score",
+    "slug": "bisap",
     "title": "BISAP Score",
     "externalId": 334,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "sledai-2k",
@@ -1758,10 +1758,10 @@
     "status": "planned"
   },
   {
-    "slug": "patient-health-questionnaire-2-phq-2",
+    "slug": "phq-2",
     "title": "Patient Health Questionnaire-2 (PHQ-2)",
     "externalId": 458,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "advised-aortic-dissection-detection-risk-score-plus-d-dimer-for-aortic-syndromes",
@@ -1806,10 +1806,10 @@
     "status": "planned"
   },
   {
-    "slug": "alcohol-use-disorders-identification-test-concise-audit-c",
+    "slug": "audit-c",
     "title": "Alcohol Use Disorders Identification Test-Concise (AUDIT-C)",
     "externalId": 470,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "young-mania-rating-scale-ymrs",
@@ -1836,10 +1836,10 @@
     "status": "planned"
   },
   {
-    "slug": "cage-questionnaire",
+    "slug": "cage",
     "title": "CAGE Questionnaire",
     "externalId": 481,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "multiple-sclerosis-diagnosis",
@@ -2016,10 +2016,10 @@
     "status": "shipped"
   },
   {
-    "slug": "maintenance-fluid-calculations",
+    "slug": "maintenance-fluids",
     "title": "Maintenance Fluid Calculations",
     "externalId": 526,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "erasmus-gbs-respiratory-insufficiency-score-egris",
@@ -2166,16 +2166,16 @@
     "status": "planned"
   },
   {
-    "slug": "generalized-anxiety-disorder-2-gad-2",
+    "slug": "gad-2",
     "title": "Generalized Anxiety Disorder 2 (GAD-2)",
     "externalId": 570,
-    "status": "planned"
+    "status": "shipped"
   },
   {
-    "slug": "light-s-criteria",
+    "slug": "lights-criteria",
     "title": "Light's Criteria",
     "externalId": 571,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "pittsburgh-knee-rule",
@@ -2223,7 +2223,7 @@
     "slug": "asa-physical-status",
     "title": "ASA Physical Status",
     "externalId": 589,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "brugada-criteria-for-ventricular-tachycardia",
@@ -2328,10 +2328,10 @@
     "status": "planned"
   },
   {
-    "slug": "absolute-neutrophil-count-anc",
+    "slug": "absolute-neutrophil-count",
     "title": "Absolute Neutrophil Count (ANC)",
     "externalId": 641,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "csf-wbc-correction-in-blood-contaminated-csf",
@@ -2448,10 +2448,10 @@
     "status": "planned"
   },
   {
-    "slug": "revised-geneva-clinical-prediction-rule-for-pulmonary-embolism",
+    "slug": "revised-geneva",
     "title": "Revised Geneva clinical prediction rule for pulmonary embolism",
     "externalId": 676,
-    "status": "planned"
+    "status": "shipped"
   },
   {
     "slug": "prognosis-calculator-for-relapsed-refractory-dlbcl",
