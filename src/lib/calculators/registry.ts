@@ -1,4 +1,5 @@
 import type { CalculatorCategory, CalculatorDefinition } from "./types";
+
 import { gcs } from "./definitions/gcs";
 import { curb65 } from "./definitions/curb65";
 import { wellsPE } from "./definitions/wells-pe";
@@ -10,9 +11,45 @@ import { sofa } from "./definitions/sofa";
 import { childPugh } from "./definitions/child-pugh";
 import { bishop } from "./definitions/bishop";
 
+import { bmiBsaMosteller } from "./definitions/bmi-bsa-mosteller";
+import { idealBodyWeight } from "./definitions/ideal-body-weight";
+import { map } from "./definitions/map";
+import { shockIndex } from "./definitions/shock-index";
+import { anionGap } from "./definitions/anion-gap";
+import { osmolalGap } from "./definitions/osmolal-gap";
+import { correctedCalcium } from "./definitions/corrected-calcium";
+import { correctedSodium } from "./definitions/corrected-sodium";
+import { aaGradient } from "./definitions/aa-gradient";
+import { fena } from "./definitions/fena";
+import { cockcroftGault } from "./definitions/cockcroft-gault";
+import { ckdEpi2021 } from "./definitions/ckd-epi-2021";
+import { qsofa } from "./definitions/qsofa";
+import { sirs } from "./definitions/sirs";
+import { mews } from "./definitions/mews";
+import { perc } from "./definitions/perc";
+import { pesi } from "./definitions/pesi";
+import { centor } from "./definitions/centor";
+import { chads2 } from "./definitions/chads2";
+import { killip } from "./definitions/killip";
+import { timiNstemi } from "./definitions/timi-nstemi";
+import { alvarado } from "./definitions/alvarado";
+import { nexusCspine } from "./definitions/nexus-cspine";
+import { ottawaAnkle } from "./definitions/ottawa-ankle";
+import { abcd2 } from "./definitions/abcd2";
+import { phq9 } from "./definitions/phq9";
+import { gad7 } from "./definitions/gad7";
+import { apgar } from "./definitions/apgar";
+import { stopBang } from "./definitions/stop-bang";
+import { meldNa } from "./definitions/meld-na";
+import { blatchford } from "./definitions/blatchford";
+import { fib4 } from "./definitions/fib4";
+import { rcri } from "./definitions/rcri";
+import { parkland } from "./definitions/parkland";
+
 export const CALCULATOR_FAVORITES_STORAGE_KEY = "calc_favorites";
 
 const calculators: readonly CalculatorDefinition[] = [
+  // Original set
   gcs,
   curb65,
   wellsPE,
@@ -23,6 +60,42 @@ const calculators: readonly CalculatorDefinition[] = [
   sofa,
   childPugh,
   bishop,
+  // Wave 1 — formulas & labs
+  bmiBsaMosteller,
+  idealBodyWeight,
+  map,
+  shockIndex,
+  anionGap,
+  osmolalGap,
+  correctedCalcium,
+  correctedSodium,
+  aaGradient,
+  fena,
+  cockcroftGault,
+  ckdEpi2021,
+  // Wave 1 — scores
+  qsofa,
+  sirs,
+  mews,
+  perc,
+  pesi,
+  centor,
+  chads2,
+  killip,
+  timiNstemi,
+  alvarado,
+  nexusCspine,
+  ottawaAnkle,
+  abcd2,
+  phq9,
+  gad7,
+  apgar,
+  stopBang,
+  meldNa,
+  blatchford,
+  fib4,
+  rcri,
+  parkland,
 ];
 
 const calculatorMap = new Map(calculators.map((c) => [c.slug, c]));
@@ -55,15 +128,18 @@ export function getCalculatorsByCategory(categoryId: string): readonly Calculato
 
 export function getCategories() {
   const seen = new Set<string>();
-  return calculators.filter((c) => {
-    if (seen.has(c.category)) return false;
-    seen.add(c.category);
-    return true;
-  }).map((c) => ({
-    id: c.category,
-    label: formatCalculatorCategory(c.category),
-    icon: c.icon,
-  }));
+  return calculators
+    .filter((c) => {
+      if (seen.has(c.category)) return false;
+      seen.add(c.category);
+      return true;
+    })
+    .map((c) => ({
+      id: c.category,
+      label: formatCalculatorCategory(c.category),
+      icon: c.icon,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 }
 
 export function formatCalculatorCategory(category: CalculatorCategory): string {

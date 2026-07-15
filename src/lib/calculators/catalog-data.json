@@ -1,0 +1,2911 @@
+[
+  {
+    "slug": "ecg-heart-rate",
+    "title": "ECG: Heart Rate",
+    "externalId": 1,
+    "status": "planned"
+  },
+  {
+    "slug": "glomerulosclerosis-on-biopsy-2015",
+    "title": "Glomerulosclerosis on Biopsy (2015)",
+    "externalId": 2,
+    "status": "planned"
+  },
+  {
+    "slug": "roks-recurrence-of-kidney-stone-2014",
+    "title": "ROKS - Recurrence Of Kidney Stone (2014)",
+    "externalId": 3,
+    "status": "planned"
+  },
+  {
+    "slug": "solitary-pulmonary-nodule-malignancy-risk",
+    "title": "Solitary Pulmonary Nodule Malignancy Risk",
+    "externalId": 4,
+    "status": "planned"
+  },
+  {
+    "slug": "a-a-gradient",
+    "title": "A-a Gradient",
+    "externalId": 5,
+    "status": "shipped"
+  },
+  {
+    "slug": "abcd2",
+    "title": "ABCD\u00b2 Score",
+    "externalId": 6,
+    "status": "shipped"
+  },
+  {
+    "slug": "access-recirculation",
+    "title": "Access Recirculation",
+    "externalId": 7,
+    "status": "planned"
+  },
+  {
+    "slug": "infarct-size-anterior",
+    "title": "Infarct Size - Anterior",
+    "externalId": 9,
+    "status": "planned"
+  },
+  {
+    "slug": "infarct-size-inferior",
+    "title": "Infarct Size - Inferior",
+    "externalId": 10,
+    "status": "planned"
+  },
+  {
+    "slug": "anion-gap",
+    "title": "Anion Gap",
+    "externalId": 11,
+    "status": "shipped"
+  },
+  {
+    "slug": "apache-ii",
+    "title": "APACHE II",
+    "externalId": 12,
+    "status": "planned"
+  },
+  {
+    "slug": "apgar",
+    "title": "APGAR",
+    "externalId": 13,
+    "status": "shipped"
+  },
+  {
+    "slug": "ar-quantification-volumetric",
+    "title": "AR: Quantification (Volumetric)",
+    "externalId": 14,
+    "status": "planned"
+  },
+  {
+    "slug": "ar-regurgitant-orifice-pisa",
+    "title": "AR: Regurgitant Orifice (PISA)",
+    "externalId": 15,
+    "status": "planned"
+  },
+  {
+    "slug": "as-aortic-valve-area-cont",
+    "title": "AS: Aortic Valve Area (Cont)",
+    "externalId": 16,
+    "status": "planned"
+  },
+  {
+    "slug": "as-aortic-valve-area-dvi",
+    "title": "AS: Aortic Valve Area (DVI)",
+    "externalId": 17,
+    "status": "planned"
+  },
+  {
+    "slug": "as-aortic-valve-area-gorlin",
+    "title": "AS: Aortic Valve Area (Gorlin)",
+    "externalId": 18,
+    "status": "planned"
+  },
+  {
+    "slug": "as-aortic-valve-area-hakki",
+    "title": "AS: Aortic Valve Area (Hakki)",
+    "externalId": 19,
+    "status": "planned"
+  },
+  {
+    "slug": "autoimmune-hepatitis-diagnosis",
+    "title": "Autoimmune Hepatitis Diagnosis",
+    "externalId": 20,
+    "status": "planned"
+  },
+  {
+    "slug": "avm-rupture-risk",
+    "title": "AVM Rupture Risk",
+    "externalId": 21,
+    "status": "planned"
+  },
+  {
+    "slug": "surgery-in-asymptomatic-aortic-stenosis",
+    "title": "Surgery in Asymptomatic Aortic Stenosis",
+    "externalId": 22,
+    "status": "planned"
+  },
+  {
+    "slug": "british-columbia-pci-risk-score",
+    "title": "British Columbia PCI risk score",
+    "externalId": 23,
+    "status": "planned"
+  },
+  {
+    "slug": "bishop-score",
+    "title": "Bishop Score",
+    "externalId": 24,
+    "status": "planned"
+  },
+  {
+    "slug": "blatchford",
+    "title": "Blatchford Score",
+    "externalId": 25,
+    "status": "shipped"
+  },
+  {
+    "slug": "bleeding-risk-in-atrial-fibrillation-obri",
+    "title": "Bleeding Risk in Atrial Fibrillation: OBRI",
+    "externalId": 26,
+    "status": "planned"
+  },
+  {
+    "slug": "bmi-bsa-mosteller",
+    "title": "BMI and BSA (Mosteller)",
+    "externalId": 28,
+    "status": "shipped"
+  },
+  {
+    "slug": "bode-index-for-copd",
+    "title": "BODE Index for COPD",
+    "externalId": 29,
+    "status": "planned"
+  },
+  {
+    "slug": "bmi-and-bsa-du-bois",
+    "title": "BMI and BSA (Du Bois)",
+    "externalId": 30,
+    "status": "planned"
+  },
+  {
+    "slug": "pretest-probablity-of-cad",
+    "title": "Pretest Probablity of CAD",
+    "externalId": 32,
+    "status": "planned"
+  },
+  {
+    "slug": "canadian-ct-head-rule",
+    "title": "Canadian CT Head Rule",
+    "externalId": 33,
+    "status": "planned"
+  },
+  {
+    "slug": "canadian-c-spine-rule",
+    "title": "Canadian C-Spine Rule",
+    "externalId": 34,
+    "status": "planned"
+  },
+  {
+    "slug": "heart-score",
+    "title": "HEART Score | Chest pain in the ER",
+    "externalId": 35,
+    "status": "shipped"
+  },
+  {
+    "slug": "bc-cardiac-surgical-intensive-care-score",
+    "title": "BC Cardiac Surgical Intensive Care Score",
+    "externalId": 36,
+    "status": "planned"
+  },
+  {
+    "slug": "acc-aha-cv-risk-calculator-2013",
+    "title": "ACC/AHA CV Risk Calculator (2013)",
+    "externalId": 37,
+    "status": "planned"
+  },
+  {
+    "slug": "chads2",
+    "title": "CHADS2 Score for Atrial Fibrillation",
+    "externalId": 40,
+    "status": "shipped"
+  },
+  {
+    "slug": "cha2ds2-vasc",
+    "title": "CHA2DS2-VASc Score for AF",
+    "externalId": 41,
+    "status": "shipped"
+  },
+  {
+    "slug": "framingham-chf-criteria",
+    "title": "Framingham CHF Criteria",
+    "externalId": 42,
+    "status": "planned"
+  },
+  {
+    "slug": "child-pugh",
+    "title": "Child Pugh Score",
+    "externalId": 43,
+    "status": "shipped"
+  },
+  {
+    "slug": "cmml-prognostic-scoring-systems-from-spain-and-dusseldorf",
+    "title": "CMML Prognostic Scoring Systems (from Spain and Dusseldorf)",
+    "externalId": 45,
+    "status": "planned"
+  },
+  {
+    "slug": "contrast-nephropathy-post-pci",
+    "title": "Contrast Nephropathy Post-PCI",
+    "externalId": 47,
+    "status": "planned"
+  },
+  {
+    "slug": "ecg-corrected-qt",
+    "title": "ECG: Corrected QT",
+    "externalId": 48,
+    "status": "planned"
+  },
+  {
+    "slug": "corticosteroid-equivalence",
+    "title": "Corticosteroid Equivalence",
+    "externalId": 49,
+    "status": "planned"
+  },
+  {
+    "slug": "cerebral-perfusion-pressure",
+    "title": "Cerebral Perfusion Pressure",
+    "externalId": 50,
+    "status": "planned"
+  },
+  {
+    "slug": "cockcroft-gault",
+    "title": "CrCl Cockroft-Gault",
+    "externalId": 51,
+    "status": "shipped"
+  },
+  {
+    "slug": "crcl-from-24h-urine",
+    "title": "CrCl from 24h Urine",
+    "externalId": 52,
+    "status": "planned"
+  },
+  {
+    "slug": "crusade-score-for-post-mi-bleeding-risk",
+    "title": "CRUSADE Score for Post-MI Bleeding Risk",
+    "externalId": 53,
+    "status": "planned"
+  },
+  {
+    "slug": "ct-severity-index-pancreatitis",
+    "title": "CT Severity Index (Pancreatitis)",
+    "externalId": 54,
+    "status": "planned"
+  },
+  {
+    "slug": "ecg-cycle-length",
+    "title": "ECG: Cycle Length",
+    "externalId": 56,
+    "status": "planned"
+  },
+  {
+    "slug": "dialysis-risk-after-cardiac-surgery-mehta",
+    "title": "Dialysis Risk After Cardiac Surgery (Mehta)",
+    "externalId": 62,
+    "status": "planned"
+  },
+  {
+    "slug": "discriminant-function-alcoholic-hepatitis",
+    "title": "Discriminant Function (Alcoholic Hepatitis)",
+    "externalId": 63,
+    "status": "planned"
+  },
+  {
+    "slug": "diffuse-large-b-cell-lymphoma-prognosis-r-ipi",
+    "title": "Diffuse Large B-Cell Lymphoma Prognosis (R-IPI)",
+    "externalId": 64,
+    "status": "planned"
+  },
+  {
+    "slug": "dubbo-osteoporotic-fracture-risk",
+    "title": "Dubbo Osteoporotic Fracture Risk",
+    "externalId": 66,
+    "status": "planned"
+  },
+  {
+    "slug": "duke-criteria-for-endocarditis",
+    "title": "Duke Criteria for Endocarditis",
+    "externalId": 67,
+    "status": "planned"
+  },
+  {
+    "slug": "duke-treadmill-score",
+    "title": "Duke Treadmill Score",
+    "externalId": 68,
+    "status": "planned"
+  },
+  {
+    "slug": "wells-dvt",
+    "title": "DVT Clinical Probability (Well's)",
+    "externalId": 69,
+    "status": "shipped"
+  },
+  {
+    "slug": "syncope-egsys-score",
+    "title": "Syncope - EGSYS Score",
+    "externalId": 70,
+    "status": "planned"
+  },
+  {
+    "slug": "ejection-fraction-simplified",
+    "title": "Ejection Fraction (Simplified)",
+    "externalId": 71,
+    "status": "planned"
+  },
+  {
+    "slug": "emory-model-tipss",
+    "title": "Emory Model (TIPSS)",
+    "externalId": 72,
+    "status": "planned"
+  },
+  {
+    "slug": "lund-mackay-sinusitis-stage",
+    "title": "Lund-Mackay Sinusitis Stage",
+    "externalId": 75,
+    "status": "planned"
+  },
+  {
+    "slug": "mucosal-melanoma",
+    "title": "Mucosal Melanoma",
+    "externalId": 77,
+    "status": "planned"
+  },
+  {
+    "slug": "epworth-sleepiness-scale",
+    "title": "Epworth Sleepiness Scale",
+    "externalId": 85,
+    "status": "planned"
+  },
+  {
+    "slug": "pesi",
+    "title": "Pulmonary Embolism Severity Index (PESI)",
+    "externalId": 86,
+    "status": "shipped"
+  },
+  {
+    "slug": "exercise-capacity-mets",
+    "title": "Exercise Capacity (METs)",
+    "externalId": 88,
+    "status": "planned"
+  },
+  {
+    "slug": "sah-fisher-grade",
+    "title": "SAH Fisher Grade",
+    "externalId": 89,
+    "status": "planned"
+  },
+  {
+    "slug": "follicular-lymphoma-prognosis",
+    "title": "Follicular Lymphoma prognosis",
+    "externalId": 90,
+    "status": "planned"
+  },
+  {
+    "slug": "forrester-hf-class",
+    "title": "Forrester HF Class",
+    "externalId": 91,
+    "status": "planned"
+  },
+  {
+    "slug": "forrest-classification",
+    "title": "Forrest Classification",
+    "externalId": 92,
+    "status": "planned"
+  },
+  {
+    "slug": "four-score",
+    "title": "FOUR Score",
+    "externalId": 94,
+    "status": "planned"
+  },
+  {
+    "slug": "fractional-shortening",
+    "title": "Fractional Shortening",
+    "externalId": 95,
+    "status": "planned"
+  },
+  {
+    "slug": "fractional-excretion-sodium",
+    "title": "Fractional Excretion of Sodium",
+    "externalId": 96,
+    "status": "shipped"
+  },
+  {
+    "slug": "fractional-excretion-of-urea",
+    "title": "Fractional Excretion of Urea",
+    "externalId": 97,
+    "status": "planned"
+  },
+  {
+    "slug": "lipid-lowering-guidelines-using-framingham-2008",
+    "title": "Lipid Lowering Guidelines using Framingham (2008)",
+    "externalId": 98,
+    "status": "planned"
+  },
+  {
+    "slug": "lipid-lowering-guidelines-using-framingham-atp-iii",
+    "title": "Lipid Lowering Guidelines using Framingham (ATP-III)",
+    "externalId": 99,
+    "status": "planned"
+  },
+  {
+    "slug": "mortality-in-ipf-gap-index",
+    "title": "Mortality in IPF (GAP Index)",
+    "externalId": 100,
+    "status": "planned"
+  },
+  {
+    "slug": "gcs",
+    "title": "Glasgow Coma Scale (GCS)",
+    "externalId": 101,
+    "status": "shipped"
+  },
+  {
+    "slug": "acute-gvhd-grading",
+    "title": "Acute GVHD Grading",
+    "externalId": 105,
+    "status": "planned"
+  },
+  {
+    "slug": "has-bled",
+    "title": "Bleeding Risk in Atrial Fibrillation: HAS-BLED Score",
+    "externalId": 106,
+    "status": "shipped"
+  },
+  {
+    "slug": "hodgkin-s-disease-prognosis",
+    "title": "Hodgkin's Disease | Prognosis",
+    "externalId": 107,
+    "status": "planned"
+  },
+  {
+    "slug": "hematopoietic-cell-transplantation-specific-comorbidity-index-hct-ci",
+    "title": "Hematopoietic cell transplantation - specific comorbidity index (HCT-CI)",
+    "externalId": 108,
+    "status": "planned"
+  },
+  {
+    "slug": "hemodynamics-echo",
+    "title": "Hemodynamics (Echo)",
+    "externalId": 110,
+    "status": "planned"
+  },
+  {
+    "slug": "henderson-hasselbalch",
+    "title": "Henderson-Hasselbalch",
+    "externalId": 112,
+    "status": "planned"
+  },
+  {
+    "slug": "hit-4t-s-score",
+    "title": "HIT 4T's score",
+    "externalId": 113,
+    "status": "planned"
+  },
+  {
+    "slug": "hodgkin-s-marrow-involvement",
+    "title": "Hodgkin's Marrow Involvement",
+    "externalId": 114,
+    "status": "planned"
+  },
+  {
+    "slug": "sah-hunt-hess-scale",
+    "title": "SAH Hunt & Hess Scale",
+    "externalId": 116,
+    "status": "planned"
+  },
+  {
+    "slug": "ich-func-score",
+    "title": "ICH FUNC Score",
+    "externalId": 117,
+    "status": "planned"
+  },
+  {
+    "slug": "ich-score",
+    "title": "ICH Score",
+    "externalId": 118,
+    "status": "planned"
+  },
+  {
+    "slug": "ich-volume",
+    "title": "ICH Volume",
+    "externalId": 119,
+    "status": "planned"
+  },
+  {
+    "slug": "metabolic-syndrome-idf",
+    "title": "Metabolic Syndrome (IDF)",
+    "externalId": 120,
+    "status": "planned"
+  },
+  {
+    "slug": "in-flight-pao-based-on-abg",
+    "title": "In-flight PaO\u2082 (based on ABG)",
+    "externalId": 121,
+    "status": "planned"
+  },
+  {
+    "slug": "in-flight-pao-abg-pft",
+    "title": "In-flight PaO\u2082 (ABG & PFT)",
+    "externalId": 122,
+    "status": "planned"
+  },
+  {
+    "slug": "mds-international-prognostic-scoring-system-ipss",
+    "title": "MDS International Prognostic Scoring System (IPSS)",
+    "externalId": 123,
+    "status": "planned"
+  },
+  {
+    "slug": "multiple-myeloma-prognosis-iss",
+    "title": "Multiple Myeloma Prognosis (ISS)",
+    "externalId": 124,
+    "status": "planned"
+  },
+  {
+    "slug": "kidney-failure-risk-equation-8-variable",
+    "title": "Kidney Failure Risk Equation (8 Variable)",
+    "externalId": 125,
+    "status": "planned"
+  },
+  {
+    "slug": "killip-class",
+    "title": "Killip Class",
+    "externalId": 126,
+    "status": "shipped"
+  },
+  {
+    "slug": "kt-v-from-pru",
+    "title": "Kt/V from PRU",
+    "externalId": 127,
+    "status": "planned"
+  },
+  {
+    "slug": "kt-v-daugirdas",
+    "title": "Kt/V Daugirdas",
+    "externalId": 128,
+    "status": "planned"
+  },
+  {
+    "slug": "left-atrial-systolic-pressure",
+    "title": "Left Atrial Systolic Pressure",
+    "externalId": 132,
+    "status": "planned"
+  },
+  {
+    "slug": "lv-rv-contractility-dp-dt",
+    "title": "LV/RV Contractility (dp/dt)",
+    "externalId": 133,
+    "status": "planned"
+  },
+  {
+    "slug": "mascc-febrile-neutropenia-risk",
+    "title": "MASCC Febrile Neutropenia Risk",
+    "externalId": 134,
+    "status": "planned"
+  },
+  {
+    "slug": "6-month-mortality-on-hd",
+    "title": "6-Month Mortality on HD",
+    "externalId": 135,
+    "status": "planned"
+  },
+  {
+    "slug": "home-hd-candidacy-match-d",
+    "title": "Home HD Candidacy (MATCH-D)",
+    "externalId": 136,
+    "status": "planned"
+  },
+  {
+    "slug": "pd-candidacy-match-d",
+    "title": "PD Candidacy (MATCH-D)",
+    "externalId": 137,
+    "status": "planned"
+  },
+  {
+    "slug": "mayo-quadratic-egfr",
+    "title": "Mayo Quadratic eGFR",
+    "externalId": 138,
+    "status": "planned"
+  },
+  {
+    "slug": "pci-complication-mayo",
+    "title": "PCI complication - Mayo",
+    "externalId": 139,
+    "status": "planned"
+  },
+  {
+    "slug": "mdrd-egfr",
+    "title": "MDRD eGFR",
+    "externalId": 140,
+    "status": "planned"
+  },
+  {
+    "slug": "mdrd-egfr-6-variable",
+    "title": "MDRD eGFR (6 Variable)",
+    "externalId": 141,
+    "status": "planned"
+  },
+  {
+    "slug": "mds-anemia-epo-gcsf-response",
+    "title": "MDS Anemia - EPO/GCSF Response",
+    "externalId": 142,
+    "status": "planned"
+  },
+  {
+    "slug": "mds-who-classification-based-prognostic-scoring-system-wpss",
+    "title": "MDS WHO Classification-based Prognostic Scoring System (WPSS)",
+    "externalId": 143,
+    "status": "planned"
+  },
+  {
+    "slug": "meld-na",
+    "title": "Prognosis after TIPSS using MELD Score",
+    "externalId": 144,
+    "status": "shipped"
+  },
+  {
+    "slug": "prognosis-in-alcoholic-hepatitis",
+    "title": "Prognosis in Alcoholic Hepatitis",
+    "externalId": 145,
+    "status": "planned"
+  },
+  {
+    "slug": "hamilton-depression-rating-scale-ham-d-or-hdrs",
+    "title": "Hamilton Depression Rating Scale (HAM-D or HDRS)",
+    "externalId": 146,
+    "status": "planned"
+  },
+  {
+    "slug": "snap-iv-26-teacher-parent-rating-scale",
+    "title": "SNAP-IV 26 - Teacher & Parent Rating Scale",
+    "externalId": 147,
+    "status": "planned"
+  },
+  {
+    "slug": "mgus-prognosis",
+    "title": "MGUS Prognosis",
+    "externalId": 148,
+    "status": "planned"
+  },
+  {
+    "slug": "mipi-mantle-cell-lymphoma-prognosis",
+    "title": "MIPI - Mantle Cell Lymphoma Prognosis",
+    "externalId": 149,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-bernoulli-equation",
+    "title": "Modified Bernoulli Equation",
+    "externalId": 150,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-fisher-scale",
+    "title": "Modified Fisher Scale",
+    "externalId": 151,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-rankin-scale-mrs",
+    "title": "Modified Rankin Scale (mRS)",
+    "externalId": 152,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-strep-score",
+    "title": "Modified Strep Score",
+    "externalId": 153,
+    "status": "planned"
+  },
+  {
+    "slug": "mr-quantification-pisa",
+    "title": "MR: Quantification (PISA)",
+    "externalId": 154,
+    "status": "planned"
+  },
+  {
+    "slug": "mr-quantification-volumetric",
+    "title": "MR: Quantification (Volumetric)",
+    "externalId": 155,
+    "status": "planned"
+  },
+  {
+    "slug": "ms-wilkins-echo-score",
+    "title": "MS: Wilkins' Echo Score",
+    "externalId": 156,
+    "status": "planned"
+  },
+  {
+    "slug": "ms-mitral-valve-area-cont",
+    "title": "MS: Mitral Valve Area (Cont)",
+    "externalId": 157,
+    "status": "planned"
+  },
+  {
+    "slug": "ms-mitral-valve-area-gorlin",
+    "title": "MS: Mitral Valve Area (Gorlin)",
+    "externalId": 158,
+    "status": "planned"
+  },
+  {
+    "slug": "ms-mitral-valve-area-pht",
+    "title": "MS: Mitral Valve Area (PHT)",
+    "externalId": 159,
+    "status": "planned"
+  },
+  {
+    "slug": "ms-mitral-valve-area-pisa",
+    "title": "MS: Mitral Valve Area (PISA)",
+    "externalId": 160,
+    "status": "planned"
+  },
+  {
+    "slug": "ms-mitral-valve-area-hakki",
+    "title": "MS: Mitral Valve Area (Hakki)",
+    "externalId": 161,
+    "status": "planned"
+  },
+  {
+    "slug": "myocardial-performance-index-co-and-et",
+    "title": "Myocardial Performance Index (CO and ET)",
+    "externalId": 162,
+    "status": "planned"
+  },
+  {
+    "slug": "myocardial-performance-index-ivrt-and-ivct",
+    "title": "Myocardial Performance Index (IVRT and IVCT)",
+    "externalId": 163,
+    "status": "planned"
+  },
+  {
+    "slug": "nasal-cannula-fio-estimation",
+    "title": "Nasal Cannula FiO\u2082 Estimation",
+    "externalId": 164,
+    "status": "planned"
+  },
+  {
+    "slug": "nexus-cspine",
+    "title": "NEXUS C-Spine Criteria",
+    "externalId": 165,
+    "status": "shipped"
+  },
+  {
+    "slug": "timi-nstemi",
+    "title": "TIMI Risk Score (NSTEMI)",
+    "externalId": 168,
+    "status": "shipped"
+  },
+  {
+    "slug": "carboplatin-auc-dosing-calvert",
+    "title": "Carboplatin AUC Dosing (Calvert)",
+    "externalId": 169,
+    "status": "planned"
+  },
+  {
+    "slug": "prognosis-in-renal-cell-carcinoma-uiss",
+    "title": "Prognosis in Renal Cell Carcinoma (UISS)",
+    "externalId": 170,
+    "status": "planned"
+  },
+  {
+    "slug": "osmolal-gap",
+    "title": "Osmolal Gap",
+    "externalId": 171,
+    "status": "shipped"
+  },
+  {
+    "slug": "ottawa-ankle",
+    "title": "Ottawa Ankle Rules",
+    "externalId": 172,
+    "status": "shipped"
+  },
+  {
+    "slug": "ottawa-knee-rules",
+    "title": "Ottawa Knee Rules",
+    "externalId": 173,
+    "status": "planned"
+  },
+  {
+    "slug": "pao-fio-ratio",
+    "title": "PaO\u2082:FiO\u2082 Ratio",
+    "externalId": 174,
+    "status": "planned"
+  },
+  {
+    "slug": "parkland",
+    "title": "Parkland Formula",
+    "externalId": 175,
+    "status": "shipped"
+  },
+  {
+    "slug": "pci-mortality-michigan",
+    "title": "PCI mortality - Michigan",
+    "externalId": 176,
+    "status": "planned"
+  },
+  {
+    "slug": "pcwp-echo",
+    "title": "PCWP (Echo)",
+    "externalId": 177,
+    "status": "planned"
+  },
+  {
+    "slug": "wells-pe",
+    "title": "PE Clinical Probability",
+    "externalId": 178,
+    "status": "shipped"
+  },
+  {
+    "slug": "peak-expiratory-flow-prediction",
+    "title": "Peak Expiratory Flow Prediction",
+    "externalId": 179,
+    "status": "planned"
+  },
+  {
+    "slug": "pediatric-endotracheal-tube-size",
+    "title": "Pediatric Endotracheal Tube Size",
+    "externalId": 180,
+    "status": "planned"
+  },
+  {
+    "slug": "pediatric-glasgow-coma-scale",
+    "title": "Pediatric Glasgow Coma Scale",
+    "externalId": 181,
+    "status": "planned"
+  },
+  {
+    "slug": "pediatric-strep-score",
+    "title": "Pediatric Strep Score",
+    "externalId": 182,
+    "status": "planned"
+  },
+  {
+    "slug": "disability-rating-scale-drs",
+    "title": "Disability Rating Scale (DRS)",
+    "externalId": 184,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-ashworth-scale-mas",
+    "title": "Modified Ashworth Scale (MAS)",
+    "externalId": 185,
+    "status": "planned"
+  },
+  {
+    "slug": "national-pressure-ulcer-advisory-panel-staging-system-npuap",
+    "title": "National Pressure Ulcer Advisory Panel Staging System (NPUAP)",
+    "externalId": 186,
+    "status": "planned"
+  },
+  {
+    "slug": "dipss-prognosis-in-myelofibrosis",
+    "title": "DIPSS Prognosis in Myelofibrosis",
+    "externalId": 187,
+    "status": "planned"
+  },
+  {
+    "slug": "curb-65",
+    "title": "Pneumonia risk (CURB-65)",
+    "externalId": 188,
+    "status": "shipped"
+  },
+  {
+    "slug": "pulmonary-resistance",
+    "title": "Pulmonary Resistance",
+    "externalId": 189,
+    "status": "planned"
+  },
+  {
+    "slug": "ranson-s-criteria",
+    "title": "Ranson's Criteria",
+    "externalId": 190,
+    "status": "planned"
+  },
+  {
+    "slug": "rate-pressure-product",
+    "title": "Rate Pressure Product",
+    "externalId": 191,
+    "status": "planned"
+  },
+  {
+    "slug": "reynolds-cad-risk",
+    "title": "Reynolds CAD Risk",
+    "externalId": 192,
+    "status": "planned"
+  },
+  {
+    "slug": "alcohol-addiction-risk-of-relapse",
+    "title": "Alcohol Addiction Risk of Relapse",
+    "externalId": 193,
+    "status": "planned"
+  },
+  {
+    "slug": "rcri",
+    "title": "Revised Cardiac Risk Index (Lee Criteria)",
+    "externalId": 195,
+    "status": "shipped"
+  },
+  {
+    "slug": "adult-onset-still-s-disease-diagnostic-criteria",
+    "title": "Adult Onset Still's Disease, Diagnostic Criteria",
+    "externalId": 196,
+    "status": "planned"
+  },
+  {
+    "slug": "simplified-disease-activity-index-for-ra-sdai",
+    "title": "Simplified Disease Activity Index for RA (SDAI)",
+    "externalId": 197,
+    "status": "planned"
+  },
+  {
+    "slug": "membranous-prognosis",
+    "title": "Membranous Prognosis",
+    "externalId": 198,
+    "status": "planned"
+  },
+  {
+    "slug": "rockall-score",
+    "title": "Rockall Score",
+    "externalId": 199,
+    "status": "planned"
+  },
+  {
+    "slug": "rv-systolic-pressure-tr-jet",
+    "title": "RV Systolic Pressure (TR Jet)",
+    "externalId": 200,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-sad-persons-scale",
+    "title": "Modified SAD PERSONS Scale",
+    "externalId": 201,
+    "status": "planned"
+  },
+  {
+    "slug": "seattle-heart-failure-model",
+    "title": "Seattle Heart Failure Model",
+    "externalId": 203,
+    "status": "planned"
+  },
+  {
+    "slug": "shunt-fraction-echo",
+    "title": "Shunt Fraction (Echo)",
+    "externalId": 204,
+    "status": "planned"
+  },
+  {
+    "slug": "shunt-fraction-invasive",
+    "title": "Shunt Fraction (Invasive)",
+    "externalId": 205,
+    "status": "planned"
+  },
+  {
+    "slug": "smoldering-multiple-myeloma-prognosis",
+    "title": "Smoldering Multiple Myeloma Prognosis",
+    "externalId": 206,
+    "status": "planned"
+  },
+  {
+    "slug": "spetzler-martin-score",
+    "title": "Spetzler-Martin Score",
+    "externalId": 207,
+    "status": "planned"
+  },
+  {
+    "slug": "timi-risk-score-stemi",
+    "title": "TIMI Risk Score (STEMI)",
+    "externalId": 208,
+    "status": "planned"
+  },
+  {
+    "slug": "stevenson-hf-class",
+    "title": "Stevenson HF Class",
+    "externalId": 209,
+    "status": "planned"
+  },
+  {
+    "slug": "systemic-vascular-resistance",
+    "title": "Systemic Vascular Resistance",
+    "externalId": 210,
+    "status": "planned"
+  },
+  {
+    "slug": "tici-score",
+    "title": "TICI Score",
+    "externalId": 212,
+    "status": "planned"
+  },
+  {
+    "slug": "transtubular-k-gradient",
+    "title": "Transtubular K Gradient",
+    "externalId": 213,
+    "status": "planned"
+  },
+  {
+    "slug": "percent-reduction-of-urea",
+    "title": "Percent Reduction of Urea",
+    "externalId": 214,
+    "status": "planned"
+  },
+  {
+    "slug": "valiant-heart-failure-risk-score",
+    "title": "VALIANT Heart Failure Risk Score",
+    "externalId": 215,
+    "status": "planned"
+  },
+  {
+    "slug": "asymptomatic-ica-internal-carotid-artery-stenosis-surgical-risk-stratification",
+    "title": "Asymptomatic ICA (Internal Carotid Artery) Stenosis Surgical Risk Stratification",
+    "externalId": 216,
+    "status": "planned"
+  },
+  {
+    "slug": "warfarin-bleeding-risk-elderly",
+    "title": "Warfarin Bleeding Risk - Elderly",
+    "externalId": 222,
+    "status": "planned"
+  },
+  {
+    "slug": "water-deficit-in-hypernatremia",
+    "title": "Water Deficit in Hypernatremia",
+    "externalId": 223,
+    "status": "planned"
+  },
+  {
+    "slug": "westley-croup-score",
+    "title": "Westley Croup Score",
+    "externalId": 224,
+    "status": "planned"
+  },
+  {
+    "slug": "wfns-sah-scale",
+    "title": "WFNS SAH Scale",
+    "externalId": 225,
+    "status": "planned"
+  },
+  {
+    "slug": "before-induction-of-anaesthesia",
+    "title": "Before Induction of Anaesthesia",
+    "externalId": 226,
+    "status": "planned"
+  },
+  {
+    "slug": "before-patient-leaves-or",
+    "title": "Before Patient Leaves OR",
+    "externalId": 227,
+    "status": "planned"
+  },
+  {
+    "slug": "before-skin-incision",
+    "title": "Before Skin Incision",
+    "externalId": 228,
+    "status": "planned"
+  },
+  {
+    "slug": "volume-of-distribution-of-urea",
+    "title": "Volume of Distribution of Urea",
+    "externalId": 233,
+    "status": "planned"
+  },
+  {
+    "slug": "findrisc-diabetes-risk-calculator",
+    "title": "FINDRISC Diabetes Risk Calculator",
+    "externalId": 236,
+    "status": "planned"
+  },
+  {
+    "slug": "familial-hypercholesterolemia",
+    "title": "Familial Hypercholesterolemia",
+    "externalId": 238,
+    "status": "planned"
+  },
+  {
+    "slug": "due-date-by-lmp",
+    "title": "Due Date by LMP",
+    "externalId": 240,
+    "status": "planned"
+  },
+  {
+    "slug": "due-date-by-ultrasound",
+    "title": "Due Date by Ultrasound",
+    "externalId": 241,
+    "status": "planned"
+  },
+  {
+    "slug": "gestational-age",
+    "title": "Gestational Age",
+    "externalId": 244,
+    "status": "planned"
+  },
+  {
+    "slug": "ideal-body-weight",
+    "title": "Ideal Body Weight",
+    "externalId": 246,
+    "status": "shipped"
+  },
+  {
+    "slug": "phenytoin-adjustment-in-renal-failure",
+    "title": "Phenytoin Adjustment in Renal Failure",
+    "externalId": 247,
+    "status": "planned"
+  },
+  {
+    "slug": "pneumonia-severity-index-port-score",
+    "title": "Pneumonia Severity Index (PORT Score)",
+    "externalId": 248,
+    "status": "planned"
+  },
+  {
+    "slug": "serum-ascites-to-albumin-gradient-saag",
+    "title": "Serum Ascites to Albumin Gradient (SAAG)",
+    "externalId": 249,
+    "status": "planned"
+  },
+  {
+    "slug": "mangled-extremity-severity-score-mess",
+    "title": "Mangled Extremity Severity Score (MESS)",
+    "externalId": 250,
+    "status": "planned"
+  },
+  {
+    "slug": "ckd-epi-2021",
+    "title": "eGFR using CKD-EPI (2021 update)",
+    "externalId": 251,
+    "status": "shipped"
+  },
+  {
+    "slug": "framingham-risk-score-2008",
+    "title": "Framingham Risk Score (2008)",
+    "externalId": 252,
+    "status": "planned"
+  },
+  {
+    "slug": "framingham-risk-score-atp-iii",
+    "title": "Framingham Risk Score (ATP-III)",
+    "externalId": 253,
+    "status": "planned"
+  },
+  {
+    "slug": "grace",
+    "title": "GRACE",
+    "externalId": 262,
+    "status": "planned"
+  },
+  {
+    "slug": "corrected-calcium",
+    "title": "Calcium Correction for Hypoalbuminemia",
+    "externalId": 267,
+    "status": "shipped"
+  },
+  {
+    "slug": "sofa",
+    "title": "Sequential Organ Failure Assessment (SOFA)",
+    "externalId": 268,
+    "status": "shipped"
+  },
+  {
+    "slug": "alvarado",
+    "title": "Alvarado Score for Acute Appendicitis",
+    "externalId": 269,
+    "status": "shipped"
+  },
+  {
+    "slug": "ciwa-ar",
+    "title": "CIWA-Ar",
+    "externalId": 270,
+    "status": "planned"
+  },
+  {
+    "slug": "phq-9",
+    "title": "Patient Health Questionnaire-9 (PHQ-9)",
+    "externalId": 271,
+    "status": "shipped"
+  },
+  {
+    "slug": "dragon-score-for-post-tpa-stroke-outcome",
+    "title": "DRAGON Score for Post-TPA Stroke Outcome",
+    "externalId": 272,
+    "status": "planned"
+  },
+  {
+    "slug": "nih-stroke-scale-score-nihss",
+    "title": "NIH Stroke Scale/Score (NIHSS)",
+    "externalId": 273,
+    "status": "planned"
+  },
+  {
+    "slug": "slicc-sle-criteria",
+    "title": "SLICC SLE Criteria",
+    "externalId": 274,
+    "status": "planned"
+  },
+  {
+    "slug": "das28-crp-for-rheumatoid-arthritis",
+    "title": "DAS28-CRP for Rheumatoid Arthritis",
+    "externalId": 275,
+    "status": "planned"
+  },
+  {
+    "slug": "das28-esr-for-rheumatoid-arthritis",
+    "title": "DAS28-ESR for Rheumatoid Arthritis",
+    "externalId": 276,
+    "status": "planned"
+  },
+  {
+    "slug": "geriatric-depression-scale",
+    "title": "Geriatric Depression Scale",
+    "externalId": 277,
+    "status": "planned"
+  },
+  {
+    "slug": "jones-criteria-for-diagnosis-of-rheumatic-fever",
+    "title": "Jones Criteria for Diagnosis of Rheumatic Fever",
+    "externalId": 278,
+    "status": "planned"
+  },
+  {
+    "slug": "clinical-disease-activity-index-for-ra-cdai",
+    "title": "Clinical Disease Activity Index for RA (CDAI)",
+    "externalId": 279,
+    "status": "planned"
+  },
+  {
+    "slug": "surgical-apgar-score",
+    "title": "Surgical Apgar Score",
+    "externalId": 280,
+    "status": "planned"
+  },
+  {
+    "slug": "schwartz-pediatric-bedside-egfr-2009",
+    "title": "Schwartz Pediatric Bedside eGFR (2009)",
+    "externalId": 281,
+    "status": "planned"
+  },
+  {
+    "slug": "schwartz-pediatric-egfr-full-model-2009",
+    "title": "Schwartz Pediatric eGFR, Full Model (2009)",
+    "externalId": 282,
+    "status": "planned"
+  },
+  {
+    "slug": "vsgne-ruptured-abdominal-aortic-aneurysm-raaa-risk-score",
+    "title": "VSGNE Ruptured Abdominal Aortic Aneurysm (RAAA) Risk Score",
+    "externalId": 284,
+    "status": "planned"
+  },
+  {
+    "slug": "euroscore-ii",
+    "title": "Euroscore II",
+    "externalId": 285,
+    "status": "planned"
+  },
+  {
+    "slug": "3-month-mortality-in-incident-elderly-esrd-patients",
+    "title": "3-Month Mortality in Incident Elderly ESRD Patients",
+    "externalId": 286,
+    "status": "planned"
+  },
+  {
+    "slug": "pre-test-probability-of-cad-cad-consortium",
+    "title": "Pre-test probability of CAD (CAD consortium)",
+    "externalId": 287,
+    "status": "planned"
+  },
+  {
+    "slug": "asdas-crp-ankylosing-spondylitis-disease-activity-score",
+    "title": "ASDAS-CRP (Ankylosing Spondylitis Disease Activity Score)",
+    "externalId": 290,
+    "status": "planned"
+  },
+  {
+    "slug": "asdas-esr-ankylosing-spondylitis-disease-activity-score",
+    "title": "ASDAS-ESR (Ankylosing Spondylitis Disease Activity Score)",
+    "externalId": 291,
+    "status": "planned"
+  },
+  {
+    "slug": "diffuse-large-b-cell-lymphoma-prognosis-ipi24",
+    "title": "Diffuse Large B-cell Lymphoma Prognosis (IPI24)",
+    "externalId": 293,
+    "status": "planned"
+  },
+  {
+    "slug": "aortic-stenosis-risk-score",
+    "title": "Aortic Stenosis Risk Score",
+    "externalId": 294,
+    "status": "planned"
+  },
+  {
+    "slug": "ottawa-sah-rule",
+    "title": "Ottawa SAH Rule",
+    "externalId": 296,
+    "status": "planned"
+  },
+  {
+    "slug": "basdai",
+    "title": "BASDAI",
+    "externalId": 299,
+    "status": "planned"
+  },
+  {
+    "slug": "vasculitis-damage-index-vdi",
+    "title": "Vasculitis Damage Index (VDI)",
+    "externalId": 302,
+    "status": "planned"
+  },
+  {
+    "slug": "hcm-risk-scd",
+    "title": "HCM Risk-SCD",
+    "externalId": 303,
+    "status": "planned"
+  },
+  {
+    "slug": "kidney-failure-risk-equation-4-variable",
+    "title": "Kidney Failure Risk Equation (4 Variable)",
+    "externalId": 308,
+    "status": "planned"
+  },
+  {
+    "slug": "diffuse-large-b-cell-lymphoma-prognosis-nccn-ipi",
+    "title": "Diffuse Large B-cell Lymphoma Prognosis (NCCN-IPI)",
+    "externalId": 311,
+    "status": "planned"
+  },
+  {
+    "slug": "cam-icu",
+    "title": "CAM-ICU",
+    "externalId": 312,
+    "status": "planned"
+  },
+  {
+    "slug": "the-richmond-agitation-sedation-score-rass",
+    "title": "The Richmond Agitation Sedation Score (RASS)",
+    "externalId": 313,
+    "status": "planned"
+  },
+  {
+    "slug": "bleeding-risk-in-atrial-fibrillation-atria",
+    "title": "Bleeding Risk in Atrial Fibrillation: ATRIA",
+    "externalId": 314,
+    "status": "planned"
+  },
+  {
+    "slug": "dipss-plus-score-for-prognosis-in-myelofibrosis",
+    "title": "DIPSS Plus Score for Prognosis in Myelofibrosis",
+    "externalId": 315,
+    "status": "planned"
+  },
+  {
+    "slug": "gad-7",
+    "title": "GAD-7 Anxiety Scale",
+    "externalId": 317,
+    "status": "shipped"
+  },
+  {
+    "slug": "polymyalgia-rheumatica-2012-eular-acr-provisional-criteria",
+    "title": "Polymyalgia Rheumatica (2012 EULAR/ACR Provisional Criteria)",
+    "externalId": 318,
+    "status": "planned"
+  },
+  {
+    "slug": "scleroderma-systemic-sclerosis-2013-eular-acr-criteria",
+    "title": "Scleroderma/Systemic Sclerosis (2013 EULAR/ACR Criteria)",
+    "externalId": 319,
+    "status": "planned"
+  },
+  {
+    "slug": "san-francisco-syncope-rule",
+    "title": "San Francisco Syncope Rule",
+    "externalId": 321,
+    "status": "planned"
+  },
+  {
+    "slug": "respiratory-adverse-event-risk-post-vascular-surgery",
+    "title": "Respiratory Adverse Event Risk Post Vascular Surgery",
+    "externalId": 325,
+    "status": "planned"
+  },
+  {
+    "slug": "fib-4",
+    "title": "FIB-4 for Noninvasive Diagnosis of Hepatic Fibrosis",
+    "externalId": 326,
+    "status": "shipped"
+  },
+  {
+    "slug": "apri-ast-to-platelet-ratio-index",
+    "title": "APRI (AST to Platelet Ratio Index)",
+    "externalId": 327,
+    "status": "planned"
+  },
+  {
+    "slug": "perc",
+    "title": "PERC Rule for Pulmonary Embolism",
+    "externalId": 330,
+    "status": "shipped"
+  },
+  {
+    "slug": "rpdai-relapsing-polychondritis-disease-activity-index",
+    "title": "RPDAI (Relapsing Polychondritis Disease Activity Index)",
+    "externalId": 332,
+    "status": "planned"
+  },
+  {
+    "slug": "revised-venous-clinical-severity-score",
+    "title": "Revised Venous Clinical Severity Score",
+    "externalId": 333,
+    "status": "planned"
+  },
+  {
+    "slug": "bisap-score",
+    "title": "BISAP Score",
+    "externalId": 334,
+    "status": "planned"
+  },
+  {
+    "slug": "sledai-2k",
+    "title": "SLEDAI-2K",
+    "externalId": 335,
+    "status": "planned"
+  },
+  {
+    "slug": "crohn-s-disease-activity-index-cdai",
+    "title": "Crohn's Disease Activity Index (CDAI)",
+    "externalId": 337,
+    "status": "planned"
+  },
+  {
+    "slug": "international-prostate-symptom-score-ipss",
+    "title": "International Prostate Symptom Score (IPSS)",
+    "externalId": 338,
+    "status": "planned"
+  },
+  {
+    "slug": "mayo-early-screen-for-discharge-planning",
+    "title": "Mayo Early Screen for Discharge Planning",
+    "externalId": 339,
+    "status": "planned"
+  },
+  {
+    "slug": "mayo-score-for-ulcerative-colitis-activity",
+    "title": "Mayo Score for Ulcerative Colitis Activity",
+    "externalId": 340,
+    "status": "planned"
+  },
+  {
+    "slug": "nafld-fibrosis-score",
+    "title": "NAFLD Fibrosis Score",
+    "externalId": 341,
+    "status": "planned"
+  },
+  {
+    "slug": "dialysis-duration-needed-for-methanol-ingestion",
+    "title": "Dialysis Duration Needed for Methanol Ingestion",
+    "externalId": 342,
+    "status": "planned"
+  },
+  {
+    "slug": "dialysis-duration-needed-for-ethylene-glycol-ingestion",
+    "title": "Dialysis Duration Needed for Ethylene Glycol Ingestion",
+    "externalId": 343,
+    "status": "planned"
+  },
+  {
+    "slug": "total-body-water-watson-formula",
+    "title": "Total Body Water (Watson Formula)",
+    "externalId": 344,
+    "status": "planned"
+  },
+  {
+    "slug": "nexus-chest-decision-instrument-for-blunt-chest-trauma",
+    "title": "NEXUS Chest Decision Instrument for Blunt Chest Trauma",
+    "externalId": 345,
+    "status": "planned"
+  },
+  {
+    "slug": "chronic-kidney-disease-management-bc-guidelines",
+    "title": "Chronic Kidney Disease Management: BC Guidelines",
+    "externalId": 347,
+    "status": "planned"
+  },
+  {
+    "slug": "mobilization-of-hospitalized-patients-with-copd-exacerbation-aecopd-mob",
+    "title": "Mobilization of Hospitalized Patients with COPD Exacerbation (AECOPD-MOB)",
+    "externalId": 348,
+    "status": "planned"
+  },
+  {
+    "slug": "hospital-score",
+    "title": "HOSPITAL Score",
+    "externalId": 353,
+    "status": "planned"
+  },
+  {
+    "slug": "multiple-myeloma-prognosis-r-iss",
+    "title": "Multiple Myeloma Prognosis (R-ISS)",
+    "externalId": 354,
+    "status": "planned"
+  },
+  {
+    "slug": "injury-severity-score",
+    "title": "Injury Severity Score",
+    "externalId": 356,
+    "status": "planned"
+  },
+  {
+    "slug": "brain-metastases-prognostic-index",
+    "title": "Brain Metastases Prognostic Index",
+    "externalId": 357,
+    "status": "planned"
+  },
+  {
+    "slug": "corrected-sodium-hyperglycemia",
+    "title": "Corrected Sodium in Hyperglycemia",
+    "externalId": 360,
+    "status": "shipped"
+  },
+  {
+    "slug": "pediatric-renal-angina-index",
+    "title": "Pediatric Renal Angina Index",
+    "externalId": 361,
+    "status": "planned"
+  },
+  {
+    "slug": "starrt-aki-enrollment-criteria",
+    "title": "STARRT-AKI Enrollment Criteria",
+    "externalId": 362,
+    "status": "planned"
+  },
+  {
+    "slug": "serious-illness-conversation-guide",
+    "title": "Serious Illness Conversation Guide",
+    "externalId": 364,
+    "status": "planned"
+  },
+  {
+    "slug": "kinetic-egfr-kegfr",
+    "title": "Kinetic eGFR (KeGFR)",
+    "externalId": 367,
+    "status": "planned"
+  },
+  {
+    "slug": "pim2",
+    "title": "PIM2",
+    "externalId": 368,
+    "status": "planned"
+  },
+  {
+    "slug": "base-excess",
+    "title": "Base Excess",
+    "externalId": 369,
+    "status": "planned"
+  },
+  {
+    "slug": "serious-renal-dysfunction-post-pci",
+    "title": "Serious Renal Dysfunction Post-PCI",
+    "externalId": 371,
+    "status": "planned"
+  },
+  {
+    "slug": "dapt-score",
+    "title": "DAPT Score",
+    "externalId": 373,
+    "status": "planned"
+  },
+  {
+    "slug": "pcdai",
+    "title": "PCDAI",
+    "externalId": 374,
+    "status": "planned"
+  },
+  {
+    "slug": "cll-ipi",
+    "title": "CLL-IPI",
+    "externalId": 375,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-marshall-score",
+    "title": "Modified Marshall Score",
+    "externalId": 376,
+    "status": "planned"
+  },
+  {
+    "slug": "international-index-of-erectile-function-iief-5",
+    "title": "International Index of Erectile Function (IIEF-5)",
+    "externalId": 377,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-glasgow-imrie-severity-criteria-for-acute-pancreatitis",
+    "title": "Modified Glasgow Imrie Severity Criteria for Acute Pancreatitis",
+    "externalId": 379,
+    "status": "planned"
+  },
+  {
+    "slug": "canadian-syncope-risk-score-csrs",
+    "title": "Canadian Syncope Risk Score (CSRS)",
+    "externalId": 383,
+    "status": "planned"
+  },
+  {
+    "slug": "expected-spleen-size",
+    "title": "Expected spleen size",
+    "externalId": 384,
+    "status": "planned"
+  },
+  {
+    "slug": "ncdr-aki-and-dialysis-risk-after-pci",
+    "title": "NCDR AKI and Dialysis Risk after PCI",
+    "externalId": 386,
+    "status": "planned"
+  },
+  {
+    "slug": "padua-prediction-score-for-risk-of-vte",
+    "title": "Padua Prediction Score for Risk of VTE",
+    "externalId": 388,
+    "status": "planned"
+  },
+  {
+    "slug": "30-day-stroke-risk-index-for-cea",
+    "title": "30-Day Stroke Risk Index for CEA",
+    "externalId": 389,
+    "status": "planned"
+  },
+  {
+    "slug": "1-year-mortality-risk-index-for-cea",
+    "title": "1-Year Mortality Risk Index for CEA",
+    "externalId": 390,
+    "status": "planned"
+  },
+  {
+    "slug": "short-michigan-alcoholism-screening-test-geriatric-version-the-smast-g",
+    "title": "Short Michigan Alcoholism Screening Test-geriatric version The SMAST-G",
+    "externalId": 426,
+    "status": "planned"
+  },
+  {
+    "slug": "cns-international-prognostic-index-in-diffuse-large-b-cell-lymphoma-cns-ipi",
+    "title": "CNS International Prognostic Index in Diffuse Large B-Cell Lymphoma (CNS-IPI)",
+    "externalId": 428,
+    "status": "planned"
+  },
+  {
+    "slug": "malt-lymphoma-prognosis-malt-ipi",
+    "title": "MALT Lymphoma prognosis (MALT-IPI)",
+    "externalId": 429,
+    "status": "planned"
+  },
+  {
+    "slug": "khorana-risk-score",
+    "title": "Khorana risk score",
+    "externalId": 433,
+    "status": "planned"
+  },
+  {
+    "slug": "port-score-for-perioperative-risk-of-blood-transfusion-in-cardiac-surgery-by-acta",
+    "title": "PORT score for PeriOperative Risk of blood Transfusion in cardiac surgery by ACTA",
+    "externalId": 436,
+    "status": "planned"
+  },
+  {
+    "slug": "roks-recurrence-of-kidney-stone-2018",
+    "title": "ROKS \u2013 Recurrence Of Kidney Stone (2018)",
+    "externalId": 438,
+    "status": "planned"
+  },
+  {
+    "slug": "midas-migraine-disability-assessment",
+    "title": "MIDAS (Migraine Disability Assessment)",
+    "externalId": 439,
+    "status": "planned"
+  },
+  {
+    "slug": "ukeld-score",
+    "title": "UKELD Score",
+    "externalId": 442,
+    "status": "planned"
+  },
+  {
+    "slug": "euroscore-additive-score",
+    "title": "Euroscore: Additive Score",
+    "externalId": 445,
+    "status": "planned"
+  },
+  {
+    "slug": "predicting-6-and-12-month-mortality-in-ckd-patients",
+    "title": "Predicting 6 and 12 Month Mortality in CKD patients",
+    "externalId": 446,
+    "status": "planned"
+  },
+  {
+    "slug": "geriatric-sensitive-perioperative-cardiac-risk-index-gscri",
+    "title": "Geriatric-Sensitive Perioperative Cardiac Risk Index | GSCRI",
+    "externalId": 448,
+    "status": "planned"
+  },
+  {
+    "slug": "vancomycin-dosing-based-on-egfr-creatinine-cystatin-c",
+    "title": "Vancomycin Dosing Based on eGFR (creatinine-cystatin C)",
+    "externalId": 449,
+    "status": "planned"
+  },
+  {
+    "slug": "advanced-ckd-after-aki-risk-index",
+    "title": "Advanced CKD after AKI Risk Index",
+    "externalId": 451,
+    "status": "planned"
+  },
+  {
+    "slug": "mayo-aki-risk-after-primary-total-hip-arthroplasty",
+    "title": "Mayo AKI Risk after Primary Total Hip Arthroplasty",
+    "externalId": 455,
+    "status": "planned"
+  },
+  {
+    "slug": "rosier-scale",
+    "title": "ROSIER scale",
+    "externalId": 457,
+    "status": "planned"
+  },
+  {
+    "slug": "patient-health-questionnaire-2-phq-2",
+    "title": "Patient Health Questionnaire-2 (PHQ-2)",
+    "externalId": 458,
+    "status": "planned"
+  },
+  {
+    "slug": "advised-aortic-dissection-detection-risk-score-plus-d-dimer-for-aortic-syndromes",
+    "title": "ADviSED - Aortic Dissection Detection Risk Score Plus D-Dimer for Aortic Syndromes",
+    "externalId": 459,
+    "status": "planned"
+  },
+  {
+    "slug": "patient-health-questionnaire-15-phq-15",
+    "title": "Patient Health Questionnaire-15 (PHQ-15)",
+    "externalId": 460,
+    "status": "planned"
+  },
+  {
+    "slug": "mews",
+    "title": "Modified Early Warning Score (MEWS)",
+    "externalId": 461,
+    "status": "shipped"
+  },
+  {
+    "slug": "phases-score",
+    "title": "PHASES Score",
+    "externalId": 464,
+    "status": "planned"
+  },
+  {
+    "slug": "seizure-vs-syncope",
+    "title": "Seizure vs Syncope",
+    "externalId": 466,
+    "status": "planned"
+  },
+  {
+    "slug": "altman-self-rating-mania-scale-asrm",
+    "title": "Altman Self-Rating Mania Scale (ASRM)",
+    "externalId": 468,
+    "status": "planned"
+  },
+  {
+    "slug": "postoperative-mortality-rate-after-elective-aaa",
+    "title": "Postoperative Mortality Rate After Elective AAA",
+    "externalId": 469,
+    "status": "planned"
+  },
+  {
+    "slug": "alcohol-use-disorders-identification-test-concise-audit-c",
+    "title": "Alcohol Use Disorders Identification Test-Concise (AUDIT-C)",
+    "externalId": 470,
+    "status": "planned"
+  },
+  {
+    "slug": "young-mania-rating-scale-ymrs",
+    "title": "Young Mania Rating Scale (YMRS)",
+    "externalId": 473,
+    "status": "planned"
+  },
+  {
+    "slug": "alcohol-use-disorders-identification-test-audit",
+    "title": "Alcohol Use Disorders Identification Test (AUDIT)",
+    "externalId": 474,
+    "status": "planned"
+  },
+  {
+    "slug": "patient-health-questionnaire-4-phq-4",
+    "title": "Patient Health Questionnaire-4 (PHQ-4)",
+    "externalId": 476,
+    "status": "planned"
+  },
+  {
+    "slug": "urine-anion-gap-or-urine-net-charge",
+    "title": "Urine Anion Gap or Urine Net Charge",
+    "externalId": 477,
+    "status": "planned"
+  },
+  {
+    "slug": "cage-questionnaire",
+    "title": "CAGE Questionnaire",
+    "externalId": 481,
+    "status": "planned"
+  },
+  {
+    "slug": "multiple-sclerosis-diagnosis",
+    "title": "Multiple Sclerosis: Diagnosis",
+    "externalId": 482,
+    "status": "planned"
+  },
+  {
+    "slug": "lille-model-for-alcoholic-hepatitis",
+    "title": "Lille Model for Alcoholic Hepatitis",
+    "externalId": 483,
+    "status": "planned"
+  },
+  {
+    "slug": "cll-ball-score-for-relapsed-refractory-cll",
+    "title": "CLL BALL Score for Relapsed/Refractory CLL",
+    "externalId": 485,
+    "status": "planned"
+  },
+  {
+    "slug": "mean-arterial-pressure",
+    "title": "Mean Arterial Pressure (MAP)",
+    "externalId": 486,
+    "status": "shipped"
+  },
+  {
+    "slug": "smith-modified-sgarbossa-s-criteria-for-mi-in-left-bundle-branch-block",
+    "title": "Smith-Modified Sgarbossa\u2019s Criteria for MI in Left Bundle Branch Block",
+    "externalId": 487,
+    "status": "planned"
+  },
+  {
+    "slug": "sgarbossa-s-criteria-for-mi-in-left-bundle-branch-block",
+    "title": "Sgarbossa\u2019s Criteria for MI in Left Bundle Branch Block",
+    "externalId": 488,
+    "status": "planned"
+  },
+  {
+    "slug": "centor",
+    "title": "Centor Score (modified) for GAS Pharyngitis",
+    "externalId": 489,
+    "status": "shipped"
+  },
+  {
+    "slug": "edinburgh-postnatal-depression-scale-epds",
+    "title": "Edinburgh Postnatal Depression Scale (EPDS)",
+    "externalId": 494,
+    "status": "planned"
+  },
+  {
+    "slug": "philadelphia-criteria-in-febrile-infants",
+    "title": "Philadelphia Criteria in Febrile Infants",
+    "externalId": 495,
+    "status": "planned"
+  },
+  {
+    "slug": "boston-criteria-for-febrile-infants",
+    "title": "Boston Criteria for Febrile Infants",
+    "externalId": 497,
+    "status": "planned"
+  },
+  {
+    "slug": "rochester-criteria-for-febrile-infants",
+    "title": "Rochester Criteria for Febrile Infants",
+    "externalId": 498,
+    "status": "planned"
+  },
+  {
+    "slug": "international-igan-prediction-tool-at-biopsy-adults",
+    "title": "International IgAN Prediction Tool at biopsy - Adults",
+    "externalId": 499,
+    "status": "planned"
+  },
+  {
+    "slug": "pecarn-rule-for-pediatric-head-injury-lt-2-years-old",
+    "title": "PECARN Rule for Pediatric Head Injury < 2 years old",
+    "externalId": 500,
+    "status": "planned"
+  },
+  {
+    "slug": "pecarn-rule-for-pediatric-head-injury-ge-2-years-old",
+    "title": "PECARN Rule for Pediatric Head Injury \u2265 2 years old",
+    "externalId": 501,
+    "status": "planned"
+  },
+  {
+    "slug": "be3a-score",
+    "title": "BE3A Score",
+    "externalId": 502,
+    "status": "planned"
+  },
+  {
+    "slug": "reducing-vascular-risk-in-patients-living-with-diabetes",
+    "title": "Reducing Vascular Risk in Patients Living with Diabetes",
+    "externalId": 503,
+    "status": "planned"
+  },
+  {
+    "slug": "bipolar-spectrum-diagnostic-scale-bsds",
+    "title": "Bipolar Spectrum Diagnostic Scale (BSDS)",
+    "externalId": 504,
+    "status": "planned"
+  },
+  {
+    "slug": "nsaid-risk-of-aki-or-hyperkalemia",
+    "title": "NSAID risk of AKI or hyperkalemia",
+    "externalId": 507,
+    "status": "planned"
+  },
+  {
+    "slug": "panic-disorder-severity-scale-pdss",
+    "title": "Panic Disorder Severity Scale (PDSS)",
+    "externalId": 508,
+    "status": "planned"
+  },
+  {
+    "slug": "physical-activity-decision-tool-for-patients-living-with-diabetes",
+    "title": "Physical Activity Decision Tool for Patients Living with Diabetes",
+    "externalId": 509,
+    "status": "planned"
+  },
+  {
+    "slug": "individualizing-your-patient-s-a1c-target",
+    "title": "Individualizing Your Patient's A1c Target",
+    "externalId": 510,
+    "status": "planned"
+  },
+  {
+    "slug": "self-monitoring-blood-glucose-smbg",
+    "title": "Self-Monitoring Blood Glucose (SMBG)",
+    "externalId": 511,
+    "status": "planned"
+  },
+  {
+    "slug": "screening-for-and-diagnosing-diabetes-a1c-and-fasting-plasma-glucose",
+    "title": "Screening For And Diagnosing Diabetes - A1c and Fasting Plasma Glucose",
+    "externalId": 512,
+    "status": "planned"
+  },
+  {
+    "slug": "screening-for-and-diagnosing-diabetes-75g-oral-glucose-tolerance-test-ogtt",
+    "title": "Screening For And Diagnosing Diabetes - 75g Oral Glucose Tolerance Test (OGTT)",
+    "externalId": 516,
+    "status": "planned"
+  },
+  {
+    "slug": "car-relax-alone-forget-friends-trouble-crafft-2-1",
+    "title": "Car, Relax, Alone, Forget, Friends, Trouble (CRAFFT 2.1)",
+    "externalId": 519,
+    "status": "planned"
+  },
+  {
+    "slug": "tb-skin-test-interpretation",
+    "title": "TB Skin Test Interpretation",
+    "externalId": 520,
+    "status": "planned"
+  },
+  {
+    "slug": "sirs",
+    "title": "SIRS Criteria (Systemic Inflammatory Response Syndrome)",
+    "externalId": 522,
+    "status": "shipped"
+  },
+  {
+    "slug": "abc-score-for-massive-transfusion",
+    "title": "ABC Score for Massive Transfusion",
+    "externalId": 523,
+    "status": "planned"
+  },
+  {
+    "slug": "qsofa",
+    "title": "qSOFA Score in Septic Patients",
+    "externalId": 525,
+    "status": "shipped"
+  },
+  {
+    "slug": "maintenance-fluid-calculations",
+    "title": "Maintenance Fluid Calculations",
+    "externalId": 526,
+    "status": "planned"
+  },
+  {
+    "slug": "erasmus-gbs-respiratory-insufficiency-score-egris",
+    "title": "Erasmus GBS Respiratory Insufficiency Score (EGRIS)",
+    "externalId": 527,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-erasmus-gbs-outcome-score-egos-at-hospital-admission",
+    "title": "Modified Erasmus GBS Outcome Score (EGOS) at hospital admission",
+    "externalId": 528,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-erasmus-gbs-outcome-score-egos-at-day-7-of-admission",
+    "title": "Modified Erasmus GBS Outcome Score (EGOS) at day 7 of admission",
+    "externalId": 529,
+    "status": "planned"
+  },
+  {
+    "slug": "cows-score-for-opiate-withdrawal",
+    "title": "COWS Score for Opiate Withdrawal",
+    "externalId": 530,
+    "status": "planned"
+  },
+  {
+    "slug": "stop-bang",
+    "title": "STOP-BANG Score for Obstructive Sleep Apnea",
+    "externalId": 531,
+    "status": "shipped"
+  },
+  {
+    "slug": "valsartan-dose-equivalence",
+    "title": "Valsartan dose equivalence",
+    "externalId": 532,
+    "status": "planned"
+  },
+  {
+    "slug": "pram-score-for-pediatric-asthma-exacerbation-severity",
+    "title": "PRAM Score for Pediatric Asthma Exacerbation Severity",
+    "externalId": 534,
+    "status": "planned"
+  },
+  {
+    "slug": "who-five-well-being-index-who-5",
+    "title": "Who Five Well Being Index (WHO-5)\u200b",
+    "externalId": 535,
+    "status": "planned"
+  },
+  {
+    "slug": "dutch-meningitis-risk-score",
+    "title": "Dutch Meningitis Risk Score",
+    "externalId": 536,
+    "status": "planned"
+  },
+  {
+    "slug": "informant-questionnaire-on-cognitive-decline-in-the-elderly-iqcode",
+    "title": "Informant Questionnaire on Cognitive Decline in the Elderly (IQCODE)",
+    "externalId": 538,
+    "status": "planned"
+  },
+  {
+    "slug": "major-depression-inventory-mdi",
+    "title": "Major Depression Inventory (MDI)",
+    "externalId": 542,
+    "status": "planned"
+  },
+  {
+    "slug": "screening-for-and-diagnosing-gestational-diabetes-mellitus-gdm",
+    "title": "Screening For And Diagnosing Gestational Diabetes Mellitus (GDM)",
+    "externalId": 547,
+    "status": "planned"
+  },
+  {
+    "slug": "post-traumatic-stress-disorder-pcl-c",
+    "title": "Post Traumatic Stress Disorder (PCL-C)",
+    "externalId": 548,
+    "status": "planned"
+  },
+  {
+    "slug": "brief-psychiatric-rating-scale-bprs",
+    "title": "Brief Psychiatric Rating Scale (BPRS)",
+    "externalId": 551,
+    "status": "planned"
+  },
+  {
+    "slug": "pml-risk-stratification-in-multiple-sclerosis-patients-on-natalizumab",
+    "title": "PML Risk Stratification in Multiple Sclerosis Patients on Natalizumab",
+    "externalId": 555,
+    "status": "planned"
+  },
+  {
+    "slug": "diagnosis-of-dementia-with-lewy-bodies-dlb",
+    "title": "Diagnosis of Dementia with Lewy Bodies (DLB)",
+    "externalId": 556,
+    "status": "planned"
+  },
+  {
+    "slug": "ottawa-chronic-obstructive-pulmonary-disease-risk-scale-ocrs",
+    "title": "Ottawa chronic obstructive pulmonary disease risk scale (OCRS)",
+    "externalId": 557,
+    "status": "planned"
+  },
+  {
+    "slug": "sokal-score-for-cml",
+    "title": "Sokal Score for CML",
+    "externalId": 559,
+    "status": "planned"
+  },
+  {
+    "slug": "eutos-score-for-chronic-myelogenous-leukemia-cml",
+    "title": "EUTOS Score for Chronic Myelogenous Leukemia (CML)",
+    "externalId": 561,
+    "status": "planned"
+  },
+  {
+    "slug": "eating-disorder-diagnostic-scale-edds",
+    "title": "Eating Disorder Diagnostic Scale (EDDS)",
+    "externalId": 562,
+    "status": "planned"
+  },
+  {
+    "slug": "diagnosis-of-multiple-system-atrophy-msa",
+    "title": "Diagnosis of Multiple System Atrophy (MSA)",
+    "externalId": 563,
+    "status": "planned"
+  },
+  {
+    "slug": "primary-progressive-multiple-sclerosis-diagnosis",
+    "title": "Primary Progressive Multiple Sclerosis: Diagnosis",
+    "externalId": 564,
+    "status": "planned"
+  },
+  {
+    "slug": "worklife-balance",
+    "title": "Worklife Balance",
+    "externalId": 565,
+    "status": "planned"
+  },
+  {
+    "slug": "emergency-heart-failure-mortality-risk-grade-ehmrg",
+    "title": "Emergency Heart Failure Mortality Risk Grade (EHMRG)",
+    "externalId": 566,
+    "status": "planned"
+  },
+  {
+    "slug": "generalized-anxiety-disorder-2-gad-2",
+    "title": "Generalized Anxiety Disorder 2 (GAD-2)",
+    "externalId": 570,
+    "status": "planned"
+  },
+  {
+    "slug": "light-s-criteria",
+    "title": "Light's Criteria",
+    "externalId": 571,
+    "status": "planned"
+  },
+  {
+    "slug": "pittsburgh-knee-rule",
+    "title": "Pittsburgh Knee Rule",
+    "externalId": 572,
+    "status": "planned"
+  },
+  {
+    "slug": "renal-cell-carcinoma-tnm-staging",
+    "title": "Renal Cell Carcinoma TNM Staging",
+    "externalId": 573,
+    "status": "planned"
+  },
+  {
+    "slug": "modified-mallampati-classification",
+    "title": "Modified Mallampati Classification",
+    "externalId": 580,
+    "status": "planned"
+  },
+  {
+    "slug": "diagnosis-of-clostridium-difficile-infection",
+    "title": "Diagnosis of Clostridium Difficile Infection",
+    "externalId": 582,
+    "status": "planned"
+  },
+  {
+    "slug": "treatment-of-first-episode-of-clostridium-difficile",
+    "title": "Treatment of First Episode of Clostridium Difficile",
+    "externalId": 583,
+    "status": "planned"
+  },
+  {
+    "slug": "treatment-of-recurrent-episode-of-clostridium-difficile",
+    "title": "Treatment of Recurrent Episode of Clostridium Difficile",
+    "externalId": 585,
+    "status": "planned"
+  },
+  {
+    "slug": "mcmahon-rhabdomyolysis-risk-score",
+    "title": "McMahon Rhabdomyolysis Risk Score",
+    "externalId": 587,
+    "status": "planned"
+  },
+  {
+    "slug": "asa-physical-status",
+    "title": "ASA Physical Status",
+    "externalId": 589,
+    "status": "planned"
+  },
+  {
+    "slug": "brugada-criteria-for-ventricular-tachycardia",
+    "title": "Brugada Criteria for Ventricular Tachycardia",
+    "externalId": 591,
+    "status": "planned"
+  },
+  {
+    "slug": "kocher-criteria-for-septic-arthritis",
+    "title": "Kocher Criteria for Septic Arthritis",
+    "externalId": 592,
+    "status": "planned"
+  },
+  {
+    "slug": "lung-cancer-tnm-staging",
+    "title": "Lung Cancer TNM Staging",
+    "externalId": 593,
+    "status": "planned"
+  },
+  {
+    "slug": "edmonton-frail-scale",
+    "title": "Edmonton Frail Scale",
+    "externalId": 595,
+    "status": "planned"
+  },
+  {
+    "slug": "shock-index",
+    "title": "Shock Index",
+    "externalId": 599,
+    "status": "shipped"
+  },
+  {
+    "slug": "abnormal-involuntary-movement-scale-aims",
+    "title": "Abnormal Involuntary Movement Scale (AIMS)",
+    "externalId": 601,
+    "status": "planned"
+  },
+  {
+    "slug": "risk-of-occupational-asthma-due-to-high-molecular-weight-agents",
+    "title": "Risk of Occupational Asthma due to High-Molecular Weight Agents",
+    "externalId": 602,
+    "status": "planned"
+  },
+  {
+    "slug": "pittsburgh-sleep-quality-index-psqi",
+    "title": "Pittsburgh Sleep Quality Index (PSQI)",
+    "externalId": 603,
+    "status": "planned"
+  },
+  {
+    "slug": "cmml-cpss-mol",
+    "title": "CMML CPSS-Mol",
+    "externalId": 609,
+    "status": "planned"
+  },
+  {
+    "slug": "international-prognostic-scoring-system-for-waldenstrom-macroglobulinemia",
+    "title": "International Prognostic Scoring System for Waldenstrom Macroglobulinemia",
+    "externalId": 610,
+    "status": "planned"
+  },
+  {
+    "slug": "r-ed-avm-hemorrhage-risk",
+    "title": "R\u2082eD AVM Hemorrhage Risk",
+    "externalId": 619,
+    "status": "planned"
+  },
+  {
+    "slug": "clinical-outcomes-in-ckd-with-severely-decreased-gfr",
+    "title": "Clinical outcomes in CKD with severely decreased GFR",
+    "externalId": 621,
+    "status": "planned"
+  },
+  {
+    "slug": "esrd-risk-tool-for-kidney-donor-candidates",
+    "title": "ESRD Risk Tool for Kidney Donor Candidates",
+    "externalId": 622,
+    "status": "planned"
+  },
+  {
+    "slug": "hpv-mediated-p16-oropharyngeal-cancer-clinical",
+    "title": "HPV-Mediated (p16+) Oropharyngeal Cancer (Clinical)",
+    "externalId": 623,
+    "status": "planned"
+  },
+  {
+    "slug": "hpv-mediated-p16-oropharyngeal-cancer-pathological",
+    "title": "HPV-Mediated (p16+) Oropharyngeal Cancer (Pathological)",
+    "externalId": 624,
+    "status": "planned"
+  },
+  {
+    "slug": "attia-criteria-for-evaluation-of-pharyngitis",
+    "title": "Attia Criteria for Evaluation of Pharyngitis",
+    "externalId": 639,
+    "status": "planned"
+  },
+  {
+    "slug": "acute-gout-diagnosis-rule",
+    "title": "Acute Gout Diagnosis Rule",
+    "externalId": 640,
+    "status": "planned"
+  },
+  {
+    "slug": "absolute-neutrophil-count-anc",
+    "title": "Absolute Neutrophil Count (ANC)",
+    "externalId": 641,
+    "status": "planned"
+  },
+  {
+    "slug": "csf-wbc-correction-in-blood-contaminated-csf",
+    "title": "CSF WBC Correction In Blood Contaminated CSF",
+    "externalId": 642,
+    "status": "planned"
+  },
+  {
+    "slug": "sodium-correction-rate-for-hyponatremia",
+    "title": "Sodium Correction Rate for Hyponatremia",
+    "externalId": 643,
+    "status": "planned"
+  },
+  {
+    "slug": "iv-drip-rate-calculator",
+    "title": "IV Drip Rate Calculator",
+    "externalId": 644,
+    "status": "planned"
+  },
+  {
+    "slug": "estimated-blood-volume",
+    "title": "Estimated Blood Volume",
+    "externalId": 648,
+    "status": "planned"
+  },
+  {
+    "slug": "dic-score",
+    "title": "DIC Score",
+    "externalId": 649,
+    "status": "planned"
+  },
+  {
+    "slug": "sodium-deficit-in-hyponatremia",
+    "title": "Sodium Deficit in Hyponatremia",
+    "externalId": 652,
+    "status": "planned"
+  },
+  {
+    "slug": "cdc-height-for-age-percentiles-for-boys-2-20-years",
+    "title": "CDC Height for Age Percentiles for Boys (2 - 20 years)",
+    "externalId": 653,
+    "status": "planned"
+  },
+  {
+    "slug": "predicted-heart-mass-calculator-phm",
+    "title": "Predicted Heart Mass Calculator (PHM)",
+    "externalId": 654,
+    "status": "planned"
+  },
+  {
+    "slug": "cdc-height-for-age-percentiles-for-girls-2-20-years",
+    "title": "CDC Height for Age Percentiles for Girls (2 - 20 years)",
+    "externalId": 655,
+    "status": "planned"
+  },
+  {
+    "slug": "cdc-weight-for-age-percentiles-for-boys-2-20-years",
+    "title": "CDC Weight for Age Percentiles for Boys (2-20 years)",
+    "externalId": 658,
+    "status": "planned"
+  },
+  {
+    "slug": "cdc-weight-for-age-percentiles-for-girls-2-20-years",
+    "title": "CDC Weight for Age Percentiles for Girls (2 - 20 years)",
+    "externalId": 659,
+    "status": "planned"
+  },
+  {
+    "slug": "cdc-weight-for-height-percentiles-for-girls-77-121-cm-tall",
+    "title": "CDC Weight for Height Percentiles for Girls (77-121 cm tall)",
+    "externalId": 660,
+    "status": "planned"
+  },
+  {
+    "slug": "cdc-nchs-infant-weight-for-age-percentiles-lt-36-months",
+    "title": "CDC/NCHS Infant Weight for Age Percentiles (<36 months)",
+    "externalId": 661,
+    "status": "planned"
+  },
+  {
+    "slug": "cdc-weight-for-height-percentiles-for-boys-77-121-cm-tall",
+    "title": "CDC Weight for Height Percentiles for Boys (77-121 cm tall)",
+    "externalId": 669,
+    "status": "planned"
+  },
+  {
+    "slug": "cdc-nchs-infant-length-for-age-percentiles-lt-36-months",
+    "title": "CDC/NCHS Infant Length for Age Percentiles (<36 months)",
+    "externalId": 671,
+    "status": "planned"
+  },
+  {
+    "slug": "cdc-nchs-infant-weight-for-length-percentiles-lt-36-months",
+    "title": "CDC/NCHS Infant Weight for Length Percentiles (< 36 months)",
+    "externalId": 672,
+    "status": "planned"
+  },
+  {
+    "slug": "cdc-nchs-infant-head-circumference-for-age-percentiles-lt-36-months",
+    "title": "CDC/NCHS Infant Head Circumference for Age Percentiles (<36 months)",
+    "externalId": 673,
+    "status": "planned"
+  },
+  {
+    "slug": "newborn-hyperbilirubinemia-assessment",
+    "title": "Newborn Hyperbilirubinemia Assessment",
+    "externalId": 674,
+    "status": "planned"
+  },
+  {
+    "slug": "diabetes-risk-score-type-2",
+    "title": "Diabetes Risk Score (Type 2)",
+    "externalId": 675,
+    "status": "planned"
+  },
+  {
+    "slug": "revised-geneva-clinical-prediction-rule-for-pulmonary-embolism",
+    "title": "Revised Geneva clinical prediction rule for pulmonary embolism",
+    "externalId": 676,
+    "status": "planned"
+  },
+  {
+    "slug": "prognosis-calculator-for-relapsed-refractory-dlbcl",
+    "title": "Prognosis Calculator for Relapsed/Refractory DLBCL",
+    "externalId": 682,
+    "status": "planned"
+  },
+  {
+    "slug": "post-traumatic-stress-disorder-pcl-5",
+    "title": "Post Traumatic Stress Disorder (PCL-5)",
+    "externalId": 684,
+    "status": "planned"
+  },
+  {
+    "slug": "garfield-af-risk-calculator",
+    "title": "GARFIELD-AF Risk Calculator",
+    "externalId": 685,
+    "status": "planned"
+  },
+  {
+    "slug": "burch-wartofsky-point-scale-bwps-for-thyrotoxicosis",
+    "title": "Burch-Wartofsky Point Scale (BWPS) for Thyrotoxicosis",
+    "externalId": 688,
+    "status": "planned"
+  },
+  {
+    "slug": "faint-score-in-syncope",
+    "title": "FAINT Score in Syncope",
+    "externalId": 691,
+    "status": "planned"
+  },
+  {
+    "slug": "body-surface-area-based-dosing",
+    "title": "Body Surface Area Based Dosing",
+    "externalId": 692,
+    "status": "planned"
+  },
+  {
+    "slug": "emergency-department-detection-of-chest-pain-score-edacs",
+    "title": "Emergency Department Detection of Chest Pain Score (EDACS)",
+    "externalId": 695,
+    "status": "planned"
+  },
+  {
+    "slug": "mds-specific-frailty-scale",
+    "title": "MDS Specific Frailty Scale",
+    "externalId": 696,
+    "status": "planned"
+  },
+  {
+    "slug": "pregnancy-gestation-by-lmp-and-ultrasound-biometry",
+    "title": "Pregnancy Gestation by LMP and Ultrasound Biometry",
+    "externalId": 697,
+    "status": "planned"
+  },
+  {
+    "slug": "2helps2b-score",
+    "title": "2HELPS2B Score",
+    "externalId": 700,
+    "status": "planned"
+  },
+  {
+    "slug": "troponin-only-manchester-acute-coronary-syndromes-tmacs-decision-aid",
+    "title": "Troponin-only Manchester Acute Coronary Syndromes (TMACS) Decision Aid",
+    "externalId": 703,
+    "status": "planned"
+  },
+  {
+    "slug": "predicting-ionized-hypocalcemia-in-critical-care",
+    "title": "Predicting Ionized Hypocalcemia in Critical Care",
+    "externalId": 704,
+    "status": "planned"
+  },
+  {
+    "slug": "lean-body-weight-female",
+    "title": "Lean Body Weight (Female)",
+    "externalId": 705,
+    "status": "planned"
+  },
+  {
+    "slug": "lean-body-weight-male",
+    "title": "Lean Body Weight (Male)",
+    "externalId": 706,
+    "status": "planned"
+  },
+  {
+    "slug": "behcet-s-syndrome-international-study-group-criteria",
+    "title": "Behcet\u2019s Syndrome International Study Group Criteria",
+    "externalId": 707,
+    "status": "planned"
+  },
+  {
+    "slug": "tia-prognosis-risk-of-stroke-by-90-days-after-presentation",
+    "title": "TIA Prognosis: Risk of Stroke by 90 Days After Presentation",
+    "externalId": 710,
+    "status": "planned"
+  },
+  {
+    "slug": "international-igan-prediction-tool-at-biopsy-pediatrics",
+    "title": "International IgAN Prediction Tool at biopsy - Pediatrics",
+    "externalId": 713,
+    "status": "planned"
+  },
+  {
+    "slug": "adverse-childhood-experience-ace",
+    "title": "Adverse Childhood Experience (ACE)",
+    "externalId": 715,
+    "status": "planned"
+  },
+  {
+    "slug": "plasmic-score-for-ttp",
+    "title": "Plasmic Score for TTP",
+    "externalId": 722,
+    "status": "planned"
+  },
+  {
+    "slug": "rox-index-to-predict-risk-of-intubation",
+    "title": "ROX Index to Predict Risk of Intubation",
+    "externalId": 724,
+    "status": "planned"
+  },
+  {
+    "slug": "sexual-desire-inventory-2-sdi-2",
+    "title": "Sexual Desire Inventory-2 (SDI-2)",
+    "externalId": 727,
+    "status": "planned"
+  },
+  {
+    "slug": "covid-19-prognostic-tool",
+    "title": "COVID-19 Prognostic Tool",
+    "externalId": 731,
+    "status": "planned"
+  },
+  {
+    "slug": "recruitment-to-inflation-ratio",
+    "title": "Recruitment to Inflation Ratio",
+    "externalId": 734,
+    "status": "planned"
+  },
+  {
+    "slug": "covid-19-ventilation-protocol",
+    "title": "COVID-19 Ventilation Protocol",
+    "externalId": 735,
+    "status": "planned"
+  },
+  {
+    "slug": "fracture-risk-for-women-with-known-bone-mineral-density-bmd",
+    "title": "Fracture Risk for Women with Known Bone Mineral Density (BMD)",
+    "externalId": 736,
+    "status": "planned"
+  },
+  {
+    "slug": "covid-19-critical-illness-prediction-tool-covid-gram",
+    "title": "COVID-19 Critical Illness Prediction Tool (COVID-GRAM)",
+    "externalId": 750,
+    "status": "planned"
+  },
+  {
+    "slug": "neutrophil-to-lymphocyte-ratio-nlr",
+    "title": "Neutrophil to Lymphocyte Ratio (NLR)",
+    "externalId": 751,
+    "status": "planned"
+  },
+  {
+    "slug": "oropharyngeal-p16-cancer-tnm-staging-pathological",
+    "title": "Oropharyngeal (p16-) Cancer TNM Staging (Pathological)",
+    "externalId": 759,
+    "status": "planned"
+  },
+  {
+    "slug": "oropharyngeal-p16-cancer-tnm-staging-clinical",
+    "title": "Oropharyngeal (p16-) Cancer TNM Staging (Clinical)",
+    "externalId": 760,
+    "status": "planned"
+  },
+  {
+    "slug": "bladder-cancer-tnm-staging",
+    "title": "Bladder Cancer TNM Staging",
+    "externalId": 773,
+    "status": "planned"
+  },
+  {
+    "slug": "esophagus-and-esophagogastric-junction-cancers-adenocarcinoma",
+    "title": "Esophagus and Esophagogastric Junction Cancers (Adenocarcinoma)",
+    "externalId": 775,
+    "status": "planned"
+  },
+  {
+    "slug": "newborn-hyperbilirubinemia-rate-of-rise",
+    "title": "Newborn Hyperbilirubinemia Rate of Rise",
+    "externalId": 781,
+    "status": "planned"
+  },
+  {
+    "slug": "vision-perioperative-risk-using-nt-probnp",
+    "title": "VISION perioperative risk using NT-proBNP",
+    "externalId": 783,
+    "status": "planned"
+  },
+  {
+    "slug": "international-prognostic-score-for-asymptomatic-early-stage-cll",
+    "title": "International prognostic score for asymptomatic early-stage CLL",
+    "externalId": 804,
+    "status": "planned"
+  },
+  {
+    "slug": "tevar-mortality-risk-calculator",
+    "title": "TEVAR Mortality Risk Calculator",
+    "externalId": 809,
+    "status": "planned"
+  },
+  {
+    "slug": "spinal-instability-neoplastic-score-sins",
+    "title": "Spinal Instability Neoplastic Score (SINS)",
+    "externalId": 810,
+    "status": "planned"
+  },
+  {
+    "slug": "ecabg-score",
+    "title": "ECABG score",
+    "externalId": 811,
+    "status": "planned"
+  },
+  {
+    "slug": "canadian-tia-score",
+    "title": "Canadian TIA Score",
+    "externalId": 815,
+    "status": "planned"
+  },
+  {
+    "slug": "severe-covid-19-prediction-tool",
+    "title": "Severe COVID-19 Prediction Tool",
+    "externalId": 816,
+    "status": "planned"
+  },
+  {
+    "slug": "madit-icd-benefit-score",
+    "title": "MADIT-ICD Benefit Score",
+    "externalId": 817,
+    "status": "planned"
+  },
+  {
+    "slug": "penn-alcohol-craving-scale-pacs",
+    "title": "Penn Alcohol Craving Scale (PACS)",
+    "externalId": 818,
+    "status": "planned"
+  },
+  {
+    "slug": "insomnia-severity-index-isi",
+    "title": "Insomnia Severity Index (ISI)",
+    "externalId": 820,
+    "status": "planned"
+  },
+  {
+    "slug": "morningness-eveningness-questionnaire-meq",
+    "title": "Morningness-Eveningness Questionnaire (MEQ)",
+    "externalId": 829,
+    "status": "planned"
+  },
+  {
+    "slug": "aki-risk-after-surgery-postop-make-by-woo",
+    "title": "AKI risk after surgery (Postop-MAKE by Woo)",
+    "externalId": 834,
+    "status": "planned"
+  },
+  {
+    "slug": "save-survival-after-veno-arterial-ecmo-score",
+    "title": "SAVE (Survival after Veno-Arterial ECMO) Score",
+    "externalId": 837,
+    "status": "planned"
+  },
+  {
+    "slug": "obstetric-comorbidity-index",
+    "title": "Obstetric Comorbidity Index",
+    "externalId": 838,
+    "status": "planned"
+  },
+  {
+    "slug": "international-igan-prediction-tool-post-biopsy-adults",
+    "title": "International IgAN Prediction Tool post-biopsy - Adults",
+    "externalId": 839,
+    "status": "planned"
+  },
+  {
+    "slug": "os-probability-following-crc-surgery",
+    "title": "OS Probability Following CRC Surgery",
+    "externalId": 840,
+    "status": "planned"
+  },
+  {
+    "slug": "pharmacotherapy-for-type-2-diabetes-2020-update-to-the-diabetes-canada-guidelines",
+    "title": "Pharmacotherapy for Type 2 Diabetes (2020 update to the Diabetes Canada guidelines)",
+    "externalId": 841,
+    "status": "planned"
+  },
+  {
+    "slug": "mifflin-st-jeor-equation-calculator",
+    "title": "Mifflin-St Jeor Equation Calculator",
+    "externalId": 846,
+    "status": "planned"
+  },
+  {
+    "slug": "ischemia-risk-score",
+    "title": "Ischemia Risk Score",
+    "externalId": 849,
+    "status": "planned"
+  },
+  {
+    "slug": "frequency-intensity-and-burden-of-side-effects-rating-scale-fibser-revised",
+    "title": "Frequency, Intensity and Burden of Side Effects Rating Scale (FIBSER) Revised",
+    "externalId": 858,
+    "status": "planned"
+  },
+  {
+    "slug": "sick-control-one-fat-food-scoff",
+    "title": "Sick, Control, One, Fat, Food (SCOFF)",
+    "externalId": 859,
+    "status": "planned"
+  },
+  {
+    "slug": "egfr-using-ckd-epi-creatinine-cystatin-c-equation-2021",
+    "title": "eGFR using CKD-EPI (Creatinine-Cystatin C) Equation (2021)",
+    "externalId": 863,
+    "status": "planned"
+  },
+  {
+    "slug": "blood-volume-estimation-in-obesity",
+    "title": "Blood volume estimation in obesity",
+    "externalId": 864,
+    "status": "planned"
+  },
+  {
+    "slug": "flipi24",
+    "title": "FLIPI24",
+    "externalId": 865,
+    "status": "planned"
+  },
+  {
+    "slug": "the-mood-and-feelings-questionnaire-mfq-child-long-version",
+    "title": "The Mood and Feelings Questionnaire (MFQ) - Child Long Version",
+    "externalId": 866,
+    "status": "planned"
+  },
+  {
+    "slug": "the-mood-and-feelings-questionnaire-mfq-parent-long-version",
+    "title": "The Mood and Feelings Questionnaire (MFQ) - Parent Long Version",
+    "externalId": 867,
+    "status": "planned"
+  },
+  {
+    "slug": "estimated-2-year-pfs2-with-2l-btki-in-r-r-mcl",
+    "title": "Estimated 2-year PFS2 with 2L BTKi in R/R MCL",
+    "externalId": 868,
+    "status": "planned"
+  },
+  {
+    "slug": "a-hipi",
+    "title": "A-HIPI",
+    "externalId": 869,
+    "status": "planned"
+  },
+  {
+    "slug": "therapy-disability-neurology-grade",
+    "title": "Therapy-Disability-Neurology Grade",
+    "externalId": 870,
+    "status": "planned"
+  },
+  {
+    "slug": "egfr-using-updated-mdrd-equation-2006",
+    "title": "eGFR using Updated MDRD Equation (2006)",
+    "externalId": 872,
+    "status": "planned"
+  },
+  {
+    "slug": "kidney-recovery-and-death-in-outpatients-risk-group-redo-risk-group",
+    "title": "KIDNEY RECOVERY AND DEATH IN OUTPATIENTS RISK GROUP (ReDO Risk group)",
+    "externalId": 874,
+    "status": "planned"
+  },
+  {
+    "slug": "mentzer-index",
+    "title": "Mentzer Index",
+    "externalId": 878,
+    "status": "planned"
+  },
+  {
+    "slug": "charlson-comorbidity-index-score-cci-score",
+    "title": "Charlson comorbidity Index score (CCI Score)",
+    "externalId": 879,
+    "status": "planned"
+  },
+  {
+    "slug": "new-england-spinal-metastatic-score-nesms",
+    "title": "New England Spinal Metastatic Score (NESMS)",
+    "externalId": 882,
+    "status": "planned"
+  },
+  {
+    "slug": "free-water-deficit",
+    "title": "Free Water Deficit",
+    "externalId": 884,
+    "status": "planned"
+  },
+  {
+    "slug": "revised-fibromyalgia-impact-questionnaire-fiqr",
+    "title": "REVISED FIBROMYALGIA IMPACT QUESTIONNAIRE (FIQR)",
+    "externalId": 885,
+    "status": "planned"
+  },
+  {
+    "slug": "primary-hyperoxaluria-prediction-tool",
+    "title": "Primary Hyperoxaluria Prediction Tool",
+    "externalId": 886,
+    "status": "planned"
+  },
+  {
+    "slug": "maternal-blood-volume-estimator",
+    "title": "Maternal blood volume estimator",
+    "externalId": 887,
+    "status": "planned"
+  },
+  {
+    "slug": "denova-score",
+    "title": "DENOVA score",
+    "externalId": 889,
+    "status": "planned"
+  },
+  {
+    "slug": "international-igan-prediction-tool-post-biopsy-pediatric",
+    "title": "International IgAN Prediction Tool post-biopsy \u2013 Pediatric",
+    "externalId": 890,
+    "status": "planned"
+  },
+  {
+    "slug": "normal-ckid-u25-serum-creatinine",
+    "title": "Normal CKiD U25 Serum Creatinine",
+    "externalId": 891,
+    "status": "planned"
+  },
+  {
+    "slug": "cardiac-output-fick-method",
+    "title": "Cardiac output - Fick method",
+    "externalId": 892,
+    "status": "planned"
+  },
+  {
+    "slug": "weight-based-liquid-medication-dosing",
+    "title": "Weight-based liquid medication dosing",
+    "externalId": 895,
+    "status": "planned"
+  },
+  {
+    "slug": "bishop",
+    "title": "Bishop Score",
+    "status": "shipped"
+  }
+]

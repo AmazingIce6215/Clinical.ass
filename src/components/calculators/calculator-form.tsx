@@ -47,7 +47,7 @@ export function CalculatorForm({
         className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-accent-foreground outline-none transition-colors hover:brightness-95 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface motion-reduce:transition-none"
       >
         <CalculatorGlyph className="size-4" aria-hidden="true" />
-        {hasResult ? "Recalculate score" : "Calculate score"}
+        {hasResult ? "Recalculate" : "Calculate"}
       </button>
     </form>
   );

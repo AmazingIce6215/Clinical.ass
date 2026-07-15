@@ -5,9 +5,12 @@ export type {
   CalculatorIconKey,
   CalculatorReference,
   CalculatorResult,
+  CalculatorResultKind,
   CalculatorValue,
   CalculatorValues,
   CalculatorCategory,
+  CatalogEntry,
+  CatalogStatus,
   FieldOption,
   FieldType,
   ISODate,
@@ -22,3 +25,10 @@ export {
   formatCalculatorCategory,
   CALCULATOR_FAVORITES_STORAGE_KEY,
 } from "./registry";
+
+export {
+  CALCULATOR_CATALOG,
+  getCatalogEntries,
+  getCatalogEntry,
+  catalogCoverageSummary,
+} from "./catalog";

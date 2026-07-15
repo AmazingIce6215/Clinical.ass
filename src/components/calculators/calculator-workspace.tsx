@@ -127,10 +127,10 @@ function CalculatorWorkspaceContent({ calculator }: { calculator: CalculatorDefi
               <CalculatorIcon name={calculator.icon} className="size-6" />
             </span>
             <h2 id="calculator-result-heading" className="mt-4 text-lg font-semibold text-foreground">
-              No score calculated
+              No result calculated
             </h2>
             <p className="mt-2 max-w-md text-sm leading-6 text-muted">
-              Complete the patient variables, then calculate to view the score, interpretation,
+              Complete the patient variables, then calculate to view the result, interpretation,
               limitations, and component breakdown.
             </p>
           </section>

@@ -42,6 +42,8 @@ const severityConfig: Record<
 
 export function CalculatorResultDisplay({ result, onReset }: CalculatorResultProps) {
   const config = severityConfig[result.severity];
+  const isFormula = result.kind === "formula" || result.maxScore === 0;
+  const displayValue = result.primaryValue ?? result.score;
 
   return (
     <section
@@ -54,14 +56,22 @@ export function CalculatorResultDisplay({ result, onReset }: CalculatorResultPro
         aria-live="polite"
       >
         <h2 id="calculator-result-heading" className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
-          Calculated score
+          {isFormula ? "Calculated result" : "Calculated score"}
         </h2>
         <output
           className={cn("mt-2 block font-mono text-4xl font-semibold tracking-tight", config.text)}
-          aria-label={`Calculated score ${result.score} out of ${result.maxScore}`}
+          aria-label={
+            isFormula
+              ? `Calculated result ${displayValue}${result.unit ? ` ${result.unit}` : ""}`
+              : `Calculated score ${result.score} out of ${result.maxScore}`
+          }
         >
-          {result.score}
-          <span className="ml-1 text-base font-medium text-muted">/ {result.maxScore}</span>
+          {displayValue}
+          {isFormula ? (
+            result.unit ? <span className="ml-1 text-base font-medium text-muted">{result.unit}</span> : null
+          ) : (
+            <span className="ml-1 text-base font-medium text-muted">/ {result.maxScore}</span>
+          )}
         </output>
         <p className={cn("mt-3 text-sm font-semibold", config.text)}>{result.label}</p>
       </div>

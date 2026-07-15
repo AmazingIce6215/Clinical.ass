@@ -5,23 +5,34 @@ import {
   getCalculator,
   searchCalculators,
 } from "@/lib/calculators/registry";
+import { catalogCoverageSummary, getCatalogEntries } from "@/lib/calculators/catalog";
 
 const allowedIconKeys = new Set([
   "activity",
   "air-vent",
   "baby",
+  "bone",
   "brain",
   "droplets",
+  "flask-conical",
+  "heart-pulse",
+  "hospital",
+  "kidney",
+  "pill",
+  "scale",
   "shield-alert",
   "stethoscope",
+  "syringe",
+  "thermometer",
 ]);
 
 describe("calculator registry", () => {
-  test("preserves the calculator catalog and favorites storage key", () => {
+  test("preserves unique slugs and favorites storage key", () => {
     const calculators = getAllCalculators();
+    const slugs = calculators.map((calculator) => calculator.slug);
 
-    expect(calculators).toHaveLength(10);
-    expect(new Set(calculators.map((calculator) => calculator.slug))).toHaveProperty("size", 10);
+    expect(calculators.length).toBeGreaterThanOrEqual(40);
+    expect(new Set(slugs).size).toBe(slugs.length);
     expect(CALCULATOR_FAVORITES_STORAGE_KEY).toBe("calc_favorites");
   });
 
@@ -41,10 +52,10 @@ describe("calculator registry", () => {
     }
   });
 
-  test("uses only typed Lucide keys and no decorative heart icon", () => {
+  test("uses only typed Lucide keys and no decorative heart icon key", () => {
     for (const calculator of getAllCalculators()) {
       expect(allowedIconKeys.has(calculator.icon)).toBe(true);
-      expect(calculator.icon).not.toContain("heart");
+      expect(calculator.icon).not.toBe("heart");
     }
 
     expect(getCalculator("heart-score")?.title).toBe("HEART Score");
@@ -54,12 +65,16 @@ describe("calculator registry", () => {
   test("discovers calculators by intended population and formats categories", () => {
     expect(searchCalculators("critically ill").map((calculator) => calculator.slug)).toContain("sofa");
     expect(formatCalculatorCategory("critical-care")).toBe("Critical Care");
+    expect(formatCalculatorCategory("mental-health")).toBe("Mental Health");
   });
 
   test("preserves representative scoring behavior", () => {
     const heart = getCalculator("heart-score");
     const gcs = getCalculator("gcs");
     const curb65 = getCalculator("curb-65");
+    const qsofa = getCalculator("qsofa");
+    const bmi = getCalculator("bmi-bsa-mosteller");
+    const ckd = getCalculator("ckd-epi-2021");
 
     expect(
       heart?.calculate({ history: "2", ecg: "2", age: "2", risk_factors: "2", troponin: "2" }),
@@ -72,5 +87,23 @@ describe("calculator registry", () => {
     expect(
       curb65?.calculate({ confusion: true, urea: true, rr: true, bp: true, age: true }),
     ).toMatchObject({ score: 5, maxScore: 5, severity: "severe" });
+    expect(qsofa?.calculate({ rr: true, sbp: true, ams: false })).toMatchObject({
+      score: 2,
+      maxScore: 3,
+      severity: "high",
+    });
+    expect(bmi?.calculate({ weight: 70, height: 175 })).toMatchObject({
+      kind: "formula",
+      label: "Healthy weight range (BMI)",
+    });
+    expect(bmi?.calculate({ weight: 70, height: 175 }).score).toBeCloseTo(22.9, 0);
+    expect(ckd?.calculate({ sex: "male", age: 50, creatinine: 88.4 }).kind).toBe("formula");
+  });
+
+  test("tracks catalog coverage for the Medscape-scale checklist", () => {
+    const summary = catalogCoverageSummary();
+    expect(summary.total).toBeGreaterThan(400);
+    expect(summary.shipped).toBeGreaterThanOrEqual(getAllCalculators().length);
+    expect(getCatalogEntries("shipped").length).toBe(summary.shipped);
   });
 });

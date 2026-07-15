@@ -54,7 +54,7 @@ describe("calculator interface", () => {
     const user = userEvent.setup();
     render(<CalculatorWorkspace slug="heart-score" />);
 
-    await user.click(screen.getByRole("button", { name: "Calculate score" }));
+    await user.click(screen.getByRole("button", { name: "Calculate" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Complete the following fields");
 
     await user.selectOptions(screen.getByLabelText("History (typical chest pain features)"), "0");
@@ -62,14 +62,14 @@ describe("calculator interface", () => {
     await user.selectOptions(screen.getByLabelText("Age"), "0");
     await user.selectOptions(screen.getByLabelText("Risk Factors"), "0");
     await user.selectOptions(screen.getByLabelText("Initial Troponin"), "0");
-    await user.click(screen.getByRole("button", { name: "Calculate score" }));
+    await user.click(screen.getByRole("button", { name: "Calculate" }));
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByText("Lower-risk score band")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Considerations for clinical review" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Clear result and start again" }));
-    expect(screen.getByRole("heading", { name: "No score calculated" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "No result calculated" })).toBeInTheDocument();
   });
 
   test("uses neutral educational labels for result guidance", () => {
@@ -97,9 +97,9 @@ describe("calculator interface", () => {
 
     await user.click(screen.getByLabelText("Age ≥ 75 years (+2)"));
     await user.click(screen.getByLabelText("Age 65–74 years (+1)"));
-    await user.click(screen.getByRole("button", { name: "Calculate score" }));
+    await user.click(screen.getByRole("button", { name: "Calculate" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent("Select only one age band");
-    expect(screen.getByRole("heading", { name: "No score calculated" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "No result calculated" })).toBeInTheDocument();
   });
 });
